@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Apply migration 033 (normalize CHECK constraints) to Supabase prod."""
+
 import os
 import sys
 from pathlib import Path
+
 import psycopg
 
 

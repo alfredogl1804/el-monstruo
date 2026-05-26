@@ -26,7 +26,7 @@ import logging
 import os
 import urllib.error
 import urllib.request
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Optional
 from uuid import uuid4
@@ -38,9 +38,11 @@ logger = logging.getLogger("monstruo.sms.supabase")
 # CONFIG
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class SMSConfig:
     """Configuration for SMS Supabase adapter."""
+
     url: str = ""
     service_key: str = ""
     openai_api_key: str = ""
@@ -58,10 +60,7 @@ class SMSConfig:
         """Load config from environment variables."""
         return cls(
             url=os.environ.get("SUPABASE_URL", ""),
-            service_key=(
-                os.environ.get("SUPABASE_SERVICE_KEY")
-                or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-            ),
+            service_key=(os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")),
             openai_api_key=os.environ.get("OPENAI_API_KEY", ""),
             openai_base_url=os.environ.get("OPENAI_API_BASE", "") or "https://api.openai.com/v1",
             openrouter_api_key=os.environ.get("OPENROUTER_API_KEY", ""),
@@ -88,6 +87,7 @@ class SMSConfig:
 # ═══════════════════════════════════════════════════════════════════════════════
 # HTTP HELPERS (zero dependencies)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class SMSSupabaseError(Exception):
     pass
@@ -160,6 +160,7 @@ def _supabase_rpc(
 # EMBEDDING GENERATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def generate_embedding(text: str, config: SMSConfig) -> Optional[list[float]]:
     """Generate embedding using OpenAI API (text-embedding-3-small)."""
     if not config.can_embed:
@@ -219,8 +220,7 @@ def _audn_evaluate(
 
     # Build context of existing memories
     existing_text = "\n".join(
-        f"- [id={m.get('id','?')}] {m.get('content', m.get('statement',''))[:200]}"
-        for m in existing_memories[:10]
+        f"- [id={m.get('id', '?')}] {m.get('content', m.get('statement', ''))[:200]}" for m in existing_memories[:10]
     )
 
     user_prompt = f"""NEW MEMORY: {new_content}
@@ -250,7 +250,9 @@ Action:"""
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(
             "https://openrouter.ai/api/v1/chat/completions",
-            data=data, headers=headers, method="POST",
+            data=data,
+            headers=headers,
+            method="POST",
         )
         with urllib.request.urlopen(req, timeout=30) as resp:
             result = json.loads(resp.read().decode("utf-8"))
@@ -279,10 +281,11 @@ Action:"""
 # SMS SUPABASE ADAPTER
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class SMSSupabaseAdapter:
     """
     Persistent storage adapter for the Sovereign Memory System.
-    
+
     Supports any AI agent via agent_id scoping:
     - monstruo (orchestrator)
     - manus_c (Manus executor)
@@ -336,7 +339,9 @@ class SMSSupabaseAdapter:
 
         try:
             result = _supabase_request(
-                self.config, "POST", "/sovereign_axioms",
+                self.config,
+                "POST",
+                "/sovereign_axioms",
                 body=body,
                 extra_headers={
                     "Prefer": "resolution=merge-duplicates,return=representation",
@@ -407,7 +412,8 @@ class SMSSupabaseAdapter:
         try:
             # Use RPC or PATCH with increment
             _supabase_request(
-                self.config, "PATCH",
+                self.config,
+                "PATCH",
                 f"/sovereign_axioms?id=eq.{axiom_id}",
                 body={
                     "last_validated": datetime.now(timezone.utc).isoformat(),
@@ -446,16 +452,18 @@ class SMSSupabaseAdapter:
         audn_target = None
         if not skip_audn and self.config.can_audn and embedding:
             # Find similar existing memories to evaluate against
-            similar = _supabase_rpc(self.config, "match_sovereign_memories", {
-                "query_embedding": json.dumps(embedding),
-                "match_threshold": 0.5,
-                "match_count": 5,
-                "only_alive": True,
-            })
+            similar = _supabase_rpc(
+                self.config,
+                "match_sovereign_memories",
+                {
+                    "query_embedding": json.dumps(embedding),
+                    "match_threshold": 0.5,
+                    "match_count": 5,
+                    "only_alive": True,
+                },
+            )
             if similar:
-                audn_action, audn_target = _audn_evaluate(
-                    self.config, content, similar
-                )
+                audn_action, audn_target = _audn_evaluate(self.config, content, similar)
                 logger.info(f"AUDN decision: {audn_action} (target={audn_target})")
 
                 if audn_action == "NONE":
@@ -466,7 +474,8 @@ class SMSSupabaseAdapter:
                     # Update the existing memory with new content
                     try:
                         _supabase_request(
-                            self.config, "PATCH",
+                            self.config,
+                            "PATCH",
                             f"/sovereign_memories?id=eq.{audn_target}",
                             body={
                                 "content": content,
@@ -525,7 +534,9 @@ class SMSSupabaseAdapter:
 
         try:
             result = _supabase_request(
-                self.config, "POST", "/sovereign_memories",
+                self.config,
+                "POST",
+                "/sovereign_memories",
                 body=body,
                 extra_headers={
                     "Prefer": "resolution=merge-duplicates,return=representation",
@@ -622,7 +633,8 @@ class SMSSupabaseAdapter:
 
         try:
             _supabase_request(
-                self.config, "PATCH",
+                self.config,
+                "PATCH",
                 f"/sovereign_memories?id=eq.{memory_id}",
                 body={
                     "is_alive": False,
@@ -642,7 +654,8 @@ class SMSSupabaseAdapter:
 
         try:
             _supabase_request(
-                self.config, "PATCH",
+                self.config,
+                "PATCH",
                 f"/sovereign_memories?id=eq.{memory_id}",
                 body={"last_accessed": datetime.now(timezone.utc).isoformat()},
                 extra_headers={"Prefer": "return=minimal"},
@@ -663,7 +676,7 @@ class SMSSupabaseAdapter:
         agent_filter: str = None,
     ) -> list[dict]:
         """Semantic search over memories valid at a specific point in time.
-        
+
         Answers: 'What did the system know on Tuesday?'
         Uses RPC match_sovereign_memories_temporal from migration 0053.
         """
@@ -688,7 +701,7 @@ class SMSSupabaseAdapter:
 
     def invalidate_memory(self, memory_id: str) -> bool:
         """Mark a memory as temporally invalid (superseded, not deleted).
-        
+
         Sets invalid_at to NOW. The memory remains queryable for historical
         point-in-time searches but won't appear in current queries.
         """
@@ -697,7 +710,8 @@ class SMSSupabaseAdapter:
 
         try:
             _supabase_request(
-                self.config, "PATCH",
+                self.config,
+                "PATCH",
                 f"/sovereign_memories?id=eq.{memory_id}",
                 body={
                     "invalid_at": datetime.now(timezone.utc).isoformat(),
@@ -733,7 +747,9 @@ class SMSSupabaseAdapter:
 
         try:
             result = _supabase_request(
-                self.config, "POST", "/sovereign_causal_chains",
+                self.config,
+                "POST",
+                "/sovereign_causal_chains",
                 body=body,
                 extra_headers={"Prefer": "return=representation"},
             )
@@ -767,7 +783,9 @@ class SMSSupabaseAdapter:
 
         try:
             result = _supabase_request(
-                self.config, "POST", "/sovereign_knowledge_gaps",
+                self.config,
+                "POST",
+                "/sovereign_knowledge_gaps",
                 body=body,
                 extra_headers={"Prefer": "return=representation"},
             )
@@ -790,7 +808,8 @@ class SMSSupabaseAdapter:
 
         try:
             _supabase_request(
-                self.config, "PATCH",
+                self.config,
+                "PATCH",
                 f"/sovereign_knowledge_gaps?id=eq.{gap_id}",
                 body=body,
                 extra_headers={"Prefer": "return=minimal"},
@@ -844,7 +863,9 @@ class SMSSupabaseAdapter:
 
         try:
             result = _supabase_request(
-                self.config, "POST", "/sovereign_conflict_log",
+                self.config,
+                "POST",
+                "/sovereign_conflict_log",
                 body=body,
                 extra_headers={"Prefer": "return=representation"},
             )
@@ -861,7 +882,7 @@ class SMSSupabaseAdapter:
         agent: str,
     ) -> None:
         """Log AUDN conflict resolution to sovereign_conflict_log.
-        
+
         Called when AUDN decides UPDATE or DELETE — meaning the new memory
         supersedes or contradicts an existing one. This creates an audit trail
         of all AUDN arbitration decisions.
@@ -870,10 +891,7 @@ class SMSSupabaseAdapter:
         # (it hasn't been stored yet, so we use a hash-based UUID)
         new_memory_pseudo_id = str(uuid4())
 
-        reason = (
-            f"AUDN {action}: new content supersedes existing memory. "
-            f"New: {new_content[:100]}..."
-        )
+        reason = f"AUDN {action}: new content supersedes existing memory. New: {new_content[:100]}..."
 
         body = {
             "memory_a_id": existing_id,
@@ -886,7 +904,9 @@ class SMSSupabaseAdapter:
 
         try:
             _supabase_request(
-                self.config, "POST", "/sovereign_conflict_log",
+                self.config,
+                "POST",
+                "/sovereign_conflict_log",
                 body=body,
                 extra_headers={"Prefer": "return=minimal"},
             )
@@ -923,7 +943,9 @@ class SMSSupabaseAdapter:
 
         try:
             result = _supabase_request(
-                self.config, "POST", "/sovereign_agent_registry",
+                self.config,
+                "POST",
+                "/sovereign_agent_registry",
                 body=body,
                 extra_headers={
                     "Prefer": "resolution=merge-duplicates,return=representation",
@@ -943,7 +965,8 @@ class SMSSupabaseAdapter:
 
         try:
             result = _supabase_request(
-                self.config, "GET",
+                self.config,
+                "GET",
                 f"/sovereign_agent_registry?agent_id=eq.{agent_id}&limit=1",
             )
             return result[0] if isinstance(result, list) and result else None
@@ -994,7 +1017,9 @@ class SMSSupabaseAdapter:
 
         try:
             result = _supabase_request(
-                self.config, "POST", "/sovereign_consolidation_log",
+                self.config,
+                "POST",
+                "/sovereign_consolidation_log",
                 body=body,
                 extra_headers={"Prefer": "return=representation"},
             )
@@ -1015,10 +1040,10 @@ class SMSSupabaseAdapter:
     ) -> str:
         """
         Generate a context injection block for ANY AI agent.
-        
+
         This is the key function that any thread (Manus, ChatGPT, Claude, etc.)
         calls at session start to receive their sovereign context.
-        
+
         Returns a formatted string ready to inject into a system prompt.
         """
         if not self.available:
@@ -1084,22 +1109,26 @@ class SMSSupabaseAdapter:
 
         try:
             axioms = _supabase_request(
-                self.config, "GET",
+                self.config,
+                "GET",
                 "/sovereign_axioms?select=id&is_active=eq.true",
                 extra_headers={"Prefer": "count=exact"},
             )
             memories = _supabase_request(
-                self.config, "GET",
+                self.config,
+                "GET",
                 "/sovereign_memories?select=id&is_alive=eq.true",
                 extra_headers={"Prefer": "count=exact"},
             )
             gaps = _supabase_request(
-                self.config, "GET",
+                self.config,
+                "GET",
                 "/sovereign_knowledge_gaps?select=id&is_resolved=eq.false",
                 extra_headers={"Prefer": "count=exact"},
             )
             agents = _supabase_request(
-                self.config, "GET",
+                self.config,
+                "GET",
                 "/sovereign_agent_registry?select=id&is_active=eq.true",
                 extra_headers={"Prefer": "count=exact"},
             )
@@ -1113,7 +1142,6 @@ class SMSSupabaseAdapter:
             }
         except SMSSupabaseError as e:
             return {"status": "error", "reason": str(e)}
-
 
     # ═══════════════════════════════════════════════════════════════════════════
     # KNOWLEDGE GRAPH (Migration 0054)
@@ -1154,8 +1182,8 @@ class SMSSupabaseAdapter:
 
         prompt = (
             "Extract entities from this text. Return JSON array only.\n"
-            "Each entity: {\"name\": str, \"type\": person|object|location|event|"
-            "organization|concept|system|decision, \"role\": subject|object|context|mentions}\n\n"
+            'Each entity: {"name": str, "type": person|object|location|event|'
+            'organization|concept|system|decision, "role": subject|object|context|mentions}\n\n'
             f"Text: {content[:2000]}\n\nJSON:"
         )
         try:
@@ -1189,22 +1217,45 @@ class SMSSupabaseAdapter:
         content_lower = content.lower()
 
         patterns = {
-            "system": ["sms", "audn", "rem cycle", "guardian", "kernel", "monstruo",
-                       "supabase", "railway", "langfuse", "langchain", "langgraph"],
+            "system": [
+                "sms",
+                "audn",
+                "rem cycle",
+                "guardian",
+                "kernel",
+                "monstruo",
+                "supabase",
+                "railway",
+                "langfuse",
+                "langchain",
+                "langgraph",
+            ],
             "person": ["alfredo", "cowork", "manus"],
-            "concept": ["dory", "axiom", "crystallization", "compaction", "sovereign",
-                        "memory", "embedding", "rls", "deploy", "sprint"],
+            "concept": [
+                "dory",
+                "axiom",
+                "crystallization",
+                "compaction",
+                "sovereign",
+                "memory",
+                "embedding",
+                "rls",
+                "deploy",
+                "sprint",
+            ],
             "organization": ["leones", "ticketlike", "cip"],
         }
 
         for entity_type, terms in patterns.items():
             for term in terms:
                 if term in content_lower:
-                    entities.append({
-                        "name": term.title() if entity_type == "person" else term,
-                        "type": entity_type,
-                        "role": "mentions",
-                    })
+                    entities.append(
+                        {
+                            "name": term.title() if entity_type == "person" else term,
+                            "type": entity_type,
+                            "role": "mentions",
+                        }
+                    )
         return entities
 
     def _upsert_entity(self, entity: dict) -> Optional[str]:
@@ -1218,7 +1269,9 @@ class SMSSupabaseAdapter:
         }
         try:
             result = _supabase_request(
-                self.config, "POST", "/memory_entities",
+                self.config,
+                "POST",
+                "/memory_entities",
                 body=body,
                 extra_headers={
                     "Prefer": "resolution=merge-duplicates,return=representation",
@@ -1229,7 +1282,8 @@ class SMSSupabaseAdapter:
                 # Increment mention_count
                 eid = result[0]["id"]
                 _supabase_request(
-                    self.config, "PATCH",
+                    self.config,
+                    "PATCH",
                     f"/memory_entities?id=eq.{eid}",
                     body={"mention_count": result[0].get("mention_count", 0) + 1},
                     extra_headers={"Prefer": "return=minimal"},
@@ -1244,7 +1298,9 @@ class SMSSupabaseAdapter:
         """Create a link between a memory and an entity."""
         try:
             _supabase_request(
-                self.config, "POST", "/memory_entity_links",
+                self.config,
+                "POST",
+                "/memory_entity_links",
                 body={
                     "memory_id": memory_id,
                     "entity_id": entity_id,
@@ -1279,12 +1335,16 @@ class SMSSupabaseAdapter:
         if not embedding:
             return []
 
-        results = _supabase_rpc(self.config, "graph_enhanced_recall", {
-            "query_embedding": json.dumps(embedding),
-            "match_threshold": threshold,
-            "match_count": limit,
-            "graph_expansion": use_graph,
-        })
+        results = _supabase_rpc(
+            self.config,
+            "graph_enhanced_recall",
+            {
+                "query_embedding": json.dumps(embedding),
+                "match_threshold": threshold,
+                "match_count": limit,
+                "graph_expansion": use_graph,
+            },
+        )
         return results if isinstance(results, list) else []
 
     def get_entity_neighborhood(self, entity_id: str, relation_filter: str = None) -> list[dict]:
@@ -1303,10 +1363,14 @@ class SMSSupabaseAdapter:
         if not self.available:
             return []
 
-        return _supabase_rpc(self.config, "get_memories_for_entity", {
-            "p_entity_id": entity_id,
-            "p_limit": limit,
-        })
+        return _supabase_rpc(
+            self.config,
+            "get_memories_for_entity",
+            {
+                "p_entity_id": entity_id,
+                "p_limit": limit,
+            },
+        )
 
     def create_relation(
         self,
@@ -1331,7 +1395,9 @@ class SMSSupabaseAdapter:
 
         try:
             _supabase_request(
-                self.config, "POST", "/memory_relations",
+                self.config,
+                "POST",
+                "/memory_relations",
                 body=body,
                 extra_headers={
                     "Prefer": "resolution=merge-duplicates,return=minimal",
@@ -1365,13 +1431,17 @@ class SMSSupabaseAdapter:
         if not self.available:
             return {"error": "unavailable"}
 
-        result = _supabase_rpc(self.config, "cascade_invalidation", {
-            "p_memory_id": memory_id,
-            "p_reason": reason,
-            "p_agent_id": agent_id,
-            "p_strategy": strategy,
-            "p_max_depth": max_depth,
-        })
+        result = _supabase_rpc(
+            self.config,
+            "cascade_invalidation",
+            {
+                "p_memory_id": memory_id,
+                "p_reason": reason,
+                "p_agent_id": agent_id,
+                "p_strategy": strategy,
+                "p_max_depth": max_depth,
+            },
+        )
         return result if isinstance(result, dict) else {"result": result}
 
     def register_dependency(
@@ -1388,12 +1458,16 @@ class SMSSupabaseAdapter:
         if not self.available:
             return False
 
-        result = _supabase_rpc(self.config, "register_dependency", {
-            "p_premise_id": premise_id,
-            "p_dependent_id": dependent_id,
-            "p_type": dependency_type,
-            "p_strength": strength,
-        })
+        result = _supabase_rpc(
+            self.config,
+            "register_dependency",
+            {
+                "p_premise_id": premise_id,
+                "p_dependent_id": dependent_id,
+                "p_type": dependency_type,
+                "p_strength": strength,
+            },
+        )
         return bool(result)
 
     def get_pending_revalidations(self, limit: int = 50) -> list[dict]:
@@ -1401,9 +1475,13 @@ class SMSSupabaseAdapter:
         if not self.available:
             return []
 
-        return _supabase_rpc(self.config, "get_pending_revalidations", {
-            "p_limit": limit,
-        })
+        return _supabase_rpc(
+            self.config,
+            "get_pending_revalidations",
+            {
+                "p_limit": limit,
+            },
+        )
 
     def revalidate_memory(self, memory_id: str, is_still_valid: bool = True) -> bool:
         """Mark a memory as revalidated (or invalidated) after review."""
@@ -1417,7 +1495,8 @@ class SMSSupabaseAdapter:
                 body["is_alive"] = False
                 body["invalid_at"] = datetime.now(timezone.utc).isoformat()
             _supabase_request(
-                self.config, "PATCH",
+                self.config,
+                "PATCH",
                 f"/sovereign_memories?id=eq.{memory_id}",
                 body=body,
                 extra_headers={"Prefer": "return=minimal"},
@@ -1438,7 +1517,9 @@ class SMSSupabaseAdapter:
 
         try:
             _supabase_request(
-                self.config, "POST", "/memory_access_log",
+                self.config,
+                "POST",
+                "/memory_access_log",
                 body={
                     "memory_id": memory_id,
                     "agent_id": agent_id,
@@ -1461,9 +1542,13 @@ class SMSSupabaseAdapter:
         if not self.available:
             return {"error": "unavailable"}
 
-        result = _supabase_rpc(self.config, "compute_importance_scores", {
-            "p_batch_size": batch_size,
-        })
+        result = _supabase_rpc(
+            self.config,
+            "compute_importance_scores",
+            {
+                "p_batch_size": batch_size,
+            },
+        )
         return result if isinstance(result, dict) else {"result": result}
 
     def archive_low_importance(self, threshold: float = 0.15, min_age_days: int = 30) -> dict:
@@ -1475,10 +1560,14 @@ class SMSSupabaseAdapter:
         if not self.available:
             return {"error": "unavailable"}
 
-        result = _supabase_rpc(self.config, "archive_low_importance_memories", {
-            "p_threshold": threshold,
-            "p_min_age_days": min_age_days,
-        })
+        result = _supabase_rpc(
+            self.config,
+            "archive_low_importance_memories",
+            {
+                "p_threshold": threshold,
+                "p_min_age_days": min_age_days,
+            },
+        )
         return result if isinstance(result, dict) else {"result": result}
 
     def merge_similar_memories(self, similarity_threshold: float = 0.95) -> dict:
@@ -1490,9 +1579,13 @@ class SMSSupabaseAdapter:
         if not self.available:
             return {"error": "unavailable"}
 
-        result = _supabase_rpc(self.config, "merge_similar_memories", {
-            "p_similarity_threshold": similarity_threshold,
-        })
+        result = _supabase_rpc(
+            self.config,
+            "merge_similar_memories",
+            {
+                "p_similarity_threshold": similarity_threshold,
+            },
+        )
         return result if isinstance(result, dict) else {"result": result}
 
     def get_memory_stats(self) -> dict:
@@ -1502,22 +1595,26 @@ class SMSSupabaseAdapter:
 
         try:
             entities = _supabase_request(
-                self.config, "GET",
+                self.config,
+                "GET",
                 "/memory_entities?select=id&is_active=eq.true",
                 extra_headers={"Prefer": "count=exact"},
             )
             relations = _supabase_request(
-                self.config, "GET",
+                self.config,
+                "GET",
                 "/memory_relations?select=id",
                 extra_headers={"Prefer": "count=exact"},
             )
             pending_reval = _supabase_request(
-                self.config, "GET",
+                self.config,
+                "GET",
                 "/sovereign_memories?select=id&revalidation_status=eq.needs_revalidation",
                 extra_headers={"Prefer": "count=exact"},
             )
             archived = _supabase_request(
-                self.config, "GET",
+                self.config,
+                "GET",
                 "/sovereign_memories?select=id&is_archived=eq.true",
                 extra_headers={"Prefer": "count=exact"},
             )

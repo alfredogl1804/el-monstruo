@@ -17,10 +17,10 @@ Usage:
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 import time
-import logging
 from typing import Any, Literal, Optional
 
 import httpx
@@ -43,8 +43,8 @@ _API_KEYS: dict[str, str] = {
 }
 
 TERMINAL_STATUSES = frozenset({"completed", "failed", "cancelled", "error"})
-DEFAULT_POLL_INTERVAL = 5.0   # seconds between status checks
-DEFAULT_TIMEOUT = 300.0       # max wait time in seconds
+DEFAULT_POLL_INTERVAL = 5.0  # seconds between status checks
+DEFAULT_TIMEOUT = 300.0  # max wait time in seconds
 MAX_RETRIES = 3
 RATE_LIMIT_PER_HOUR = 5
 
@@ -91,10 +91,7 @@ def _check_rate_limit() -> None:
     if len(_call_timestamps) >= RATE_LIMIT_PER_HOUR:
         oldest = _call_timestamps[0]
         wait_seconds = int(3600 - (now - oldest)) + 1
-        raise ManusRateLimitError(
-            f"Rate limit reached ({RATE_LIMIT_PER_HOUR}/hour). "
-            f"Try again in {wait_seconds}s."
-        )
+        raise ManusRateLimitError(f"Rate limit reached ({RATE_LIMIT_PER_HOUR}/hour). Try again in {wait_seconds}s.")
     _call_timestamps.append(now)
 
 
@@ -102,14 +99,11 @@ def _get_api_key(account: AccountType) -> str:
     """Resolve the API key from environment variables."""
     env_var = _API_KEYS.get(account)
     if env_var is None:
-        raise ValueError(
-            f"Unknown account type: {account!r}. Use 'google' or 'apple'."
-        )
+        raise ValueError(f"Unknown account type: {account!r}. Use 'google' or 'apple'.")
     raw = os.environ.get(env_var)
     if not raw:
         raise EnvironmentError(
-            f"Environment variable {env_var} is not set. "
-            f"Configure it in Railway before using account={account!r}."
+            f"Environment variable {env_var} is not set. Configure it in Railway before using account={account!r}."
         )
     # Defensive .strip() — incidente 2026-05-12: env vars con trailing newline
     # producían 'Illegal header value' en httpx. Ver bridge fix DSC.
@@ -117,7 +111,9 @@ def _get_api_key(account: AccountType) -> str:
     if key != raw:
         logger.warning(
             "%s contained leading/trailing whitespace (raw_len=%d, clean_len=%d) — auto-stripped.",
-            env_var, len(raw), len(key),
+            env_var,
+            len(raw),
+            len(key),
         )
     return key
 
@@ -149,26 +145,27 @@ def _request_with_retry(
         try:
             with httpx.Client(timeout=timeout) as client:
                 if method.upper() == "POST":
-                    resp = client.post(
-                        url, headers=_headers(account), json=json_payload
-                    )
+                    resp = client.post(url, headers=_headers(account), json=json_payload)
                 else:
                     resp = client.get(url, headers=_headers(account))
                 resp.raise_for_status()
                 return resp.json()
         except (httpx.HTTPStatusError, httpx.TransportError) as exc:
             last_error = exc
-            wait = 2 ** attempt
+            wait = 2**attempt
             logger.warning(
                 "Manus API %s %s attempt %d/%d failed: %s — retrying in %ds",
-                method.upper(), url, attempt, retries, exc, wait,
+                method.upper(),
+                url,
+                attempt,
+                retries,
+                exc,
+                wait,
             )
             if attempt < retries:
                 time.sleep(wait)
 
-    raise ManusBridgeError(
-        f"Manus API request failed after {retries} attempts: {last_error}"
-    ) from last_error
+    raise ManusBridgeError(f"Manus API request failed after {retries} attempts: {last_error}") from last_error
 
 
 # ---------------------------------------------------------------------------
@@ -249,7 +246,6 @@ def create_task(
                     _broker = _anti_dory_broker_factory()
                 else:
                     # Lazy import to avoid circular dependency at module load.
-                    from kernel.anti_dory.context_broker import ContextBroker
                     # Sin RPC client real disponible en FASE C: fail-open via excepción.
                     raise RuntimeError(
                         "anti_dory broker factory not configured; "
@@ -289,9 +285,7 @@ def create_task(
             project_id,
         )
 
-    logger.info(
-        "Creating Manus task (account=%s): %.80s...", account, prompt
-    )
+    logger.info("Creating Manus task (account=%s): %.80s...", account, prompt)
 
     # Manus API v2 RPC-style: POST /v2/task.create (NO REST /v1/tasks)
     raw_result = _request_with_retry(
@@ -363,27 +357,19 @@ def wait_for_completion(
     while True:
         elapsed = time.time() - start
         if elapsed > timeout:
-            raise ManusTimeoutError(
-                f"Task {task_id} did not complete within {timeout}s "
-                f"(last poll at {elapsed:.0f}s)."
-            )
+            raise ManusTimeoutError(f"Task {task_id} did not complete within {timeout}s (last poll at {elapsed:.0f}s).")
 
         result = get_task_status(task_id, account=account)
         status = result.get("status", "unknown")
 
-        logger.debug(
-            "Task %s status=%s (%.0fs elapsed)", task_id, status, elapsed
-        )
+        logger.debug("Task %s status=%s (%.0fs elapsed)", task_id, status, elapsed)
 
         if status in TERMINAL_STATUSES:
             if status == "completed":
-                logger.info(
-                    "Task %s completed in %.0fs.", task_id, elapsed
-                )
+                logger.info("Task %s completed in %.0fs.", task_id, elapsed)
                 return result
             raise ManusTaskFailedError(
-                f"Task {task_id} ended with status={status!r}. "
-                f"Output: {result.get('output', 'N/A')}"
+                f"Task {task_id} ended with status={status!r}. Output: {result.get('output', 'N/A')}"
             )
 
         time.sleep(poll_interval)
@@ -419,9 +405,7 @@ def handle_manus_bridge(params: dict[str, Any]) -> dict[str, Any]:
         if action == "create_task":
             if not prompt:
                 return {"error": "Missing 'prompt' parameter for create_task."}
-            return create_task(
-                prompt, account=account, project_id=project_id
-            )
+            return create_task(prompt, account=account, project_id=project_id)
 
         elif action == "get_status":
             if not task_id:
@@ -431,15 +415,11 @@ def handle_manus_bridge(params: dict[str, Any]) -> dict[str, Any]:
         elif action == "create_and_wait":
             if not prompt:
                 return {"error": "Missing 'prompt' parameter for create_and_wait."}
-            task = create_task(
-                prompt, account=account, project_id=project_id
-            )
+            task = create_task(prompt, account=account, project_id=project_id)
             tid = task.get("task_id", "")
             if not tid:
                 return {"error": "create_task did not return a task_id.", "raw": task}
-            return wait_for_completion(
-                tid, account=account, timeout=timeout
-            )
+            return wait_for_completion(tid, account=account, timeout=timeout)
 
         else:
             return {"error": f"Unknown action: {action!r}. Use: create_task, get_status, create_and_wait."}

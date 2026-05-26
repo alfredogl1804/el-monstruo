@@ -8,6 +8,7 @@ Expande el CHECK constraint de catastro_agentes.dominio de 5 a 9 dominios
 Ejecutar via:
     railway run --service el-monstruo-kernel python3 scripts/_apply_migration_031_sprint88.py
 """
+
 from __future__ import annotations
 
 import os
@@ -66,7 +67,7 @@ def main() -> int:
                     if missing:
                         print(f"WARNING: dominios faltantes: {missing}", file=sys.stderr)
                         return 1
-                    print(f"VERIFICATION_OK: 9 dominios válidos en constraint")
+                    print("VERIFICATION_OK: 9 dominios válidos en constraint")
                 else:
                     print("ERROR: chk_dominio_valido no encontrado", file=sys.stderr)
                     return 1

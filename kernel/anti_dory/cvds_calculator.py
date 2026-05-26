@@ -34,6 +34,7 @@ from typing import Optional
 @dataclass
 class CVDSRun:
     """A single verification run with its results."""
+
     name: str
     timestamp: str
     total: int
@@ -46,6 +47,7 @@ class CVDSRun:
 @dataclass
 class CVDSResult:
     """Final CVDS computation result."""
+
     score: float
     runs_count: int
     total_scenarios_evaluated: int
@@ -94,13 +96,15 @@ class CVDSCalculator:
             else:
                 passed = True  # Default if no status field
 
-            normalized.append({
-                "id": r.get("id", r.get("description", "unknown")),
-                "category": r.get("category", "uncategorized"),
-                "passed": passed,
-                "level": r.get("actual_level", r.get("b8_class", "UNKNOWN")),
-                "decision": r.get("actual_decision", r.get("b9_decision", "UNKNOWN")),
-            })
+            normalized.append(
+                {
+                    "id": r.get("id", r.get("description", "unknown")),
+                    "category": r.get("category", "uncategorized"),
+                    "passed": passed,
+                    "level": r.get("actual_level", r.get("b8_class", "UNKNOWN")),
+                    "decision": r.get("actual_decision", r.get("b9_decision", "UNKNOWN")),
+                }
+            )
 
         total = len(normalized)
         passed_count = sum(1 for n in normalized if n["passed"])
@@ -186,15 +190,13 @@ class CVDSCalculator:
                 scenario_map[sid].append(result["passed"])
 
         # Partition into shared (2+ runs) vs unique (1 run only)
-        shared_scenarios = {sid: outcomes for sid, outcomes in scenario_map.items()
-                           if len(outcomes) >= 2}
-        unique_scenarios = {sid: outcomes for sid, outcomes in scenario_map.items()
-                           if len(outcomes) < 2}
-        
+        shared_scenarios = {sid: outcomes for sid, outcomes in scenario_map.items() if len(outcomes) >= 2}
+        unique_scenarios = {sid: outcomes for sid, outcomes in scenario_map.items() if len(outcomes) < 2}
+
         total_evaluated = len(scenario_map)
         total_shared = len(shared_scenarios)
         total_unique = len(unique_scenarios)
-        
+
         # Agreement only counts shared scenarios
         agreed = 0
         divergent = 0
@@ -212,7 +214,7 @@ class CVDSCalculator:
             # No overlap: this component contributes 0 to CVDS
             # (honest: we cannot claim cross-verification without shared IDs)
             scenario_agreement = 0.0
-        
+
         # Overlap coverage ratio: what % of all scenarios are cross-verified?
         overlap_coverage = total_shared / total_evaluated if total_evaluated > 0 else 0.0
 
@@ -238,11 +240,7 @@ class CVDSCalculator:
             category_balance = 0.0
 
         # 5. Final CVDS (weighted)
-        cvds_score = (
-            run_consistency * 0.40
-            + scenario_agreement * 0.40
-            + category_balance * 0.20
-        )
+        cvds_score = run_consistency * 0.40 + scenario_agreement * 0.40 + category_balance * 0.20
 
         return CVDSResult(
             score=round(cvds_score, 4),
@@ -310,9 +308,9 @@ class CVDSCalculator:
 if __name__ == "__main__":
     import sys
 
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print("CVDS — Cross-Verifier Divergence Score Calculator")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     calc = CVDSCalculator(threshold=0.95)
 
@@ -343,24 +341,24 @@ if __name__ == "__main__":
     report = calc.to_json(result)
 
     # Print results
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"CVDS Score: {result.score:.4f} (threshold: {calc.threshold})")
     print(f"Meets threshold: {'YES' if result.meets_threshold else 'NO'}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"Runs: {result.runs_count}")
     print(f"Scenarios evaluated: {result.total_scenarios_evaluated}")
     print(f"Agreed: {result.agreed_scenarios} | Divergent: {result.divergent_scenarios}")
-    print(f"\nPer-run pass rates:")
+    print("\nPer-run pass rates:")
     for name, rate in result.per_run_rates.items():
-        print(f"  {name}: {rate*100:.1f}%")
-    print(f"\nPer-category scores:")
+        print(f"  {name}: {rate * 100:.1f}%")
+    print("\nPer-category scores:")
     for cat, score in result.per_category_scores.items():
-        print(f"  {cat}: {score*100:.1f}%")
-    print(f"\nDetails:")
+        print(f"  {cat}: {score * 100:.1f}%")
+    print("\nDetails:")
     for k, v in result.details.items():
         if k != "weights":
             print(f"  {k}: {v}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     # Save JSON
     output_path = "/home/ubuntu/CVDS_RESULTS.json"

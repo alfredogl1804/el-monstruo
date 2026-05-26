@@ -63,8 +63,8 @@ Uso:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 4 · 2026-05-04
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 SEED_PAYLOAD = {
     "id": "seed-33-zscore-intradominio-sprint86",
@@ -122,6 +122,7 @@ SEED_PAYLOAD = {
 
 def main() -> None:
     import json
+
     print(json.dumps(SEED_PAYLOAD, indent=2, ensure_ascii=False))
 
 

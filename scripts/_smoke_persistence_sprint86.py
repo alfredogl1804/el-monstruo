@@ -14,6 +14,7 @@ Uso:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 3 · 2026-05-04
 """
+
 from __future__ import annotations
 
 import asyncio

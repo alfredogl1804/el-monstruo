@@ -22,6 +22,7 @@ from typing import Optional, Protocol
 
 class MementoStoreReader(Protocol):
     """Protocol for reading from Memento store."""
+
     def fetch_memories(self, query: str, limit: int = 10) -> list[dict]: ...
     def get_memory_by_id(self, memory_id: str) -> dict: ...
 
@@ -37,6 +38,7 @@ class MemoryStatus(Enum):
 @dataclass
 class Memory:
     """A single memory from the Memento store."""
+
     id: str
     content: str
     content_hash: str
@@ -49,6 +51,7 @@ class Memory:
 @dataclass
 class MemoryValidation:
     """Result of validating a single memory."""
+
     memory_id: str
     status: MemoryStatus
     reason: str
@@ -58,6 +61,7 @@ class MemoryValidation:
 @dataclass
 class MementoContext:
     """Context provided by Memento to other Anti-Dory modules."""
+
     memories: list[Memory]
     validations: list[MemoryValidation]
     valid_count: int
@@ -105,9 +109,7 @@ class MementoIntegration:
             MementoContext with validated memories.
         """
         if self._store is None:
-            return MementoContext(
-                memories=[], validations=[], valid_count=0, stale_count=0, corrupted_count=0
-            )
+            return MementoContext(memories=[], validations=[], valid_count=0, stale_count=0, corrupted_count=0)
 
         raw_memories = self._store.fetch_memories(query, limit=limit)
         memories = [self._dict_to_memory(m) for m in raw_memories]

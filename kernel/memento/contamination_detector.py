@@ -55,13 +55,14 @@ REFS:
     - kernel/memento/validator.py (donde se llama el detector)
     - scripts/020_memento_contamination_columns.sql (migration de índices)
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
 import os
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
@@ -198,9 +199,7 @@ class ContaminationDetector:
                 asyncio.create_task(
                     self._safe_rule(
                         "H1",
-                        self._rule_h1_credential_hash_obsolete(
-                            context_used, current_source_of_truth
-                        ),
+                        self._rule_h1_credential_hash_obsolete(context_used, current_source_of_truth),
                     )
                 )
             )
@@ -214,9 +213,7 @@ class ContaminationDetector:
                 asyncio.create_task(
                     self._safe_rule(
                         "H2",
-                        self._rule_h2_host_divergent(
-                            hilo_id, operation, context_used, current_validation_id
-                        ),
+                        self._rule_h2_host_divergent(hilo_id, operation, context_used, current_validation_id),
                     )
                 )
             )
@@ -230,9 +227,7 @@ class ContaminationDetector:
                 asyncio.create_task(
                     self._safe_rule(
                         "H3",
-                        self._rule_h3_no_recent_preflight(
-                            hilo_id, operation, current_validation_id
-                        ),
+                        self._rule_h3_no_recent_preflight(hilo_id, operation, current_validation_id),
                     )
                 )
             )
@@ -250,9 +245,7 @@ class ContaminationDetector:
 
         # Mapear pending a sus rule_names ANTES de cancelar
         if pending:
-            pending_rule_names = [
-                rn for rn, t in zip(rule_names, tasks) if t in pending
-            ]
+            pending_rule_names = [rn for rn, t in zip(rule_names, tasks) if t in pending]
             for t in pending:
                 t.cancel()
             report.timed_out_rules = pending_rule_names
@@ -328,11 +321,7 @@ class ContaminationDetector:
         - Solo dispara si `git rev-list HEAD --grep="<hash>"` devuelve >= 1 commit.
         """
         # Extraer hashes
-        ctx_hash = (
-            context_used.get("credential_hash_first_8")
-            or context_used.get("credential_hash")
-            or ""
-        ).strip()
+        ctx_hash = (context_used.get("credential_hash_first_8") or context_used.get("credential_hash") or "").strip()
         sot_hash = (
             current_source_of_truth.get("credential_hash_first_8")
             or current_source_of_truth.get("credential_hash")
@@ -588,10 +577,7 @@ class ContaminationDetector:
         rows = [r for r in rows if (r.get("ts") or "") >= cutoff]
 
         # Excluir la validación actual (si está en los rows)
-        rows = [
-            r for r in rows
-            if not current_validation_id or r.get("validation_id") != current_validation_id
-        ]
+        rows = [r for r in rows if not current_validation_id or r.get("validation_id") != current_validation_id]
 
         if len(rows) < self._h3_min_recent_validations:
             return None  # hilo nuevo o sin actividad suficiente

@@ -21,7 +21,7 @@ import structlog
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from kernel.identity_guard import resolve_user_id, UserIdStatus
+from kernel.identity_guard import UserIdStatus, resolve_user_id
 
 logger = structlog.get_logger("api.autonomy")
 
@@ -39,6 +39,7 @@ def _resolve_uid(user_id: str, context: str) -> str:
             context=context,
         )
     return resolved
+
 
 router = APIRouter(prefix="/v1/autonomy", tags=["autonomy"])
 

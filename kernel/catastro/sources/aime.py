@@ -8,10 +8,12 @@ problemas nuevos. Patrón análogo al UC Berkeley SWE-bench Verified vs Lite.
 
 [Hilo Manus Catastro] · Sprint 86.7 · 2026-05-05
 """
+
 from __future__ import annotations
 
+from typing import Any
+
 import httpx
-from typing import Any, Optional
 
 from kernel.catastro.sources.base import (
     BaseFuente,
@@ -47,9 +49,7 @@ class AIMEFuente(BaseFuente):
                 if response.status_code == 429:
                     raise FuenteRateLimitError(self.nombre, "Rate limit en BenchLM AIME")
                 if response.status_code >= 500:
-                    raise FuenteUnavailableError(
-                        self.nombre, f"Error {response.status_code} en BenchLM AIME"
-                    )
+                    raise FuenteUnavailableError(self.nombre, f"Error {response.status_code} en BenchLM AIME")
 
                 response.raise_for_status()
                 payload = response.json()

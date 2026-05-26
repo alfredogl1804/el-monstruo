@@ -1,4 +1,5 @@
 """Tests para tools/_check_e2e_evidence.py (DSC-G-010)."""
+
 from __future__ import annotations
 
 import sys
@@ -22,6 +23,7 @@ check_binary_evidence = _MOD.check_binary_evidence
 
 
 # ---------------------- OBLIGATORIOS (3) ----------------------
+
 
 def test_pr_body_con_url_pasa():
     body = """## Resumen
@@ -50,6 +52,7 @@ def test_pr_body_seccion_vacia_falla():
 
 
 # ---------------------- EDGE (12) ----------------------
+
 
 def test_seccion_case_insensitive():
     body = "## e2e evidence\nhttps://example.com/log"

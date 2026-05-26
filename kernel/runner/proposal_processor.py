@@ -20,6 +20,7 @@ Variables opcionales:
   PROPOSAL_EXECUTOR_NAME=proposal-processor (identificador en DB)
   PROPOSAL_NOTIFY_ENABLED=true     (false para silenciar notifications post-execute)
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -203,6 +204,7 @@ async def execute_loop(
 # -----------------------------------------------------------------------------
 def _install_signal_handlers(loop: asyncio.AbstractEventLoop, stop_event: asyncio.Event) -> None:
     """Instala SIGTERM/SIGINT handlers que setean stop_event."""
+
     def _handler() -> None:
         if not stop_event.is_set():
             logger.info("shutdown_signal_received")

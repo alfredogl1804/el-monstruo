@@ -44,6 +44,7 @@ Edge cases honrados:
   entradas en formato cell estandar dentro de tablas markdown que apunten a un
   `.md` real bajo `_GLOBAL/`, `EL-MONSTRUO/`, etc.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -72,12 +73,8 @@ DSC_CODE_RE = re.compile(r"DSC-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d+", re.ASCII)
 # titulo del DSC sin abortar el match: (1) detectar codigo en celda de tabla,
 # (2) buscar el path `(.../DSC-XXX.md)` mas cercano hacia adelante en la misma
 # linea. Esto evita regex anidados fragiles.
-INDEX_CODE_CELL_RE = re.compile(
-    r"\|\s*`(?P<code>DSC-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d+)`\s*\|"
-)
-INDEX_PATH_RE = re.compile(
-    r"\((?P<path>(?:[A-Za-z0-9_/\.-]+/)?DSC-[A-Za-z0-9_\.-]+\.md)\)"
-)
+INDEX_CODE_CELL_RE = re.compile(r"\|\s*`(?P<code>DSC-[A-Z0-9]+(?:-[A-Z0-9]+)*-\d+)`\s*\|")
+INDEX_PATH_RE = re.compile(r"\((?P<path>(?:[A-Za-z0-9_/\.-]+/)?DSC-[A-Za-z0-9_\.-]+\.md)\)")
 
 # Tombstone marker en linea 2 de un archivo forense relocado.
 TOMBSTONE_HINTS = ("relocate", "RELOCATED", "tombstone", "Nota de relocate")
@@ -157,7 +154,7 @@ def parse_index(index_path: Path) -> list[IndexEntry]:
             for code_m in INDEX_CODE_CELL_RE.finditer(line):
                 code = code_m.group("code")
                 # Step 2: search the nearest .md path to the right of this cell.
-                tail = line[code_m.end():]
+                tail = line[code_m.end() :]
                 path_m = INDEX_PATH_RE.search(tail)
                 if not path_m:
                     # Code listed without an inline path link (e.g. plain narrative
@@ -276,12 +273,10 @@ def render_human(report: DriftReport) -> str:
         lines.append("✅ ZERO DRIFT — index and filesystem are aligned.")
         return "\n".join(lines)
 
-    lines.append(f"❌ DRIFT DETECTED")
+    lines.append("❌ DRIFT DETECTED")
     if report.missing_filesystem:
         lines.append("")
-        lines.append(
-            f"-- MISSING_FILESYSTEM ({len(report.missing_filesystem)}) --"
-        )
+        lines.append(f"-- MISSING_FILESYSTEM ({len(report.missing_filesystem)}) --")
         for item in report.missing_filesystem:
             lines.append(
                 f"  · {item['code']:<24} declared at _INDEX.md:L{item['index_line']}"
@@ -291,10 +286,7 @@ def render_human(report: DriftReport) -> str:
         lines.append("")
         lines.append(f"-- MISSING_INDEX ({len(report.missing_index)}) --")
         for item in report.missing_index:
-            lines.append(
-                f"  · {item['code']:<24} present at `{item['filesystem_path']}`"
-                f" but no entry in _INDEX.md"
-            )
+            lines.append(f"  · {item['code']:<24} present at `{item['filesystem_path']}` but no entry in _INDEX.md")
     lines.append("")
     lines.append("Acción: actualizar _INDEX.md y/o filesystem para cerrar el drift.")
     lines.append("Doctrina: DSC-G-008 v4 §5 — drifts documentales sobreviven a su")

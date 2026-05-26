@@ -12,11 +12,10 @@ Cubre:
     - persistencia: insert se llamó con shape correcto
     - persistencia falla → endpoint sigue respondiendo con persistence_failed=true
 """
+
 from __future__ import annotations
 
-import asyncio
 import os
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -35,6 +34,7 @@ TEST_API_KEY = "test_monstruo_api_key_b3_secret"
 # ===========================================================================
 # Fixtures
 # ===========================================================================
+
 
 @pytest.fixture(autouse=True)
 def _set_env(monkeypatch):
@@ -76,6 +76,7 @@ class MockDb:
     Mock thread-safe del SupabaseClient.
     Captura cada insert para inspección.
     """
+
     def __init__(self, fail_inserts: bool = False) -> None:
         self.inserts: List[Dict[str, Any]] = []
         self.fail_inserts = fail_inserts
@@ -125,13 +126,17 @@ def client(app_with_db) -> TestClient:
 # Tests de auth
 # ===========================================================================
 
+
 class TestAuth:
     def test_missing_api_key_returns_401(self, client):
-        r = client.post("/v1/memento/validate", json={
-            "hilo_id": "hilo_test",
-            "operation": "sql_against_production",
-            "context_used": {"host": "x"},
-        })
+        r = client.post(
+            "/v1/memento/validate",
+            json={
+                "hilo_id": "hilo_test",
+                "operation": "sql_against_production",
+                "context_used": {"host": "x"},
+            },
+        )
         assert r.status_code == 401
         assert "memento_api_key_missing" in r.text
 
@@ -172,6 +177,7 @@ class TestAuth:
 # ===========================================================================
 # Tests del endpoint
 # ===========================================================================
+
 
 class TestEndpoint:
     def test_returns_503_if_validator_not_initialized(self, monkeypatch):
@@ -281,6 +287,7 @@ class TestEndpoint:
 # Tests de persistencia
 # ===========================================================================
 
+
 class TestPersistence:
     def test_insert_called_with_correct_shape(self, app_with_db):
         app, db = app_with_db
@@ -376,6 +383,7 @@ class TestPersistence:
 # ===========================================================================
 # Test integración opt-in (real Supabase) — solo si MEMENTO_INTEGRATION_TESTS=true
 # ===========================================================================
+
 
 @pytest.mark.skipif(
     os.environ.get("MEMENTO_INTEGRATION_TESTS", "").lower() != "true",

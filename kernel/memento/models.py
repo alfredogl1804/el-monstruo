@@ -4,6 +4,7 @@ Pydantic models para la Capa Memento.
 Espejo exacto de los schemas declarados en
 bridge/sprint_memento_preinvestigation/spec_sprint_memento.md.
 """
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -28,7 +29,9 @@ class Discrepancy(BaseModel):
     field: str = Field(..., description="Nombre del campo discrepante (ej. 'host', 'credential_hash_first_8')")
     context_used: Any = Field(..., description="Valor que el hilo declaró usar")
     source_of_truth: Any = Field(..., description="Valor real según la fuente de verdad")
-    source: str = Field(..., description="Identificador de la fuente consultada (ej. 'skills/ticketlike-ops/references/credentials.md')")
+    source: str = Field(
+        ..., description="Identificador de la fuente consultada (ej. 'skills/ticketlike-ops/references/credentials.md')"
+    )
     source_last_updated: Optional[datetime] = Field(None, description="Última actualización conocida de la fuente")
 
 
@@ -47,7 +50,9 @@ class ValidationResult(BaseModel):
     validation_status: ValidationStatus
     proceed: bool = Field(..., description="True => hilo puede proceder; False => debe abortar")
     validation_id: str = Field(..., description="ID único formato 'mv_<timestamp>_<hash6>'")
-    context_freshness_seconds: int = Field(0, description="Segundos desde la última actualización conocida de la fuente")
+    context_freshness_seconds: int = Field(
+        0, description="Segundos desde la última actualización conocida de la fuente"
+    )
     discrepancy: Optional[Discrepancy] = None
     contamination_warning: bool = Field(False, description="v1.0: flag no bloqueante. v1.1: puede ser bloqueante")
     contamination_evidence: Optional[Dict[str, Any]] = None

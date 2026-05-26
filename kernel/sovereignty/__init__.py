@@ -1,9 +1,10 @@
 """Sovereignty Engine — El Monstruo Sprint 60."""
+
 from .engine import (
-    SovereigntyEngine,
-    ExternalDependency,
     DependencyTier,
+    ExternalDependency,
     HealthStatus,
+    SovereigntyEngine,
     SovereigntyEngineError,
     get_sovereignty_engine,
     init_sovereignty_engine,

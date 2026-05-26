@@ -36,7 +36,6 @@ from typing import List
 
 from kernel.embrion_inbox_parser import ParsedCommand
 
-
 # ─── Patrones de ataque ────────────────────────────────────────────────────
 
 # SQL injection
@@ -65,7 +64,9 @@ _EXFIL_PATTERNS = [
 
 # Jailbreak: intentos de modificar comportamiento del embrión
 _JAILBREAK_PATTERNS = [
-    re.compile(r"(?i)\b(ignore|forget|disregard)\s+(previous|all|your)\s+(instructions?|rules?|prompts?|context|memory)"),
+    re.compile(
+        r"(?i)\b(ignore|forget|disregard)\s+(previous|all|your)\s+(instructions?|rules?|prompts?|context|memory)"
+    ),
     re.compile(r"(?i)\b(act\s+as|you\s+are\s+now|pretend\s+to\s+be|roleplay\s+as)\s+"),
     re.compile(r"(?i)\b(system\s+prompt|developer\s+mode|jailbreak|DAN|do\s+anything\s+now)\b"),
     re.compile(r"(?i)\b(override\s+(?:your|the)\s+(?:rules|policy|safety|guardrails?))"),
@@ -89,9 +90,10 @@ MIN_CONFIDENCE_FOR_BLOCK = 0.7  # si confidence ≥0.7 → bloquear; <0.7 → un
 @dataclass
 class SanitizedPayload:
     """Resultado de la sanitización."""
+
     payload: dict = field(default_factory=dict)
-    intent_class: str = "safe"   # safe | attack | jailbreak | uncertain
-    confidence: float = 0.0       # 0.0..1.0
+    intent_class: str = "safe"  # safe | attack | jailbreak | uncertain
+    confidence: float = 0.0  # 0.0..1.0
     signals: List[str] = field(default_factory=list)  # patrones que matchearon
     rejected: bool = False
     rejection_reason: str = ""

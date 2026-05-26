@@ -13,6 +13,7 @@ Responsabilidades:
 
 Sprint 57 — "Las Capas Transversales"
 """
+
 from __future__ import annotations
 
 import logging
@@ -28,6 +29,7 @@ logger = logging.getLogger("sales_engine")
 
 try:
     from posthog import Posthog  # type: ignore
+
     POSTHOG_AVAILABLE = True
 except ImportError:
     POSTHOG_AVAILABLE = False
@@ -38,6 +40,7 @@ except ImportError:
 
 try:
     import stripe  # type: ignore
+
     STRIPE_AVAILABLE = True
 except ImportError:
     STRIPE_AVAILABLE = False
@@ -45,6 +48,7 @@ except ImportError:
 
 
 # ── Data models ───────────────────────────────────────────────────────────────
+
 
 class PricingModel(Enum):
     FREEMIUM = "freemium"
@@ -76,14 +80,15 @@ class ConversionGoal:
 @dataclass
 class SalesEngineConfig:
     """Configuración del motor de ventas para un proyecto."""
+
     project_id: str
     vertical: str
     pricing_model: PricingModel
     tiers: list[PricingTier]
     conversion_goals: list[ConversionGoal]
-    funnel_stages: list[str] = field(default_factory=lambda: [
-        "awareness", "interest", "consideration", "intent", "purchase", "retention"
-    ])
+    funnel_stages: list[str] = field(
+        default_factory=lambda: ["awareness", "interest", "consideration", "intent", "purchase", "retention"]
+    )
     ab_tests_enabled: bool = True
     posthog_project_id: Optional[str] = None
     stripe_account_id: Optional[str] = None
@@ -105,6 +110,7 @@ VERTICAL_PRICING: dict[str, PricingModel] = {
 
 
 # ── SalesEngine ───────────────────────────────────────────────────────────────
+
 
 class SalesEngine:
     """Motor de ventas transversal — se inyecta en cada proyecto."""
@@ -252,6 +258,7 @@ class SalesEngine:
 
 # ── ConversionTracker ─────────────────────────────────────────────────────────
 
+
 class ConversionTracker:
     """Tracker de conversión basado en PostHog 7.13.2."""
 
@@ -288,10 +295,14 @@ class ConversionTracker:
         return self.track_event(user_id, "user_signed_up", {"source": source, "plan": plan})
 
     def track_purchase(self, user_id: str, amount_usd: float, product: str) -> bool:
-        return self.track_event(user_id, "purchase_completed", {
-            "amount_usd": amount_usd,
-            "product": product,
-        })
+        return self.track_event(
+            user_id,
+            "purchase_completed",
+            {
+                "amount_usd": amount_usd,
+                "product": product,
+            },
+        )
 
     def track_activation(self, user_id: str, action: str) -> bool:
         return self.track_event(user_id, "user_activated", {"activation_action": action})
@@ -312,6 +323,7 @@ class ConversionTracker:
 
 
 # ── Factory ───────────────────────────────────────────────────────────────────
+
 
 def create_sales_engine(project_id: str, vertical: str) -> SalesEngine:
     """Factory para crear un SalesEngine configurado para un proyecto."""

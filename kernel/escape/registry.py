@@ -17,6 +17,7 @@ Thread-safety: asyncio.Lock por consumer evita race conditions.
 
 DSC-MO-006 v1.1 honrado: este módulo es nuevo, no modifica `config.py` firmado T1.
 """
+
 from __future__ import annotations
 
 import asyncio

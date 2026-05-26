@@ -7,7 +7,9 @@ Schema reales descubiertos:
   - Total filas: 98
   - Macroárea CHECK: solo 'agentes'
 """
+
 import os
+
 import psycopg
 
 DB_URL = os.environ["SUPABASE_DB_URL"]
@@ -42,13 +44,28 @@ with psycopg.connect(DB_URL) as conn, conn.cursor() as cur:
         print(f"  {d:<40} -> {tid:<28} ({tnom}) score={sc}{bonus}")
 
     print("\n--- PRODUCTOS CRITICOS (existencia + bonus) ---")
-    slugs = ["devin", "canva-ai", "claude-cowork", "promptfoo", "arize-phoenix",
-            "looka", "lakera", "braintrust", "manus", "higgsfield", "kimi-k2-6-agent-swarm",
-            "perplexity-personal-computer", "lovable", "claude-ai", "n8n-llm-nodes", "clay"]
+    slugs = [
+        "devin",
+        "canva-ai",
+        "claude-cowork",
+        "promptfoo",
+        "arize-phoenix",
+        "looka",
+        "lakera",
+        "braintrust",
+        "manus",
+        "higgsfield",
+        "kimi-k2-6-agent-swarm",
+        "perplexity-personal-computer",
+        "lovable",
+        "claude-ai",
+        "n8n-llm-nodes",
+        "clay",
+    ]
     for slug in slugs:
         cur.execute(
             "SELECT id, nombre, dominio, tier_seed, bonus_curador, LEFT(COALESCE(bonus_curador_razon,''),80) FROM catastro_agentes WHERE id = %s",
-            (slug,)
+            (slug,),
         )
         r = cur.fetchone()
         if r:

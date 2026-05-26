@@ -35,6 +35,7 @@ Refs:
     - kernel/memento/validator.py (lógica)
     - scripts/017_sprint_memento_schema.sql (tabla memento_validations)
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -67,6 +68,7 @@ MEMENTO_VALIDATIONS_TABLE = "memento_validations"
 # Auth helper (reusable + testeable)
 # ===========================================================================
 
+
 def require_memento_admin_key(request: Request) -> None:
     """
     Valida el header X-API-Key contra MONSTRUO_API_KEY (lectura fresh).
@@ -85,9 +87,9 @@ def require_memento_admin_key(request: Request) -> None:
             status_code=503,
             detail="memento_api_key_no_configurada",
         )
-    provided = request.headers.get("X-API-Key", "") or request.headers.get(
-        "Authorization", ""
-    ).replace("Bearer ", "").strip()
+    provided = (
+        request.headers.get("X-API-Key", "") or request.headers.get("Authorization", "").replace("Bearer ", "").strip()
+    )
     if not provided:
         raise HTTPException(
             status_code=401,
@@ -103,6 +105,7 @@ def require_memento_admin_key(request: Request) -> None:
 # ===========================================================================
 # Persistencia (no-bloqueante)
 # ===========================================================================
+
 
 async def _persist_validation(
     *,
@@ -209,9 +212,7 @@ async def memento_validate(request: Request):
     require_memento_admin_key(request)
 
     # Validator singleton (instanciado al startup del kernel)
-    validator: Optional[MementoValidator] = getattr(
-        request.app.state, "memento_validator", None
-    )
+    validator: Optional[MementoValidator] = getattr(request.app.state, "memento_validator", None)
     if validator is None:
         raise HTTPException(
             status_code=503,
@@ -274,9 +275,7 @@ async def memento_validate(request: Request):
 
     # ── Sprint Memento B6: detector de contexto contaminado (shadow mode) ──
     db = getattr(request.app.state, "db", None)
-    detector: Optional[ContaminationDetector] = getattr(
-        request.app.state, "memento_detector", None
-    )
+    detector: Optional[ContaminationDetector] = getattr(request.app.state, "memento_detector", None)
     contamination_report: Optional[ContaminationReport] = None
     if detector is not None:
         try:
@@ -479,9 +478,7 @@ async def memento_admin_reload(request: Request):
     """
     require_memento_admin_key(request)
 
-    validator: Optional[MementoValidator] = getattr(
-        request.app.state, "memento_validator", None
-    )
+    validator: Optional[MementoValidator] = getattr(request.app.state, "memento_validator", None)
     if validator is None:
         raise HTTPException(
             status_code=503,
@@ -700,12 +697,8 @@ async def _compute_dashboard_metrics(
                 "by_severity": dict(findings_breakdown["by_severity"]),
             },
         },
-        "top_operations": [
-            {"operation": op, "count": c} for op, c in op_counter.most_common(5)
-        ],
-        "top_hilos": [
-            {"hilo_id": h, "count": c} for h, c in hilo_counter.most_common(5)
-        ],
+        "top_operations": [{"operation": op, "count": c} for op, c in op_counter.most_common(5)],
+        "top_hilos": [{"hilo_id": h, "count": c} for h, c in hilo_counter.most_common(5)],
         "generated_at": datetime.now(timezone.utc).isoformat(),
     }
 
@@ -725,14 +718,14 @@ def _render_dashboard_html(metrics: Dict[str, Any]) -> str:
     def _row(k: str, val: Any) -> str:
         return f"<tr><td>{_html.escape(str(k))}</td><td>{_html.escape(str(val))}</td></tr>"
 
-    ops_rows = "".join(
-        f"<tr><td>{_html.escape(str(o['operation']))}</td><td>{o['count']}</td></tr>"
-        for o in top_ops
-    ) or "<tr><td colspan=2><em>sin datos en la ventana</em></td></tr>"
-    hilos_rows = "".join(
-        f"<tr><td>{_html.escape(str(o['hilo_id']))}</td><td>{o['count']}</td></tr>"
-        for o in top_hilos
-    ) or "<tr><td colspan=2><em>sin datos en la ventana</em></td></tr>"
+    ops_rows = (
+        "".join(f"<tr><td>{_html.escape(str(o['operation']))}</td><td>{o['count']}</td></tr>" for o in top_ops)
+        or "<tr><td colspan=2><em>sin datos en la ventana</em></td></tr>"
+    )
+    hilos_rows = (
+        "".join(f"<tr><td>{_html.escape(str(o['hilo_id']))}</td><td>{o['count']}</td></tr>" for o in top_hilos)
+        or "<tr><td colspan=2><em>sin datos en la ventana</em></td></tr>"
+    )
 
     return f"""<!doctype html>
 <html lang="es">
@@ -755,43 +748,43 @@ def _render_dashboard_html(metrics: Dict[str, Any]) -> str:
 </head>
 <body>
 <h1>Memento — Dashboard de Vigilia</h1>
-<small>Capa Memoria Soberana · ventana últimas {w['lookback_hours']}h · generado {_html.escape(metrics['generated_at'])}</small>
+<small>Capa Memoria Soberana · ventana últimas {w["lookback_hours"]}h · generado {_html.escape(metrics["generated_at"])}</small>
 
 <div class="grid">
   <div class="card">
     <h2>Salud del módulo</h2>
     <table>
-      {_row('validator_initialized', h['validator_initialized'])}
-      {_row('detector_initialized', h['detector_initialized'])}
-      {_row('db_available', h['db_available'])}
-      {_row('critical_operations_loaded', h['critical_operations_loaded'])}
-      {_row('sources_of_truth_loaded', h['sources_of_truth_loaded'])}
+      {_row("validator_initialized", h["validator_initialized"])}
+      {_row("detector_initialized", h["detector_initialized"])}
+      {_row("db_available", h["db_available"])}
+      {_row("critical_operations_loaded", h["critical_operations_loaded"])}
+      {_row("sources_of_truth_loaded", h["sources_of_truth_loaded"])}
     </table>
   </div>
 
   <div class="card">
-    <h2>Validaciones (últimas {w['lookback_hours']}h)</h2>
+    <h2>Validaciones (últimas {w["lookback_hours"]}h)</h2>
     <table>
-      {_row('total', v['total'])}
-      {_row('ok', f"{v['ok']} ({v['ok_rate']*100:.1f}%)")}
-      {_row('discrepancy_detected', f"{v['discrepancy_detected']} ({v['discrepancy_rate']*100:.1f}%)")}
-      {_row('unknown_operation', v['unknown_operation'])}
-      {_row('source_unavailable', v['source_unavailable'])}
+      {_row("total", v["total"])}
+      {_row("ok", f"{v['ok']} ({v['ok_rate'] * 100:.1f}%)")}
+      {_row("discrepancy_detected", f"{v['discrepancy_detected']} ({v['discrepancy_rate'] * 100:.1f}%)")}
+      {_row("unknown_operation", v["unknown_operation"])}
+      {_row("source_unavailable", v["source_unavailable"])}
     </table>
   </div>
 
   <div class="card">
     <h2>Contaminación detectada</h2>
     <table>
-      {_row('warnings', f"{c['warnings']} ({c['warning_rate']*100:.1f}%)")}
+      {_row("warnings", f"{c['warnings']} ({c['warning_rate'] * 100:.1f}%)")}
     </table>
     <small>Por regla:</small>
     <table>
-      {''.join(_row(k, v2) for k, v2 in (c['breakdown']['by_rule_id'] or {{'sin findings': 0}}).items())}
+      {"".join(_row(k, v2) for k, v2 in (c["breakdown"]["by_rule_id"] or {{"sin findings": 0}}).items())}
     </table>
     <small>Por severidad:</small>
     <table>
-      {''.join(_row(k, v2) for k, v2 in (c['breakdown']['by_severity'] or {{'sin findings': 0}}).items())}
+      {"".join(_row(k, v2) for k, v2 in (c["breakdown"]["by_severity"] or {{"sin findings": 0}}).items())}
     </table>
   </div>
 
@@ -834,9 +827,7 @@ async def memento_admin_dashboard(request: Request):
     """
     require_memento_admin_key(request)
 
-    validator: Optional[MementoValidator] = getattr(
-        request.app.state, "memento_validator", None
-    )
+    validator: Optional[MementoValidator] = getattr(request.app.state, "memento_validator", None)
     if validator is None:
         raise HTTPException(
             status_code=503,
@@ -844,9 +835,7 @@ async def memento_admin_dashboard(request: Request):
         )
 
     db = getattr(request.app.state, "db", None)
-    detector: Optional[ContaminationDetector] = getattr(
-        request.app.state, "memento_detector", None
-    )
+    detector: Optional[ContaminationDetector] = getattr(request.app.state, "memento_detector", None)
 
     metrics = await _compute_dashboard_metrics(
         db=db,

@@ -9,7 +9,6 @@ Reglas estrictas:
 """
 
 import json
-import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,6 +16,7 @@ from pathlib import Path
 BASE = Path(__file__).resolve().parent.parent
 REACTOR = BASE.parent
 M2_DIR = REACTOR / "oracle_ai_m2"
+
 
 # --- Utility ---
 def load_json(path):
@@ -62,8 +62,9 @@ def gate_03_no_secret_access():
         content = out.read_text()
         # Look for actual secret patterns (long alphanumeric strings after sk-)
         import re
-        actual_secrets = re.findall(r'sk-[A-Za-z0-9_-]{20,}', content)
-        bearer_tokens = re.findall(r'Bearer [A-Za-z0-9_-]{20,}', content)
+
+        actual_secrets = re.findall(r"sk-[A-Za-z0-9_-]{20,}", content)
+        bearer_tokens = re.findall(r"Bearer [A-Za-z0-9_-]{20,}", content)
         if actual_secrets or bearer_tokens:
             return False, f"Potential secret in {out.name}"
     return True, "No secrets found in data outputs."
@@ -90,7 +91,10 @@ def gate_05_all_verified_reclassified():
     caps = overlay["capabilities"]
     verified = [c for c in caps if c["evidence_status"] == "REALTIME_VERIFIED"]
     still_r0 = [c for c in verified if c["risk_class_after"] == "R0"]
-    return len(still_r0) == 0, f"{len(still_r0)} verified caps still at R0." if still_r0 else f"All {len(verified)} verified caps elevated."
+    return (
+        len(still_r0) == 0,
+        f"{len(still_r0)} verified caps still at R0." if still_r0 else f"All {len(verified)} verified caps elevated.",
+    )
 
 
 def gate_06_access_blocked_preserved():
@@ -102,7 +106,12 @@ def gate_06_access_blocked_preserved():
     caps = overlay["capabilities"]
     blocked = [c for c in caps if c["evidence_status"] != "REALTIME_VERIFIED"]
     wrong = [c for c in blocked if c["risk_class_after"] != "BLOCKED_FOR_AUTOMATION"]
-    return len(wrong) == 0, f"{len(wrong)} blocked caps not BLOCKED_FOR_AUTOMATION." if wrong else f"All {len(blocked)} blocked caps preserved."
+    return (
+        len(wrong) == 0,
+        f"{len(wrong)} blocked caps not BLOCKED_FOR_AUTOMATION."
+        if wrong
+        else f"All {len(blocked)} blocked caps preserved.",
+    )
 
 
 def gate_07_no_realtime_invention():
@@ -127,7 +136,9 @@ def gate_08_power_stacks_reclassified():
     data = load_json(path)
     stacks = data["stacks"]
     no_risk = [s for s in stacks if not s.get("derived_risk_class")]
-    return len(no_risk) == 0, f"{len(no_risk)} stacks without risk." if no_risk else f"All {len(stacks)} stacks classified."
+    return len(
+        no_risk
+    ) == 0, f"{len(no_risk)} stacks without risk." if no_risk else f"All {len(stacks)} stacks classified."
 
 
 def gate_09_sprint_candidates_reclassified():
@@ -138,7 +149,12 @@ def gate_09_sprint_candidates_reclassified():
     data = load_json(path)
     candidates = data["candidates"]
     no_autonomy = [c for c in candidates if not c.get("required_autonomy_level")]
-    return len(no_autonomy) == 0, f"{len(no_autonomy)} candidates without autonomy." if no_autonomy else f"All {len(candidates)} candidates classified."
+    return (
+        len(no_autonomy) == 0,
+        f"{len(no_autonomy)} candidates without autonomy."
+        if no_autonomy
+        else f"All {len(candidates)} candidates classified.",
+    )
 
 
 def gate_10_no_scheduler_enabled():
@@ -148,7 +164,9 @@ def gate_10_no_scheduler_enabled():
         return False, "Overlay file not found."
     overlay = load_json(overlay_path)
     approved = [c for c in overlay["capabilities"] if c.get("recurring_status") == "APPROVED"]
-    return len(approved) == 0, f"{len(approved)} capabilities with APPROVED recurring." if approved else "No scheduler enabled."
+    return len(
+        approved
+    ) == 0, f"{len(approved)} capabilities with APPROVED recurring." if approved else "No scheduler enabled."
 
 
 def gate_11_no_supabase_move():
@@ -156,10 +174,16 @@ def gate_11_no_supabase_move():
     script = BASE / "scripts" / "run_post_m2_reclassification.py"
     content = script.read_text()
     # Check for actual Supabase client imports/usage, not just mentions in comments
-    actual_imports = ["import supabase" in content, "from supabase" in content,
-                      "import psycopg" in content, "import sqlalchemy" in content,
-                      "supabase.create_client" in content]
-    return not any(actual_imports), "Supabase client imports found in script." if any(actual_imports) else "No Supabase client access."
+    actual_imports = [
+        "import supabase" in content,
+        "from supabase" in content,
+        "import psycopg" in content,
+        "import sqlalchemy" in content,
+        "supabase.create_client" in content,
+    ]
+    return not any(actual_imports), "Supabase client imports found in script." if any(
+        actual_imports
+    ) else "No Supabase client access."
 
 
 def gate_12_no_canon_no_appvision():
@@ -170,7 +194,9 @@ def gate_12_no_canon_no_appvision():
     content = script.read_text()
     # Should not reference doctrine paths
     doctrine_refs = ["doctrine_candidates" in content, "appvision" in content.lower(), "preia" in content.lower()]
-    return not any(doctrine_refs), "Doctrine/AppVision/PreIA references found." if any(doctrine_refs) else "No doctrine alterations."
+    return not any(doctrine_refs), "Doctrine/AppVision/PreIA references found." if any(
+        doctrine_refs
+    ) else "No doctrine alterations."
 
 
 def gate_13_auditor_recheck():
@@ -180,7 +206,14 @@ def gate_13_auditor_recheck():
         return False, "Overlay file not found."
     overlay = load_json(overlay_path)
     # Check required fields
-    required_fields = ["capability_id", "provider_id", "evidence_status", "risk_class_before", "risk_class_after", "required_autonomy_level"]
+    required_fields = [
+        "capability_id",
+        "provider_id",
+        "evidence_status",
+        "risk_class_before",
+        "risk_class_after",
+        "required_autonomy_level",
+    ]
     for cap in overlay["capabilities"]:
         missing = [f for f in required_fields if f not in cap]
         if missing:
@@ -196,7 +229,9 @@ def gate_14_unified_face_single_voice():
     data = load_json(path)
     # Check that recommendation exists and is a single string
     rec = data.get("recommendation", "")
-    return isinstance(rec, str) and len(rec) > 10, f"Recommendation too short or missing." if not (isinstance(rec, str) and len(rec) > 10) else "Single voice recommendation present."
+    return isinstance(rec, str) and len(rec) > 10, "Recommendation too short or missing." if not (
+        isinstance(rec, str) and len(rec) > 10
+    ) else "Single voice recommendation present."
 
 
 # --- Main ---
@@ -247,7 +282,7 @@ def main():
         "gates": results,
         "total_pass": total_pass,
         "total_fail": total_fail,
-        "verdict": verdict
+        "verdict": verdict,
     }
 
     report_path = BASE / "post_m2_validation_report.v0_1.json"

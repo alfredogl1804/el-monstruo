@@ -22,6 +22,7 @@ Trust score por fuente:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 2 · 2026-05-04
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -29,26 +30,26 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
 
-
 # ============================================================================
 # TIPOS Y ENUMS
 # ============================================================================
 
+
 class QuorumOutcome(str, Enum):
     """Resultado de una validación quorum."""
 
-    QUORUM_REACHED = "quorum_reached"      # 2+ fuentes coinciden → persistir
+    QUORUM_REACHED = "quorum_reached"  # 2+ fuentes coinciden → persistir
     QUORUM_UNANIMOUS = "quorum_unanimous"  # 3-de-3 coinciden → confianza máxima
-    QUORUM_FAILED = "quorum_failed"        # ≤1 fuente o discrepancia total
+    QUORUM_FAILED = "quorum_failed"  # ≤1 fuente o discrepancia total
     INSUFFICIENT_DATA = "insufficient_data"  # <2 fuentes reportaron el dato
 
 
 class FieldType(str, Enum):
     """Tipo de campo a validar — determina la estrategia de comparación."""
 
-    NUMERIC = "numeric"        # tolerancia ±X%
+    NUMERIC = "numeric"  # tolerancia ±X%
     CATEGORICAL = "categorical"  # igualdad tras normalizar
-    PRESENCE = "presence"      # existe / no existe en la fuente
+    PRESENCE = "presence"  # existe / no existe en la fuente
 
 
 @dataclass(frozen=True)
@@ -59,6 +60,7 @@ class FuenteVote:
     `value=None` significa "la fuente NO reportó el dato"
     (insufficient_data desde el punto de vista de esta fuente).
     """
+
     fuente: str
     value: Optional[Any]
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -117,16 +119,14 @@ class QuorumResult:
             "silent_sources": self.silent_sources,
             "confidence_score": round(self.confidence_score, 3),
             "timestamp": self.timestamp.isoformat(),
-            "votes": [
-                {"fuente": v.fuente, "value": v.value, "metadata": v.metadata}
-                for v in self.votes
-            ],
+            "votes": [{"fuente": v.fuente, "value": v.value, "metadata": v.metadata} for v in self.votes],
         }
 
 
 # ============================================================================
 # QUORUM VALIDATOR
 # ============================================================================
+
 
 class QuorumValidator:
     """
@@ -326,6 +326,7 @@ class QuorumValidator:
 
         # Frecuencia
         from collections import Counter
+
         freq = Counter(nv[1] for nv in normalized_votes)
         most_common_value, most_common_count = freq.most_common(1)[0]
 

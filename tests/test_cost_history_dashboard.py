@@ -5,6 +5,7 @@ Filosofía:
   * Cero archivos persistentes en repo — escribimos a tmp_path.
   * Validamos que el HTML es bien-formado y contiene los marcadores clave.
 """
+
 from __future__ import annotations
 
 import re
@@ -73,6 +74,7 @@ def _row(
 # ────────────────────────────────────────────────────────────────────
 # Snapshot model
 
+
 def test_snapshot_total_cycles_empty():
     snap = CostHistorySnapshot(rows=[])
     assert snap.total_cycles == 0
@@ -131,6 +133,7 @@ def test_snapshot_handles_missing_timestamps_safely():
 # ────────────────────────────────────────────────────────────────────
 # fetch_cost_history
 
+
 def test_fetch_uses_supabase_client_with_correct_params():
     fake = _FakeSupabase(rows=[])
     snap = fetch_cost_history(limit=42, supabase_client=fake)
@@ -154,6 +157,7 @@ def test_fetch_returns_rows_intact():
 # ────────────────────────────────────────────────────────────────────
 # Render HTML
 
+
 def test_render_chart_empty_returns_empty_state():
     out = _render_chart_svg([], 5.0)
     assert "Sin datos" in out
@@ -174,13 +178,10 @@ def test_render_dashboard_html_contains_all_sections():
     now = datetime(2026, 5, 10, 12, 0, tzinfo=timezone.utc)
     rows = [
         _row(cycle_id=1, cost=0.02, when=now - timedelta(hours=1)),
-        _row(cycle_id=2, cost=0.0, when=now - timedelta(hours=2),
-             aborted="daily_budget_exhausted"),
+        _row(cycle_id=2, cost=0.0, when=now - timedelta(hours=2), aborted="daily_budget_exhausted"),
         _row(cycle_id=3, cost=0.07, when=now - timedelta(hours=3), cap_excedido=True),
     ]
-    snap = CostHistorySnapshot(
-        rows=rows, generated_at=now, daily_budget_usd=5.0, cap_per_latido_usd=0.05
-    )
+    snap = CostHistorySnapshot(rows=rows, generated_at=now, daily_budget_usd=5.0, cap_per_latido_usd=0.05)
     html_str = render_dashboard_html(snap)
 
     assert html_str.startswith("<!DOCTYPE html>")
@@ -219,6 +220,7 @@ def test_render_dashboard_handles_empty_rows_gracefully():
 
 # ────────────────────────────────────────────────────────────────────
 # Integration: generate + write
+
 
 def test_generate_dashboard_html_end_to_end_with_fake():
     now = datetime.now(timezone.utc)

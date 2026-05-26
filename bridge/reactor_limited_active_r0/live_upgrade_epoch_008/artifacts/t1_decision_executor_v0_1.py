@@ -19,11 +19,11 @@ All mutations are validated against:
 - Provider auto-replacement policy
 - Dispatcher bypass prevention
 """
-import os
-import sys
-import json
-import datetime
+
 import copy
+import datetime
+import json
+import os
 
 # Resolve paths
 ARTIFACT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -37,28 +37,23 @@ DIRECTIVE_QUEUE_PATH = os.path.join(STATE_FABRIC_DIR, "t1_directive_queue.v0_1.j
 DECISION_LOG_PATH = os.path.join(ARTIFACT_DIR, "t1_decision_log.jsonl")
 
 # Safety: actions that T1 decisions CANNOT execute in R0+
-PROHIBITED_DECISION_TYPES = frozenset([
-    "DEPLOY",
-    "PR_CREATE",
-    "MAIN_PUSH",
-    "SUPABASE_WRITE",
-    "SECRET_WRITE",
-    "R1_OPERATION",
-    "APP_VISION",
-    "CANON_WRITE"
-])
+PROHIBITED_DECISION_TYPES = frozenset(
+    ["DEPLOY", "PR_CREATE", "MAIN_PUSH", "SUPABASE_WRITE", "SECRET_WRITE", "R1_OPERATION", "APP_VISION", "CANON_WRITE"]
+)
 
-VALID_DECISION_TYPES = frozenset([
-    "APPROVE_MODEL_MIGRATION",
-    "BLOCK_PROVIDER",
-    "UNBLOCK_PROVIDER",
-    "EXPIRE_DIRECTIVE",
-    "CREATE_DIRECTIVE",
-    "PAUSE_DIRECTIVE",
-    "RESUME_DIRECTIVE",
-    "ACKNOWLEDGE_RISK",
-    "REJECT_MIGRATION"
-])
+VALID_DECISION_TYPES = frozenset(
+    [
+        "APPROVE_MODEL_MIGRATION",
+        "BLOCK_PROVIDER",
+        "UNBLOCK_PROVIDER",
+        "EXPIRE_DIRECTIVE",
+        "CREATE_DIRECTIVE",
+        "PAUSE_DIRECTIVE",
+        "RESUME_DIRECTIVE",
+        "ACKNOWLEDGE_RISK",
+        "REJECT_MIGRATION",
+    ]
+)
 
 
 def validate_decision(decision):
@@ -307,7 +302,7 @@ def execute_create_directive(decision):
         "forbidden_interpretations": [
             "This directive does NOT authorize R1 operations",
             "This directive does NOT bypass Dispatcher",
-            "This directive does NOT allow Supabase/DB writes"
+            "This directive does NOT allow Supabase/DB writes",
         ],
         "ttl_cycles": params.get("ttl_cycles", 10),
         "expires_at": (now + datetime.timedelta(days=4)).isoformat(),
@@ -320,7 +315,7 @@ def execute_create_directive(decision):
         "no_memory_write": True,
         "no_supabase": True,
         "evidence_ref": decision.get("reason", "T1 decision executor"),
-        "t1_verbatim": params.get("t1_verbatim", params.get("focus", ""))
+        "t1_verbatim": params.get("t1_verbatim", params.get("focus", "")),
     }
 
     queue["directives"].append(new_directive)
@@ -378,7 +373,7 @@ def execute_decision(decision, dry_run=False):
         "reason": decision.get("reason"),
         "success": success,
         "message": message,
-        "dry_run": dry_run
+        "dry_run": dry_run,
     }
 
     os.makedirs(os.path.dirname(DECISION_LOG_PATH), exist_ok=True)
@@ -404,15 +399,22 @@ def get_pending_decisions():
             snapshot = json.load(f)
         for candidate in snapshot.get("migration_candidates", []):
             if candidate.get("status") == "MIGRATION_CANDIDATE":
-                pending.append({
-                    "type": "PROVIDER_MIGRATION",
-                    "provider": candidate["provider"],
-                    "current_model": candidate["current_model"],
-                    "eol_date": candidate.get("eol_date"),
-                    "risk_level": candidate.get("risk_level"),
-                    "requires_decision": True,
-                    "valid_decision_types": ["APPROVE_MODEL_MIGRATION", "REJECT_MIGRATION", "BLOCK_PROVIDER", "ACKNOWLEDGE_RISK"]
-                })
+                pending.append(
+                    {
+                        "type": "PROVIDER_MIGRATION",
+                        "provider": candidate["provider"],
+                        "current_model": candidate["current_model"],
+                        "eol_date": candidate.get("eol_date"),
+                        "risk_level": candidate.get("risk_level"),
+                        "requires_decision": True,
+                        "valid_decision_types": [
+                            "APPROVE_MODEL_MIGRATION",
+                            "REJECT_MIGRATION",
+                            "BLOCK_PROVIDER",
+                            "ACKNOWLEDGE_RISK",
+                        ],
+                    }
+                )
 
     return pending
 
@@ -437,7 +439,7 @@ if __name__ == "__main__":
         "decision_type": "ACKNOWLEDGE_RISK",
         "target": "anthropic",
         "reason": "Acknowledged Anthropic EOL risk. Will monitor and decide closer to date.",
-        "params": {}
+        "params": {},
     }
     success, msg, log = execute_decision(example, dry_run=True)
     print(f"\n  Dry-run example: {msg}")

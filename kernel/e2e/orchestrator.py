@@ -111,9 +111,7 @@ class E2EOrchestrator:
         veredictos: Dict[str, int] = {}
         for r in all_runs:
             if r.veredicto_alfredo is not None:
-                veredictos[r.veredicto_alfredo.value] = (
-                    veredictos.get(r.veredicto_alfredo.value, 0) + 1
-                )
+                veredictos[r.veredicto_alfredo.value] = veredictos.get(r.veredicto_alfredo.value, 0) + 1
 
         scores = [r.critic_visual_score for r in all_runs if r.critic_visual_score is not None]
         avg = sum(scores) / len(scores) if scores else None
@@ -128,9 +126,7 @@ class E2EOrchestrator:
                     "pipeline_step": r.pipeline_step,
                     "deploy_url": r.deploy_url,
                     "critic_visual_score": r.critic_visual_score,
-                    "veredicto_alfredo": (
-                        r.veredicto_alfredo.value if r.veredicto_alfredo else None
-                    ),
+                    "veredicto_alfredo": (r.veredicto_alfredo.value if r.veredicto_alfredo else None),
                     "started_at": r.started_at.isoformat() if r.started_at else None,
                 }
             )

@@ -2,6 +2,7 @@
 Run migration 014: ALTER TABLE verification_results ADD COLUMN cost_usd
 Also investigate task_plans.cycles trigger.
 """
+
 import psycopg2
 
 # Direct Supabase connection (session mode)
@@ -14,6 +15,7 @@ CONN = {
     "sslmode": "require",
     "options": "-c statement_timeout=30000",
 }
+
 
 def run():
     conn = psycopg2.connect(**CONN)
@@ -87,7 +89,7 @@ def run():
     """)
     cycle_funcs = cur.fetchall()
     if cycle_funcs:
-        print(f"\n  Functions referencing 'cycles':")
+        print("\n  Functions referencing 'cycles':")
         for f in cycle_funcs:
             print(f"    - {f[0]}: {f[1][:300]}")
     else:
@@ -104,7 +106,7 @@ def run():
     """)
     pg_triggers = cur.fetchall()
     if pg_triggers:
-        print(f"\n  pg_trigger entries for task_plans:")
+        print("\n  pg_trigger entries for task_plans:")
         for t in pg_triggers:
             print(f"    - trigger: {t[0]}, function: {t[1]}")
             print(f"      source: {t[2][:500]}")
@@ -114,6 +116,7 @@ def run():
     cur.close()
     conn.close()
     print("\n=== Migration 014 complete ===")
+
 
 if __name__ == "__main__":
     run()

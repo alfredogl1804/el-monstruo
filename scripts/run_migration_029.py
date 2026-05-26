@@ -12,6 +12,7 @@ Uso desde repo root:
 
 Brand DNA en errores: e2e_migration_029_*_failed.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -39,22 +40,15 @@ class E2EMigration029SchemaFailed(E2EMigration029Error):
 
 
 def _read_sql() -> str:
-    path = os.path.join(
-        os.path.dirname(__file__), "029_sprint88_e2e_runs_deploy_provider.sql"
-    )
+    path = os.path.join(os.path.dirname(__file__), "029_sprint88_e2e_runs_deploy_provider.sql")
     with open(path, encoding="utf-8") as f:
         return f.read()
 
 
 def _connect() -> Any:
-    db_url = (
-        os.environ.get("DATABASE_URL")
-        or os.environ.get("SUPABASE_DB_URL")
-    )
+    db_url = os.environ.get("DATABASE_URL") or os.environ.get("SUPABASE_DB_URL")
     if not db_url:
-        raise E2EMigration029ConnectionFailed(
-            "DATABASE_URL/SUPABASE_DB_URL no configurada en el entorno"
-        )
+        raise E2EMigration029ConnectionFailed("DATABASE_URL/SUPABASE_DB_URL no configurada en el entorno")
     try:
         conn = psycopg2.connect(db_url)
         conn.autocommit = True
@@ -74,17 +68,13 @@ def apply_schema(conn: Any) -> None:
             )
             cols = cur.fetchall()
             if not cols:
-                raise E2EMigration029SchemaFailed(
-                    "columna deploy_provider no aparece post-migration"
-                )
+                raise E2EMigration029SchemaFailed("columna deploy_provider no aparece post-migration")
             print("  schema OK:")
             for name, dtype in cols:
                 print(f"    {name:18s} {dtype}")
 
             # Verificar backfill cosmético
-            cur.execute(
-                "SELECT COUNT(*) FROM e2e_runs WHERE deploy_provider IS NOT NULL"
-            )
+            cur.execute("SELECT COUNT(*) FROM e2e_runs WHERE deploy_provider IS NOT NULL")
             count_with_provider = cur.fetchone()[0]
             cur.execute("SELECT COUNT(*) FROM e2e_runs")
             total = cur.fetchone()[0]

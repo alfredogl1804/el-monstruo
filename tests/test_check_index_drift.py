@@ -13,14 +13,13 @@ Cubre:
 * CLI smoke: exit code 0/1 y JSON estructurado correcto.
 * Audit real del repo vigente: zero drift al cierre del spike.
 """
+
 from __future__ import annotations
 
 import json
 import subprocess
 import sys
 from pathlib import Path
-
-import pytest
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = REPO_ROOT / "tools" / "_check_index_drift.py"
@@ -221,9 +220,7 @@ def test_incidentes_path_treated_as_redirection_not_entry(tmp_path: Path):
     )
     idx = parse_index(capilla / "_INDEX.md")
     # Solo debe contar la entrada canónica, no la referencia narrativa.
-    assert [(e.code, e.declared_path) for e in idx] == [
-        ("DSC-S-005", "_GLOBAL/DSC-S-005_politica.md")
-    ]
+    assert [(e.code, e.declared_path) for e in idx] == [("DSC-S-005", "_GLOBAL/DSC-S-005_politica.md")]
 
 
 def test_cli_exit_code_zero_when_no_drift(tmp_path: Path):
@@ -312,6 +309,4 @@ def test_script_runs_via_subprocess():
         capture_output=True,
         text=True,
     )
-    assert result.returncode in (0, 1), (
-        f"unexpected returncode {result.returncode}, stderr={result.stderr!r}"
-    )
+    assert result.returncode in (0, 1), f"unexpected returncode {result.returncode}, stderr={result.stderr!r}"

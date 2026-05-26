@@ -507,7 +507,8 @@ class BrowserAutomation:
             self.viewport = {"width": width, "height": height}
             logger.info("browser_viewport_changed", width=width, height=height)
             return BrowserResult(
-                success=True, data={"width": width, "height": height},
+                success=True,
+                data={"width": width, "height": height},
             )
         except Exception as e:
             logger.error("browser_viewport_failed", error=str(e)[:200])
@@ -582,13 +583,7 @@ class BrowserAutomation:
 
         try:
             ip = ipaddress.ip_address(host)
-            if (
-                ip.is_private
-                or ip.is_loopback
-                or ip.is_link_local
-                or ip.is_multicast
-                or ip.is_reserved
-            ):
+            if ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_multicast or ip.is_reserved:
                 return True
         except ValueError:
             pass

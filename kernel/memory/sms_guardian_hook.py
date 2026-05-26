@@ -31,8 +31,6 @@ import os
 import sys
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
-from pathlib import Path
 from typing import Optional
 
 logger = logging.getLogger("monstruo.sms.guardian")
@@ -42,14 +40,12 @@ logger = logging.getLogger("monstruo.sms.guardian")
 # CONFIG (reads from env, same as session_memory.py pattern)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def _get_config() -> dict:
     """Get SMS config from environment."""
     return {
         "url": os.environ.get("SUPABASE_URL", ""),
-        "service_key": (
-            os.environ.get("SUPABASE_SERVICE_KEY")
-            or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
-        ),
+        "service_key": (os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")),
         "openai_api_key": os.environ.get("OPENAI_API_KEY", ""),
         "openai_base_url": os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1"),
         "embedding_model": os.environ.get("SMS_EMBEDDING_MODEL", "text-embedding-3-small"),
@@ -65,6 +61,7 @@ def _is_available() -> bool:
 # ═══════════════════════════════════════════════════════════════════════════════
 # SUPABASE HELPERS (zero dependencies, same pattern as session_memory.py)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 def _supabase_get(path: str, timeout: int = 10) -> list:
     """GET request to Supabase REST API."""
@@ -137,6 +134,7 @@ def _generate_embedding(text: str) -> Optional[list[float]]:
 # CORE: FETCH SOVEREIGN CONTEXT
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def fetch_sovereign_axioms(agent_id: str = None, limit: int = 20) -> list[dict]:
     """Fetch active sovereign axioms from Supabase."""
     filters = "is_active=eq.true"
@@ -182,6 +180,7 @@ def fetch_unresolved_gaps(agent_id: str = None, limit: int = 5) -> list[dict]:
 # MAIN: INJECT SOVEREIGN CONTEXT
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 def inject_sovereign_context(
     agent_id: str = "manus_c",
     query: str = None,
@@ -189,7 +188,7 @@ def inject_sovereign_context(
 ) -> str:
     """
     Inject sovereign context into the Guardian output.
-    
+
     This is the main function called by Guardian V4 after tri-anchor recovery.
     It prints (and returns) the sovereign context block.
     """

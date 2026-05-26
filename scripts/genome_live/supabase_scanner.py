@@ -58,7 +58,7 @@ def run_sql(sql: str) -> list[dict] | None:
             out = out.split("\n", 1)[1]
         return json.loads(out)
     except subprocess.TimeoutExpired:
-        print(f"  [ERROR] timeout en SQL", flush=True)
+        print("  [ERROR] timeout en SQL", flush=True)
         return None
     except json.JSONDecodeError as e:
         print(f"  [ERROR] JSON parse: {e} — out={result.stdout[:200]}", flush=True)
@@ -77,19 +77,23 @@ def scan() -> dict[str, Any]:
 
     # 1. Schemas
     print("  schemas...", flush=True)
-    schemas = run_sql(
-        "SELECT schema_name FROM information_schema.schemata "
-        "WHERE schema_name NOT IN ('pg_catalog','information_schema','pg_toast') "
-        "ORDER BY schema_name"
-    ) or []
+    schemas = (
+        run_sql(
+            "SELECT schema_name FROM information_schema.schemata "
+            "WHERE schema_name NOT IN ('pg_catalog','information_schema','pg_toast') "
+            "ORDER BY schema_name"
+        )
+        or []
+    )
     result["schemas"] = [s["schema_name"] for s in schemas]
     result["schemas_count"] = len(result["schemas"])
     print(f"    {result['schemas_count']} schemas", flush=True)
 
     # 2. Tablas (todas, con conteo aproximado y columnas)
     print("  tablas...", flush=True)
-    tables = run_sql(
-        """
+    tables = (
+        run_sql(
+            """
         SELECT
           t.table_schema,
           t.table_name,
@@ -101,7 +105,9 @@ def scan() -> dict[str, Any]:
         WHERE t.table_schema NOT IN ('pg_catalog','information_schema','pg_toast')
         ORDER BY t.table_schema, t.table_name
         """
-    ) or []
+        )
+        or []
+    )
     result["tables"] = tables
     result["tables_count"] = len(tables)
     # tablas por schema
@@ -113,8 +119,9 @@ def scan() -> dict[str, Any]:
 
     # 3. Functions / RPCs
     print("  functions...", flush=True)
-    functions = run_sql(
-        """
+    functions = (
+        run_sql(
+            """
         SELECT
           n.nspname AS schema,
           p.proname AS name,
@@ -126,34 +133,32 @@ def scan() -> dict[str, Any]:
         WHERE n.nspname NOT IN ('pg_catalog','information_schema','pg_toast')
         ORDER BY n.nspname, p.proname
         """
-    ) or []
+        )
+        or []
+    )
     result["functions"] = functions
     result["functions_count"] = len(functions)
     print(f"    {result['functions_count']} functions", flush=True)
 
     # 4. Extensions
     print("  extensions...", flush=True)
-    extensions = run_sql(
-        "SELECT extname AS name, extversion AS version FROM pg_extension ORDER BY extname"
-    ) or []
+    extensions = run_sql("SELECT extname AS name, extversion AS version FROM pg_extension ORDER BY extname") or []
     result["extensions"] = extensions
     result["extensions_count"] = len(extensions)
     print(f"    {result['extensions_count']} extensions", flush=True)
 
     # 5. Storage buckets
     print("  buckets...", flush=True)
-    buckets = run_sql(
-        "SELECT id, name, public, created_at, updated_at FROM storage.buckets ORDER BY name"
-    ) or []
+    buckets = run_sql("SELECT id, name, public, created_at, updated_at FROM storage.buckets ORDER BY name") or []
     result["buckets"] = buckets
     result["buckets_count"] = len(buckets)
     print(f"    {result['buckets_count']} buckets", flush=True)
 
     # 6. Migraciones aplicadas
     print("  migrations...", flush=True)
-    migrations = run_sql(
-        "SELECT version, name FROM supabase_migrations.schema_migrations ORDER BY version DESC LIMIT 100"
-    ) or []
+    migrations = (
+        run_sql("SELECT version, name FROM supabase_migrations.schema_migrations ORDER BY version DESC LIMIT 100") or []
+    )
     result["migrations_recent"] = migrations
     # total
     total_mig = run_sql("SELECT count(*)::int AS c FROM supabase_migrations.schema_migrations") or [{"c": 0}]
@@ -192,7 +197,7 @@ def main() -> int:
     result = scan()
     out_file.write_text(json.dumps(result, indent=2, ensure_ascii=False, default=str))
 
-    print(f"\nSUPABASE SCAN RESUMEN")
+    print("\nSUPABASE SCAN RESUMEN")
     print(f"  schemas        : {result['schemas_count']}")
     print(f"  tables         : {result['tables_count']}")
     print(f"  functions      : {result['functions_count']}")

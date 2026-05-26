@@ -4,9 +4,9 @@ Sprint D-2 (Hilo Ejecutor 2). Valida que llamar add_task dos veces con la misma
 combinacion (name, embrion_id) NO crea una segunda entrada en self._tasks y
 que preserva el task_id original.
 """
+
 import os
 import sys
-from pathlib import Path
 
 # Ensure project root is in path (patrón estándar del repo)
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -82,6 +82,7 @@ def test_different_embrion_ids_not_collapsed():
 def test_register_default_tasks_double_call():
     """register_default_tasks llamado 2 veces (simula restart) NO duplica."""
     from kernel.embrion_scheduler import register_default_tasks
+
     scheduler = EmbrionScheduler(db=None)
 
     register_default_tasks(scheduler)

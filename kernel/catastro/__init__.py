@@ -26,6 +26,7 @@ Componentes públicos del módulo:
   mcp_tools      — FastMCP sub-server con 4 tools (Sprint 86 Bloque 5)
   dashboard      — DashboardEngine + 4 endpoints (summary/timeline/curators/HTML) + auth condicional (Sprint 86 Bloque 7)
 """
+
 from __future__ import annotations
 
 __version__ = "0.86.7"  # Sprint 86 Bloque 7 — Dashboard de Salud + E2E
@@ -52,37 +53,6 @@ from kernel.catastro.dashboard import (
     render_html_dashboard,
 )
 
-# Bloque 5 — MCP Server catastro.recommend()
-from kernel.catastro.recommendation import (
-    CATASTRO_TRONO_VIEW,
-    DEFAULT_TOP_N,
-    MAX_TOP_N,
-    CatastroRecommendError,
-    CatastroRecommendInvalidArgs,
-    CatastroRecommendModeloNotFound,
-    DominioInfo,
-    ListDominiosResponse,
-    ModeloDetallado,
-    ModeloRecomendado,
-    RecommendationEngine,
-    RecommendationResponse,
-    StatusSnapshot,
-    build_default_db_factory,
-)
-
-# Bloque 4 — Trono Score
-from kernel.catastro.trono import (
-    DEFAULT_WEIGHTS,
-    METRIC_FIELDS,
-    CatastroTronoEmptyInput,
-    CatastroTronoError,
-    CatastroTronoInvalidDomain,
-    CatastroTronoInvalidWeights,
-    TronoCalculator,
-    TronoResult,
-    apply_results_to_models,
-)
-
 # Bloque 3 — Persistencia
 from kernel.catastro.persistence import (
     CatastroPersistence,
@@ -104,21 +74,52 @@ from kernel.catastro.quorum import (
     QuorumValidator,
 )
 
+# Bloque 5 — MCP Server catastro.recommend()
+from kernel.catastro.recommendation import (
+    CATASTRO_TRONO_VIEW,
+    DEFAULT_TOP_N,
+    MAX_TOP_N,
+    CatastroRecommendError,
+    CatastroRecommendInvalidArgs,
+    CatastroRecommendModeloNotFound,
+    DominioInfo,
+    ListDominiosResponse,
+    ModeloDetallado,
+    ModeloRecomendado,
+    RecommendationEngine,
+    RecommendationResponse,
+    StatusSnapshot,
+    build_default_db_factory,
+)
+
 # Bloque 1 — Schema
 from kernel.catastro.schema import (
-    EstadoModelo,
-    TipoLicencia,
-    Macroarea,
-    DominioInteligencia,
-    PrioridadEvento,
-    TipoEvento,
-    RolCurador,
-    CatastroModelo,
-    CatastroHistorial,
-    CatastroEvento,
-    CatastroNota,
     CatastroCurador,
+    CatastroEvento,
+    CatastroHistorial,
+    CatastroModelo,
+    CatastroNota,
+    DominioInteligencia,
+    EstadoModelo,
     FuenteEvidencia,
+    Macroarea,
+    PrioridadEvento,
+    RolCurador,
+    TipoEvento,
+    TipoLicencia,
+)
+
+# Bloque 4 — Trono Score
+from kernel.catastro.trono import (
+    DEFAULT_WEIGHTS,
+    METRIC_FIELDS,
+    CatastroTronoEmptyInput,
+    CatastroTronoError,
+    CatastroTronoInvalidDomain,
+    CatastroTronoInvalidWeights,
+    TronoCalculator,
+    TronoResult,
+    apply_results_to_models,
 )
 
 __all__ = [

@@ -36,20 +36,23 @@
 import json
 import os
 import sys
-import urllib.request
 import urllib.error
+import urllib.request
 
 # Sprint Memento Bloque 5 Fase 1 — pre-flight via library Memento
 _MEMENTO_AVAILABLE = True
 try:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from tools.memento_preflight import (  # type: ignore
-        preflight_check,
         MementoPreflightError,
+        preflight_check,
     )
 except Exception as _import_exc:
     _MEMENTO_AVAILABLE = False
-    print(f"[seed-29] WARN: tools.memento_preflight no disponible ({_import_exc!r}); continuando sin preflight", file=sys.stderr)
+    print(
+        f"[seed-29] WARN: tools.memento_preflight no disponible ({_import_exc!r}); continuando sin preflight",
+        file=sys.stderr,
+    )
 
 KERNEL_URL = os.environ.get(
     "KERNEL_URL",
@@ -59,7 +62,7 @@ API_KEY = os.environ.get("MONSTRUO_API_KEY")
 
 if not API_KEY:
     print("ERROR: MONSTRUO_API_KEY no está en environment.", file=sys.stderr)
-    print("Setear con: export MONSTRUO_API_KEY=\"...\"", file=sys.stderr)
+    print('Setear con: export MONSTRUO_API_KEY="..."', file=sys.stderr)
     sys.exit(1)
 
 SEMILLA_29 = {
@@ -83,7 +86,7 @@ SEMILLA_29 = {
         "directorio es exclusivamente de tu zona primaria; (3) `git diff "
         "--cached --name-only` para verificar que SOLO los archivos esperados "
         "están staged; (4) `git commit` con autoría explícita "
-        "(`-c user.name=\"Hilo X\"`) + `git push` y verificar el hash en el "
+        '(`-c user.name="Hilo X"`) + `git push` y verificar el hash en el '
         "output. Si en el paso 1 detectás archivos de otros hilos, NO HACER "
         "git stash/checkout — comunicar al hilo dueño vía bridge antes de "
         "cualquier acción que toque su WIP."

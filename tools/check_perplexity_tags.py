@@ -25,6 +25,7 @@ Origen: DSC-V-001 + DSC-G-017. Texto de claim en codigo no es validacion;
 la validacion vive en Perplexity log. Mientras tanto, el tag explicito
 es deuda auto-detectable.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -33,7 +34,6 @@ import re
 import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
-
 
 TAG_PATTERN = re.compile(
     r"\[NEEDS_PERPLEXITY_VALIDATION\][^\n]*",
@@ -117,23 +117,22 @@ def scan_path(target: Path, root: Path, skip_patterns: list[str]) -> list[TagHit
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description=(
-            "Scan de tags [NEEDS_PERPLEXITY_VALIDATION] no resueltos "
-            "(DSC-V-001 enforcement parcial)."
-        )
+        description=("Scan de tags [NEEDS_PERPLEXITY_VALIDATION] no resueltos (DSC-V-001 enforcement parcial).")
     )
     parser.add_argument(
-        "paths", nargs="*", type=Path, default=[Path(".")],
+        "paths",
+        nargs="*",
+        type=Path,
+        default=[Path(".")],
         help="paths a scanear (default cwd recursivo)",
     )
     parser.add_argument(
-        "--fail-on-found", action="store_true",
+        "--fail-on-found",
+        action="store_true",
         help="exit 1 si encuentra tags (default: exit 0 report-only)",
     )
-    parser.add_argument("--json", action="store_true",
-                        help="output JSON en vez de texto")
-    parser.add_argument("--skip", action="append", default=[],
-                        help="patrones extra a skipear (path substring)")
+    parser.add_argument("--json", action="store_true", help="output JSON en vez de texto")
+    parser.add_argument("--skip", action="append", default=[], help="patrones extra a skipear (path substring)")
     args = parser.parse_args()
 
     root = Path.cwd().resolve()
@@ -154,10 +153,7 @@ def main() -> int:
         if not all_hits:
             print("[ok] No hay tags [NEEDS_PERPLEXITY_VALIDATION] sin resolver.")
         else:
-            print(
-                f"Encontrados {len(all_hits)} claims con tag "
-                f"[NEEDS_PERPLEXITY_VALIDATION]:\n"
-            )
+            print(f"Encontrados {len(all_hits)} claims con tag [NEEDS_PERPLEXITY_VALIDATION]:\n")
             for h in all_hits:
                 print(f"  {h.file}:{h.line}  {h.tag}")
                 print(f"    {h.snippet}")

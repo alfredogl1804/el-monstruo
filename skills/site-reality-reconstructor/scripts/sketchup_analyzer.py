@@ -10,6 +10,7 @@ Estrategia:
   3. Procesa PDFs de planos/láminas asociados al modelo
   4. Combina todo para extraer dimensiones, materiales, escala y layout espacial
 """
+
 import asyncio
 import json
 import os
@@ -34,11 +35,8 @@ async def _analyze_sketchup_renders(renders_dir: str, model_name: str) -> list:
     if not renders_path.exists():
         return []
 
-    extensions = {'.jpg', '.jpeg', '.png', '.webp', '.tiff', '.bmp'}
-    files = sorted([
-        f for f in renders_path.rglob("*")
-        if f.suffix.lower() in extensions and f.is_file()
-    ])
+    extensions = {".jpg", ".jpeg", ".png", ".webp", ".tiff", ".bmp"}
+    files = sorted([f for f in renders_path.rglob("*") if f.suffix.lower() in extensions and f.is_file()])
 
     if not files:
         return []
@@ -51,8 +49,9 @@ async def _analyze_sketchup_renders(renders_dir: str, model_name: str) -> list:
                 img_bytes = f.read()
 
             ext = img_file.suffix.lower()
-            mime = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png",
-                    "webp": "image/webp"}.get(ext.lstrip("."), "image/jpeg")
+            mime = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp"}.get(
+                ext.lstrip("."), "image/jpeg"
+            )
 
             prompt = f"""Esta imagen proviene del modelo SketchUp "{model_name}".
 Extrae toda la información dimensional y espacial posible. Responde en JSON:
@@ -85,12 +84,14 @@ IMPORTANTE: Extrae la mayor cantidad de información dimensional posible.
 Si ves cotas, medidas, o texto con dimensiones, repórtalas exactamente."""
 
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model="gemini-2.5-flash",
                 contents=[
-                    types.Content(parts=[
-                        types.Part(text=prompt),
-                        types.Part(inline_data=types.Blob(mime_type=mime, data=img_bytes)),
-                    ])
+                    types.Content(
+                        parts=[
+                            types.Part(text=prompt),
+                            types.Part(inline_data=types.Blob(mime_type=mime, data=img_bytes)),
+                        ]
+                    )
                 ],
                 config=types.GenerateContentConfig(response_mime_type="application/json"),
             )
@@ -116,7 +117,7 @@ Si ves cotas, medidas, o texto con dimensiones, repórtalas exactamente."""
             observations.append(obs)
 
             if (i + 1) % 10 == 0:
-                print(f"      SketchUp: {i+1}/{min(len(files), 40)} analizados")
+                print(f"      SketchUp: {i + 1}/{min(len(files), 40)} analizados")
 
         except Exception as e:
             print(f"      SketchUp {img_file.name} error: {str(e)[:60]}")
@@ -141,7 +142,7 @@ def _analyze_skp_metadata(skp_dir: str) -> list:
         try:
             # Try to read as ZIP (SKP 2021+ format)
             if zipfile.is_zipfile(str(skp_file)):
-                with zipfile.ZipFile(str(skp_file), 'r') as zf:
+                with zipfile.ZipFile(str(skp_file), "r") as zf:
                     file_list = zf.namelist()
                     total_size = sum(info.file_size for info in zf.infolist())
 
@@ -205,12 +206,14 @@ async def _analyze_pdf_plans(pdf_dir: str, site_name: str) -> list:
         try:
             # Convert PDF pages to images for analysis
             from pdf2image import convert_from_path
+
             images = convert_from_path(str(pdf_file), first_page=1, last_page=5, dpi=200)
 
             for page_num, img in enumerate(images):
                 import io
+
                 buf = io.BytesIO()
-                img.save(buf, format='PNG')
+                img.save(buf, format="PNG")
                 img_bytes = buf.getvalue()
 
                 prompt = f"""Este es un plano/lámina del proyecto "{site_name}" (página {page_num + 1}).
@@ -230,12 +233,14 @@ Extrae TODA la información dimensional, de layout, y técnica. Responde en JSON
 }}"""
 
                 response = client.models.generate_content(
-                    model='gemini-2.5-flash',
+                    model="gemini-2.5-flash",
                     contents=[
-                        types.Content(parts=[
-                            types.Part(text=prompt),
-                            types.Part(inline_data=types.Blob(mime_type="image/png", data=img_bytes)),
-                        ])
+                        types.Content(
+                            parts=[
+                                types.Part(text=prompt),
+                                types.Part(inline_data=types.Blob(mime_type="image/png", data=img_bytes)),
+                            ]
+                        )
                     ],
                     config=types.GenerateContentConfig(response_mime_type="application/json"),
                 )
@@ -247,7 +252,7 @@ Extrae TODA la información dimensional, de layout, y técnica. Responde en JSON
                     "observation_id": f"pdf_plan_{pdf_file.stem}_p{page_num}",
                     "category": "technical_plan",
                     "source": "pdf_plan",
-                    "description": f"Plano {analysis.get('plan_type', 'unknown')} — {pdf_file.name} p.{page_num+1}",
+                    "description": f"Plano {analysis.get('plan_type', 'unknown')} — {pdf_file.name} p.{page_num + 1}",
                     "attributes": {
                         "filename": pdf_file.name,
                         "page": page_num + 1,
@@ -271,6 +276,7 @@ Extrae TODA la información dimensional, de layout, y técnica. Responde en JSON
 
 # ── Main Entry Point ─────────────────────────────────────────────────────────
 
+
 async def analyze_sketchup(
     site_name: str,
     renders_dir: Optional[str] = None,
@@ -292,7 +298,7 @@ async def analyze_sketchup(
 
     # 1. Analyze renders
     if renders_dir:
-        print(f"  [1/3] Analizando renders del modelo SketchUp...")
+        print("  [1/3] Analizando renders del modelo SketchUp...")
         render_obs = await _analyze_sketchup_renders(renders_dir, site_name)
         all_observations.extend(render_obs)
         summary["renders_analyzed"] = len(render_obs)
@@ -301,7 +307,7 @@ async def analyze_sketchup(
 
     # 2. Analyze SKP metadata
     if skp_dir:
-        print(f"  [2/3] Extrayendo metadata de archivos SKP...")
+        print("  [2/3] Extrayendo metadata de archivos SKP...")
         skp_obs = _analyze_skp_metadata(skp_dir)
         all_observations.extend(skp_obs)
         summary["skp_files_analyzed"] = len(skp_obs)
@@ -310,7 +316,7 @@ async def analyze_sketchup(
 
     # 3. Analyze PDF plans
     if pdf_dir:
-        print(f"  [3/3] Analizando planos PDF...")
+        print("  [3/3] Analizando planos PDF...")
         pdf_obs = await _analyze_pdf_plans(pdf_dir, site_name)
         all_observations.extend(pdf_obs)
         summary["pdf_pages_analyzed"] = len(pdf_obs)
@@ -319,12 +325,18 @@ async def analyze_sketchup(
 
     # Save results
     with open(output_path / "sketchup_analysis.json", "w") as f:
-        json.dump({
-            "site_name": site_name,
-            "analysis_date": __import__("datetime").datetime.now().isoformat(),
-            "summary": summary,
-            "observations": all_observations,
-        }, f, indent=2, ensure_ascii=False, default=str)
+        json.dump(
+            {
+                "site_name": site_name,
+                "analysis_date": __import__("datetime").datetime.now().isoformat(),
+                "summary": summary,
+                "observations": all_observations,
+            },
+            f,
+            indent=2,
+            ensure_ascii=False,
+            default=str,
+        )
 
     print(f"\n  ✓ SketchUp: {len(all_observations)} observaciones totales")
 

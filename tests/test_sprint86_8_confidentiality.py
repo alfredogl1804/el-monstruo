@@ -11,6 +11,7 @@ Cobertura:
 
 [Hilo Manus Catastro] · Sprint 86.8 Bloque 4 · 2026-05-05
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -27,7 +28,6 @@ from kernel.catastro.recommendation import (
     ModeloRecomendado,
     RecommendationEngine,
 )
-
 
 # ============================================================================
 # Helpers
@@ -63,13 +63,21 @@ def _row(model_id: str, tier: str, trono: float = 80.0, dominio: str = "general"
 
 class _ChainMock:
     """Stub fluido tipo Supabase: cualquier metodo devuelve self; execute() devuelve data."""
+
     def __init__(self, rows: list[dict]):
         self._rows = rows
 
-    def select(self, *a, **kw): return self
-    def eq(self, *a, **kw): return self
-    def order(self, *a, **kw): return self
-    def limit(self, *a, **kw): return self
+    def select(self, *a, **kw):
+        return self
+
+    def eq(self, *a, **kw):
+        return self
+
+    def order(self, *a, **kw):
+        return self
+
+    def limit(self, *a, **kw):
+        return self
 
     def execute(self):
         return MagicMock(data=self._rows)
@@ -107,12 +115,14 @@ def test_tier_rank_orden_semantico():
 
 def test_valid_tiers_set():
     """Los 4 tiers documentados son los unicos validos."""
-    assert VALID_CONFIDENTIALITY_TIERS == frozenset({
-        "local_only",
-        "tee_capable",
-        "cloud_anonymized_ok",
-        "cloud_only",
-    })
+    assert VALID_CONFIDENTIALITY_TIERS == frozenset(
+        {
+            "local_only",
+            "tee_capable",
+            "cloud_anonymized_ok",
+            "cloud_only",
+        }
+    )
 
 
 def test_default_min_tier_es_permisivo():
@@ -133,9 +143,15 @@ def test_recommend_rechaza_tier_invalido():
     assert exc_info.value.code == "catastro_recommend_invalid_args"
 
 
-@pytest.mark.parametrize("tier", [
-    "local_only", "tee_capable", "cloud_anonymized_ok", "cloud_only",
-])
+@pytest.mark.parametrize(
+    "tier",
+    [
+        "local_only",
+        "tee_capable",
+        "cloud_anonymized_ok",
+        "cloud_only",
+    ],
+)
 def test_recommend_acepta_los_4_tiers_validos(tier):
     """Los 4 tiers documentados deben ser aceptados sin error."""
     eng = RecommendationEngine(db_factory=None)
@@ -192,9 +208,7 @@ def test_filtro_cloud_anonymized_acepta_3_tiers():
         _row("hf-raw", "cloud_only", trono=92),
     ]
     eng = RecommendationEngine(db_factory=_mock_db_factory(rows))
-    res = eng.recommend(
-        use_case="contract", min_tier_required="cloud_anonymized_ok", top_n=10
-    )
+    res = eng.recommend(use_case="contract", min_tier_required="cloud_anonymized_ok", top_n=10)
     assert res.degraded is False
     ids = [m.id for m in res.modelos]
     assert {"llama-local", "claude-tee", "gpt-anon"}.issubset(set(ids))
@@ -238,7 +252,8 @@ def test_filtro_estricto_con_raise_lanza_excepcion():
     eng = RecommendationEngine(db_factory=_mock_db_factory(rows))
     with pytest.raises(CatastroChooseModelNoEligibleTier) as exc_info:
         eng.recommend(
-            use_case="legal", min_tier_required="local_only",
+            use_case="legal",
+            min_tier_required="local_only",
             raise_on_no_eligible_tier=True,
         )
     assert exc_info.value.code == "catastro_choose_model_no_eligible_tier"
@@ -317,8 +332,14 @@ def test_modelo_recomendado_serializa_tier():
 def test_modelo_recomendado_tier_opcional():
     """confidentiality_tier es Optional — default None para compat."""
     m = ModeloRecomendado(
-        id="x", nombre="X", proveedor="p", dominio="g",
-        trono_global=50.0, trono_low=45.0, trono_high=55.0, rank_dominio=1,
+        id="x",
+        nombre="X",
+        proveedor="p",
+        dominio="g",
+        trono_global=50.0,
+        trono_low=45.0,
+        trono_high=55.0,
+        rank_dominio=1,
     )
     assert m.confidentiality_tier is None
 
@@ -334,7 +355,9 @@ def test_migration_027_sql_existe_y_es_idempotente():
     assert sql_path.exists(), f"Migration 027 no encontrado: {sql_path}"
     sql_text = sql_path.read_text()
     # Idempotencia: debe usar IF NOT EXISTS para columna e indice
-    assert "IF NOT EXISTS confidentiality_tier" in sql_text or "ADD COLUMN IF NOT EXISTS confidentiality_tier" in sql_text
+    assert (
+        "IF NOT EXISTS confidentiality_tier" in sql_text or "ADD COLUMN IF NOT EXISTS confidentiality_tier" in sql_text
+    )
     assert "CREATE INDEX IF NOT EXISTS" in sql_text
 
 

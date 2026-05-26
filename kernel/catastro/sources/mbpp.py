@@ -6,10 +6,12 @@ Tercera fuente independiente para Quorum 2-de-3 de coding.
 
 [Hilo Manus Catastro] · Sprint 86.5 · 2026-05-05
 """
+
 from __future__ import annotations
 
-import httpx
 from typing import Any
+
+import httpx
 
 from kernel.catastro.sources.base import (
     BaseFuente,
@@ -46,7 +48,7 @@ class MBPPFuente(BaseFuente):
                     raise FuenteRateLimitError(self.nombre, "Rate limit excedido en BenchLM")
                 if response.status_code >= 500:
                     raise FuenteUnavailableError(self.nombre, f"Error {response.status_code} en BenchLM")
-                
+
                 response.raise_for_status()
                 payload = response.json()
 
@@ -71,25 +73,9 @@ class MBPPFuente(BaseFuente):
     def _get_dry_run_payload(self) -> dict[str, Any]:
         return {
             "data": [
-                {
-                    "model_id": "gpt-5-5",
-                    "model_name": "GPT-5.5",
-                    "pass_at_1": 91.7
-                },
-                {
-                    "model_id": "claude-opus-4-7",
-                    "model_name": "Claude Opus 4.7",
-                    "pass_at_1": 90.0
-                },
-                {
-                    "model_id": "claude-3-5-sonnet-20241022",
-                    "model_name": "Claude 3.5 Sonnet (New)",
-                    "pass_at_1": 89.5
-                },
-                {
-                    "model_id": "overfit-coder-v1",
-                    "model_name": "Overfit Coder",
-                    "pass_at_1": 94.0
-                }
+                {"model_id": "gpt-5-5", "model_name": "GPT-5.5", "pass_at_1": 91.7},
+                {"model_id": "claude-opus-4-7", "model_name": "Claude Opus 4.7", "pass_at_1": 90.0},
+                {"model_id": "claude-3-5-sonnet-20241022", "model_name": "Claude 3.5 Sonnet (New)", "pass_at_1": 89.5},
+                {"model_id": "overfit-coder-v1", "model_name": "Overfit Coder", "pass_at_1": 94.0},
             ]
         }

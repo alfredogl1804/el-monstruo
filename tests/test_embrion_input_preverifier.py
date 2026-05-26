@@ -25,7 +25,6 @@ import pytest
 
 from kernel.embrion_self_verifier import evaluate_input_for_skip
 
-
 # ── Casos que DEBEN saltarse (skip=True) ─────────────────────────────────────
 
 

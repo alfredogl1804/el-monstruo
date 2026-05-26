@@ -12,8 +12,8 @@ No external API calls. No state modification. Pure local computation.
 Usage:
     python3 embryo_task_diversity_balancer_v0_1.py [--base-dir /path]
 """
+
 import json
-import sys
 from collections import Counter
 from datetime import datetime, timezone
 from pathlib import Path
@@ -33,11 +33,13 @@ def load_run_history(base_dir: Path) -> dict:
                     data = json.loads(f.read_text(encoding="utf-8"))
                     embryo_type = "oracle" if "oracle" in f.name else "auditor" if "auditor" in f.name else None
                     if embryo_type:
-                        runs[embryo_type].append({
-                            "file": f.name,
-                            "task": data.get("task_selected", data.get("task", "unknown")),
-                            "timestamp": data.get("timestamp", ""),
-                        })
+                        runs[embryo_type].append(
+                            {
+                                "file": f.name,
+                                "task": data.get("task_selected", data.get("task", "unknown")),
+                                "timestamp": data.get("timestamp", ""),
+                            }
+                        )
                 except (json.JSONDecodeError, IOError):
                     continue
 
@@ -107,6 +109,7 @@ def calculate_diversity_score(diversity: dict) -> float:
     if len(freqs) <= 1:
         return 100.0 if unique == total else 50.0
     import math
+
     entropy = -sum((f / total) * math.log2(f / total) for f in freqs if f > 0)
     max_entropy = math.log2(unique) if unique > 1 else 1
     normalized = (entropy / max_entropy) * 100 if max_entropy > 0 else 0
@@ -125,24 +128,28 @@ def propose_scoring_adjustment(diversity: dict, repetition: dict) -> dict:
     modifiers = []
 
     # Penalize dominant task
-    modifiers.append({
-        "task": dominant,
-        "modifier": -0.15,
-        "reason": f"Over-represented ({repetition['ratio']:.0%} of runs)",
-        "type": "PENALTY",
-    })
+    modifiers.append(
+        {
+            "task": dominant,
+            "modifier": -0.15,
+            "reason": f"Over-represented ({repetition['ratio']:.0%} of runs)",
+            "type": "PENALTY",
+        }
+    )
 
     # Boost underrepresented tasks
     freqs = diversity["frequencies"]
     avg_freq = diversity["total_runs"] / diversity["unique_tasks"] if diversity["unique_tasks"] > 0 else 0
     for task, count in freqs.items():
         if task != dominant and count < avg_freq * 0.5:
-            modifiers.append({
-                "task": task,
-                "modifier": 0.10,
-                "reason": f"Under-represented ({count}/{diversity['total_runs']} runs)",
-                "type": "BOOST",
-            })
+            modifiers.append(
+                {
+                    "task": task,
+                    "modifier": 0.10,
+                    "reason": f"Under-represented ({count}/{diversity['total_runs']} runs)",
+                    "type": "BOOST",
+                }
+            )
 
     return {"adjustment_needed": True, "modifiers": modifiers}
 
@@ -186,6 +193,7 @@ def run_balancer(base_dir: Optional[Path] = None) -> dict:
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Embryo Task Diversity Balancer v0.1")
     parser.add_argument("--base-dir", default=None)
     args = parser.parse_args()

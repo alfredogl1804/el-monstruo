@@ -27,7 +27,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 def load_json(filename):
     """Carga un archivo JSON del directorio del sprint."""
     path = os.path.join(BASE_DIR, filename)
-    with open(path, 'r', encoding='utf-8') as f:
+    with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
 
@@ -61,31 +61,27 @@ def main():
         cap_schema = load_json("capability_risk.schema.json")
         ps_schema = load_json("power_stack_risk.schema.json")
         sc_schema = load_json("sprint_candidate_risk.schema.json")
-        overlay_schema = load_json("risk_classification_overlay.schema.json")
+        load_json("risk_classification_overlay.schema.json")
     except Exception as e:
         print(f"FATAL: Cannot load artifacts: {e}")
         sys.exit(1)
 
     # === TEST 1: All capabilities have risk_class and required_autonomy_level ===
     print("TEST 01: All capabilities have risk_class + required_autonomy_level")
-    all_have_risk = all(
-        "risk_class" in cap and "required_autonomy_level" in cap
-        for cap in cap_overlay["capabilities"]
-    )
+    all_have_risk = all("risk_class" in cap and "required_autonomy_level" in cap for cap in cap_overlay["capabilities"])
     count = len(cap_overlay["capabilities"])
     if all_have_risk and count == 6:
         print(f"  PASS — {count}/6 capabilities classified")
         tests_passed += 1
         results.append(("TEST_01", "PASS", f"{count}/6 capabilities classified"))
     else:
-        print(f"  FAIL — Missing risk_class in some capabilities")
+        print("  FAIL — Missing risk_class in some capabilities")
         results.append(("TEST_01", "FAIL", "Missing fields"))
 
     # === TEST 2: All power stacks have derived_risk_class ===
     print("TEST 02: All power stacks have derived_risk_class")
     all_ps_risk = all(
-        "derived_risk_class" in ps and "required_autonomy_level" in ps
-        for ps in ps_overlay["power_stacks"]
+        "derived_risk_class" in ps and "required_autonomy_level" in ps for ps in ps_overlay["power_stacks"]
     )
     ps_count = len(ps_overlay["power_stacks"])
     if all_ps_risk and ps_count == 6:
@@ -93,14 +89,13 @@ def main():
         tests_passed += 1
         results.append(("TEST_02", "PASS", f"{ps_count}/6 power stacks classified"))
     else:
-        print(f"  FAIL — Missing derived_risk_class in some power stacks")
+        print("  FAIL — Missing derived_risk_class in some power stacks")
         results.append(("TEST_02", "FAIL", "Missing fields"))
 
     # === TEST 3: All sprint candidates have required_autonomy_level ===
     print("TEST 03: All sprint candidates have required_autonomy_level")
     all_sc_risk = all(
-        "derived_risk_class" in sc and "required_autonomy_level" in sc
-        for sc in sc_overlay["sprint_candidates"]
+        "derived_risk_class" in sc and "required_autonomy_level" in sc for sc in sc_overlay["sprint_candidates"]
     )
     sc_count = len(sc_overlay["sprint_candidates"])
     if all_sc_risk and sc_count == 6:
@@ -108,35 +103,31 @@ def main():
         tests_passed += 1
         results.append(("TEST_03", "PASS", f"{sc_count}/6 sprint candidates classified"))
     else:
-        print(f"  FAIL — Missing fields in sprint candidates")
+        print("  FAIL — Missing fields in sprint candidates")
         results.append(("TEST_03", "FAIL", "Missing fields"))
 
     # === TEST 4: STATIC_CATALOG -> R0 rule enforced ===
     print("TEST 04: STATIC_CATALOG evidence -> R0 risk_class enforced")
     all_static_r0 = all(
-        cap["evidence_status"] == "STATIC_CATALOG" and cap["risk_class"] == "R0"
-        for cap in cap_overlay["capabilities"]
+        cap["evidence_status"] == "STATIC_CATALOG" and cap["risk_class"] == "R0" for cap in cap_overlay["capabilities"]
     )
     if all_static_r0:
-        print(f"  PASS — All STATIC_CATALOG capabilities are R0")
+        print("  PASS — All STATIC_CATALOG capabilities are R0")
         tests_passed += 1
         results.append(("TEST_04", "PASS", "All STATIC_CATALOG -> R0"))
     else:
-        print(f"  FAIL — Some STATIC_CATALOG capabilities are not R0")
+        print("  FAIL — Some STATIC_CATALOG capabilities are not R0")
         results.append(("TEST_04", "FAIL", "Rule violation"))
 
     # === TEST 5: No false REALTIME_VERIFIED claims ===
     print("TEST 05: No false REALTIME_VERIFIED claims")
-    any_realtime = any(
-        cap["evidence_status"] == "REALTIME_VERIFIED"
-        for cap in cap_overlay["capabilities"]
-    )
+    any_realtime = any(cap["evidence_status"] == "REALTIME_VERIFIED" for cap in cap_overlay["capabilities"])
     if not any_realtime:
-        print(f"  PASS — No REALTIME_VERIFIED claims (correct for v0)")
+        print("  PASS — No REALTIME_VERIFIED claims (correct for v0)")
         tests_passed += 1
         results.append(("TEST_05", "PASS", "No false REALTIME claims"))
     else:
-        print(f"  FAIL — Found REALTIME_VERIFIED without API connection")
+        print("  FAIL — Found REALTIME_VERIFIED without API connection")
         results.append(("TEST_05", "FAIL", "False REALTIME claim"))
 
     # === TEST 6: Auditor recheck gate log passes 10/10 ===
@@ -155,7 +146,7 @@ def main():
     print("TEST 07: Finding FND-031 status = RESOLVED")
     fnd_status = recheck["finding_status_update"]["new_status"]
     if fnd_status == "RESOLVED":
-        print(f"  PASS — FND-031 is RESOLVED")
+        print("  PASS — FND-031 is RESOLVED")
         tests_passed += 1
         results.append(("TEST_07", "PASS", "FND-031 RESOLVED"))
     else:
@@ -169,7 +160,7 @@ def main():
         allowed_actions.add(cap["allowed_next_action"])
     for sc in sc_overlay["sprint_candidates"]:
         allowed_actions.add(sc["allowed_next_action"])
-    
+
     forbidden_self_execute = {"EXECUTE", "AUTO_RUN", "DEPLOY"}
     creep_detected = allowed_actions & forbidden_self_execute
     if not creep_detected:
@@ -184,7 +175,7 @@ def main():
     print("TEST 09: Annotated catalog consistent with overlays")
     annotated_caps = {c["id"]: c for c in annotated["capabilities"]}
     overlay_caps = {c["capability_id"]: c for c in cap_overlay["capabilities"]}
-    
+
     consistent = True
     for cap_id, ann in annotated_caps.items():
         ov = overlay_caps.get(cap_id)
@@ -197,26 +188,26 @@ def main():
         if ann["required_autonomy_level"] != ov["required_autonomy_level"]:
             consistent = False
             break
-    
+
     if consistent and len(annotated_caps) == 6:
-        print(f"  PASS — Annotated catalog matches overlay (6/6)")
+        print("  PASS — Annotated catalog matches overlay (6/6)")
         tests_passed += 1
         results.append(("TEST_09", "PASS", "Consistent 6/6"))
     else:
-        print(f"  FAIL — Inconsistency between annotated catalog and overlay")
+        print("  FAIL — Inconsistency between annotated catalog and overlay")
         results.append(("TEST_09", "FAIL", "Inconsistent"))
 
     # === TEST 10: Schema validation (simplified) ===
     print("TEST 10: Schema validation — all overlays have required fields")
     schema_valid = True
     errors = []
-    
+
     # Check capability overlay has required top-level fields
     for field in ["overlay_version", "base_catalog_version", "generated_by", "generated_at", "capabilities"]:
         if field not in cap_overlay:
             schema_valid = False
             errors.append(f"cap_overlay missing {field}")
-    
+
     # Check each capability has required fields from schema
     cap_required = cap_schema.get("required", [])
     for cap in cap_overlay["capabilities"]:
@@ -224,7 +215,7 @@ def main():
             if field not in cap:
                 schema_valid = False
                 errors.append(f"Capability {cap.get('capability_id', '?')} missing {field}")
-    
+
     # Check power stack overlay
     ps_required = ps_schema.get("required", [])
     for ps in ps_overlay["power_stacks"]:
@@ -232,7 +223,7 @@ def main():
             if field not in ps:
                 schema_valid = False
                 errors.append(f"PS {ps.get('power_stack_id', '?')} missing {field}")
-    
+
     # Check sprint candidate overlay
     sc_required = sc_schema.get("required", [])
     for sc in sc_overlay["sprint_candidates"]:
@@ -240,9 +231,9 @@ def main():
             if field not in sc:
                 schema_valid = False
                 errors.append(f"SC {sc.get('sprint_candidate_id', '?')} missing {field}")
-    
+
     if schema_valid:
-        print(f"  PASS — All schemas valid")
+        print("  PASS — All schemas valid")
         tests_passed += 1
         results.append(("TEST_10", "PASS", "All schemas valid"))
     else:
@@ -253,14 +244,14 @@ def main():
     print()
     print("=" * 70)
     print(f"RESULTADO: {tests_passed}/{tests_total} PASS")
-    
+
     if tests_passed == tests_total:
         verdict = "PASS"
     elif tests_passed >= 8:
         verdict = "PASS_WITH_FINDINGS"
     else:
         verdict = "FAIL"
-    
+
     print(f"VERDICT: {verdict}")
     print("=" * 70)
 
@@ -276,16 +267,16 @@ def main():
             "power_stack_risk_overlay.v0_1.json",
             "sprint_candidate_risk_overlay.v0_1.json",
             "oracle_catalog_risk_annotated.v0_1.json",
-            "auditor_recheck_gate_log.json"
-        ]
+            "auditor_recheck_gate_log.json",
+        ],
     }
-    
+
     manifest_path = os.path.join(BASE_DIR, "e2e_simulation_manifest.json")
-    with open(manifest_path, 'w', encoding='utf-8') as f:
+    with open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(manifest, f, indent=2, ensure_ascii=False)
-    
+
     print(f"\nManifest guardado en: {manifest_path}")
-    
+
     return tests_passed == tests_total
 
 

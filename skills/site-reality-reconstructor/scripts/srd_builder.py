@@ -3,10 +3,10 @@
 SRD Builder — Genera el Site Reality Document completo
 (site_reality.json + render_constraints.json).
 """
+
 import json
 import os
 from datetime import date
-from pathlib import Path
 
 
 async def build_srd(site_info: dict, fused_evidence: dict, coverage: dict) -> dict:
@@ -22,13 +22,13 @@ async def build_srd(site_info: dict, fused_evidence: dict, coverage: dict) -> di
 
     fused_json = json.dumps(fused_evidence, indent=1, ensure_ascii=False, default=str)
 
-    prompt = f"""Eres un arquitecto de datos geoespaciales. Tu trabajo es construir un Site Reality Document (SRD) completo y estructurado para el sitio "{site_info['name']}".
+    prompt = f"""Eres un arquitecto de datos geoespaciales. Tu trabajo es construir un Site Reality Document (SRD) completo y estructurado para el sitio "{site_info["name"]}".
 
 ## Datos del Sitio
-- Coordenadas: {site_info['lat']}, {site_info['lng']}
-- Radio: {site_info['radius_m']}m
-- Fecha objetivo: {site_info['target_date']}
-- Semáforo cobertura: {coverage.get('semaphore', 'unknown')}
+- Coordenadas: {site_info["lat"]}, {site_info["lng"]}
+- Radio: {site_info["radius_m"]}m
+- Fecha objetivo: {site_info["target_date"]}
+- Semáforo cobertura: {coverage.get("semaphore", "unknown")}
 
 ## Evidencia Fusionada
 {fused_json[:25000]}
@@ -38,10 +38,10 @@ Genera un JSON con la estructura EXACTA del SRD:
 
 {{
   "site_metadata": {{
-    "name": "{site_info['name']}",
-    "coordinates": {{"lat": {site_info['lat']}, "lng": {site_info['lng']}}},
-    "radius_m": {site_info['radius_m']},
-    "target_reality_date": "{site_info['target_date']}",
+    "name": "{site_info["name"]}",
+    "coordinates": {{"lat": {site_info["lat"]}, "lng": {site_info["lng"]}}},
+    "radius_m": {site_info["radius_m"]},
+    "target_reality_date": "{site_info["target_date"]}",
     "reconstruction_date": "{date.today().isoformat()}"
   }},
   "source_registry": [
@@ -101,7 +101,10 @@ REGLAS PARA validation_rules:
         response = client.chat.completions.create(
             model="gpt-5.4",
             messages=[
-                {"role": "system", "content": "Eres un sistema de construcción de documentos de realidad geoespacial. Respondes SOLO en JSON válido."},
+                {
+                    "role": "system",
+                    "content": "Eres un sistema de construcción de documentos de realidad geoespacial. Respondes SOLO en JSON válido.",
+                },
                 {"role": "user", "content": prompt},
             ],
             max_completion_tokens=16000,

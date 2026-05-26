@@ -23,6 +23,7 @@ from typing import Optional, Protocol
 
 class AnchorStoreReader(Protocol):
     """Protocol for reading from B1 Anchor Store."""
+
     def search_anchors(self, query: str) -> list: ...
     def get_anchor(self, concept: str) -> object: ...
 
@@ -37,6 +38,7 @@ class ClaimVerdict(Enum):
 @dataclass
 class Claim:
     """A single claim extracted from input."""
+
     text: str
     source: str = "input"
     confidence: float = 1.0
@@ -45,6 +47,7 @@ class Claim:
 @dataclass
 class VerificationResult:
     """Result of verifying a single claim."""
+
     claim: Claim
     verdict: ClaimVerdict
     reason: str
@@ -55,6 +58,7 @@ class VerificationResult:
 @dataclass
 class GateResult:
     """Aggregate result of the Claim Verification Gate."""
+
     overall_verdict: ClaimVerdict
     results: list[VerificationResult] = field(default_factory=list)
     pass_count: int = 0
@@ -75,10 +79,21 @@ class ClaimExtractor:
     """
 
     # Keywords that indicate a claim (declarative statement)
-    CLAIM_INDICATORS = frozenset([
-        "es", "son", "debe", "siempre", "nunca", "todo", "ningún",
-        "obligatorio", "prohibido", "requiere", "garantiza",
-    ])
+    CLAIM_INDICATORS = frozenset(
+        [
+            "es",
+            "son",
+            "debe",
+            "siempre",
+            "nunca",
+            "todo",
+            "ningún",
+            "obligatorio",
+            "prohibido",
+            "requiere",
+            "garantiza",
+        ]
+    )
 
     def extract(self, text: str) -> list[Claim]:
         """

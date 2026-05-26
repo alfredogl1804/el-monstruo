@@ -9,6 +9,7 @@ Valida:
   - disabled_until_oauth_configured=True cuando envs faltan
   - dry_run=True por defecto (HITL DSC-G-002)
 """
+
 from __future__ import annotations
 
 from kernel.transversales.base import (
@@ -39,15 +40,9 @@ def test_search_console_health_endpoints_are_canonical():
     mon = layer.monitor(_ctx())
     sch = mon["search_console_health"]
     assert sch["api_version"] == "v1"
-    assert (
-        "googleapis.com/webmasters/v3/sites/" in sch["endpoint_searchanalytics"]
-    )
-    assert (
-        "searchAnalytics/query" in sch["endpoint_searchanalytics"]
-    )
-    assert (
-        "webmasters.readonly" in sch["oauth_scope_required"]
-    )
+    assert "googleapis.com/webmasters/v3/sites/" in sch["endpoint_searchanalytics"]
+    assert "searchAnalytics/query" in sch["endpoint_searchanalytics"]
+    assert "webmasters.readonly" in sch["oauth_scope_required"]
 
 
 def test_search_console_health_disabled_when_envs_missing(monkeypatch):
@@ -64,9 +59,7 @@ def test_search_console_health_disabled_when_envs_missing(monkeypatch):
 
 def test_search_console_health_ready_when_envs_present(monkeypatch):
     monkeypatch.setenv("GOOGLE_SEARCH_CONSOLE_OAUTH_TOKEN", "fake-token-xx")
-    monkeypatch.setenv(
-        "GOOGLE_SEARCH_CONSOLE_SITE_URL", "https://liketickets.mx/"
-    )
+    monkeypatch.setenv("GOOGLE_SEARCH_CONSOLE_SITE_URL", "https://liketickets.mx/")
     layer = SeoLayer()
     mon = layer.monitor(_ctx())
     sch = mon["search_console_health"]

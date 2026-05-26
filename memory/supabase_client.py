@@ -188,9 +188,7 @@ class SupabaseClient:
             return []
         try:
             return await asyncio.wait_for(
-                asyncio.to_thread(
-                    self._select_sync, table, columns, filters, order_by, order_desc, limit
-                ),
+                asyncio.to_thread(self._select_sync, table, columns, filters, order_by, order_desc, limit),
                 timeout=_DB_OP_TIMEOUT,
             )
         except asyncio.TimeoutError:

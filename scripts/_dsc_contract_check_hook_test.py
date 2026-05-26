@@ -10,6 +10,7 @@ Ejecuta el test sintetico descrito en el kickoff:
 Output:
     reports/dsc_contract_check_hook_test.json — JSON con 4 cases + verdict global.
 """
+
 from __future__ import annotations
 
 import json
@@ -98,14 +99,16 @@ def main() -> int:
     p = write_named(DSC_INVALID, "DSC-X-CA6-EV-INVALID.md")
     try:
         result = run_hook(p)
-        cases.append({
-            "case": "invalid_dsc_no_contract",
-            "input": str(p.name),
-            "expected_exit": 1,
-            "expected_behavior": "BLOCKED (hook rechaza commit)",
-            "actual": result,
-            "verdict": "PASS" if result["exit_code"] == 1 else "FAIL",
-        })
+        cases.append(
+            {
+                "case": "invalid_dsc_no_contract",
+                "input": str(p.name),
+                "expected_exit": 1,
+                "expected_behavior": "BLOCKED (hook rechaza commit)",
+                "actual": result,
+                "verdict": "PASS" if result["exit_code"] == 1 else "FAIL",
+            }
+        )
     finally:
         p.unlink(missing_ok=True)
 
@@ -113,14 +116,16 @@ def main() -> int:
     p = write_named(DSC_VALID, "DSC-X-CA6-EV-VALID.md")
     try:
         result = run_hook(p)
-        cases.append({
-            "case": "valid_dsc_with_contract",
-            "input": str(p.name),
-            "expected_exit": 0,
-            "expected_behavior": "PASSED (hook permite commit)",
-            "actual": result,
-            "verdict": "PASS" if result["exit_code"] == 0 else "FAIL",
-        })
+        cases.append(
+            {
+                "case": "valid_dsc_with_contract",
+                "input": str(p.name),
+                "expected_exit": 0,
+                "expected_behavior": "PASSED (hook permite commit)",
+                "actual": result,
+                "verdict": "PASS" if result["exit_code"] == 0 else "FAIL",
+            }
+        )
     finally:
         p.unlink(missing_ok=True)
 
@@ -128,28 +133,32 @@ def main() -> int:
     p = write_named(DSC_ASPIRATIONAL, "DSC-X-CA6-EV-ASPI.md")
     try:
         result = run_hook(p)
-        cases.append({
-            "case": "aspirational_dsc",
-            "input": str(p.name),
-            "expected_exit": 0,
-            "expected_behavior": "PASSED con [warn] (aspiracional explicito)",
-            "actual": result,
-            "verdict": "PASS" if result["exit_code"] == 0 else "FAIL",
-        })
+        cases.append(
+            {
+                "case": "aspirational_dsc",
+                "input": str(p.name),
+                "expected_exit": 0,
+                "expected_behavior": "PASSED con [warn] (aspiracional explicito)",
+                "actual": result,
+                "verdict": "PASS" if result["exit_code"] == 0 else "FAIL",
+            }
+        )
     finally:
         p.unlink(missing_ok=True)
 
     # Case 4: archivo inexistente → exit 2 (error uso)
     fake = REPO_ROOT / "DSC-X-CA6-EV-NOEXIST.md"
     result = run_hook(fake)
-    cases.append({
-        "case": "missing_file_usage_error",
-        "input": str(fake.name),
-        "expected_exit": 2,
-        "expected_behavior": "ERROR DE USO (archivo no existe)",
-        "actual": result,
-        "verdict": "PASS" if result["exit_code"] == 2 else "FAIL",
-    })
+    cases.append(
+        {
+            "case": "missing_file_usage_error",
+            "input": str(fake.name),
+            "expected_exit": 2,
+            "expected_behavior": "ERROR DE USO (archivo no existe)",
+            "actual": result,
+            "verdict": "PASS" if result["exit_code"] == 2 else "FAIL",
+        }
+    )
 
     verdicts = [c["verdict"] for c in cases]
     global_verdict = "PASS" if all(v == "PASS" for v in verdicts) else "FAIL"

@@ -49,9 +49,8 @@ import hashlib
 import json
 import logging
 import os
-import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Optional
 from uuid import UUID, uuid4
@@ -84,6 +83,7 @@ logger = logging.getLogger("sms_v3")
 # MEMORY TYPES (aligned with migration 0052 CHECK constraint)
 # ═══════════════════════════════════════════════════════════════════════
 
+
 class MemoryType(Enum):
     EPISODIC = "episodic"
     SEMANTIC = "semantic"
@@ -93,25 +93,28 @@ class MemoryType(Enum):
 
 class MemoryTier(Enum):
     """Biological memory tiers — maps to 'layer' column (1-5) in DB."""
-    BUFFER = 1          # TTL: 1 session, no persistence
-    WORKING = 2         # TTL: 1 hour, RAM only
-    LONG_TERM = 3       # Persistent, subject to decay (default)
-    SOVEREIGN = 4       # Axioms — NEVER decay, compaction-proof
-    META = 5            # About memory itself (gaps, confidence)
+
+    BUFFER = 1  # TTL: 1 session, no persistence
+    WORKING = 2  # TTL: 1 hour, RAM only
+    LONG_TERM = 3  # Persistent, subject to decay (default)
+    SOVEREIGN = 4  # Axioms — NEVER decay, compaction-proof
+    META = 5  # About memory itself (gaps, confidence)
 
 
 class EmbeddingProvider(Enum):
-    OPENAI = "openai"          # text-embedding-3-small (1536 dims) — DB-compatible
-    GEMINI = "gemini"          # gemini-embedding-2 (3072 dims, FREE) — internal use
+    OPENAI = "openai"  # text-embedding-3-small (1536 dims) — DB-compatible
+    GEMINI = "gemini"  # gemini-embedding-2 (3072 dims, FREE) — internal use
 
 
 # ═══════════════════════════════════════════════════════════════════════
 # DATA MODELS (aligned with migration 0052 columns)
 # ═══════════════════════════════════════════════════════════════════════
 
+
 @dataclass
 class MemoryEvent:
     """Atomic unit of memory — maps to sovereign_memories table."""
+
     event_id: UUID = field(default_factory=uuid4)
     content: str = ""
     content_hash: str = ""
@@ -129,9 +132,9 @@ class MemoryEvent:
     access_count: int = 0
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     # Temporal Invalidation (Zep/Graphiti pattern)
-    valid_at: Optional[datetime] = None   # When this memory became true
+    valid_at: Optional[datetime] = None  # When this memory became true
     invalid_at: Optional[datetime] = None  # When this memory stopped being true (None = still valid)
-    superseded_by: Optional[str] = None   # content_hash of the memory that replaced this one
+    superseded_by: Optional[str] = None  # content_hash of the memory that replaced this one
     # Internal only (not stored in DB)
     embedding_gemini: Optional[list[float]] = None  # 3072 dims for internal reranking
     metadata: dict[str, Any] = field(default_factory=dict)
@@ -141,6 +144,7 @@ class MemoryEvent:
 @dataclass
 class Axiom:
     """Crystallized understanding — maps to sovereign_axioms table."""
+
     axiom_id: Optional[str] = None  # UUID from DB
     statement: str = ""  # The axiom text (column: statement)
     confidence: float = 1.0
@@ -159,6 +163,7 @@ class Axiom:
 @dataclass
 class SearchResult:
     """Search result with reranking support."""
+
     content: str = ""
     memory_type: str = "episodic"
     agent_id: str = ""
@@ -172,6 +177,7 @@ class SearchResult:
 @dataclass
 class MetacognitiveGap:
     """Something the system knows it doesn't know — maps to sovereign_knowledge_gaps."""
+
     gap_id: Optional[str] = None
     question: str = ""  # Column: question
     evidence: str = ""
@@ -186,17 +192,20 @@ class MetacognitiveGap:
 # AUDN LOOP — Intelligent Write-Time Curation (Mem0 pattern)
 # ═══════════════════════════════════════════════════════════════════════
 
+
 class AUDNDecision(Enum):
     """Add, Update, Delete, None — the 4 possible actions on incoming memory."""
-    ADD = "add"          # New knowledge, store it
-    UPDATE = "update"    # Contradicts/supersedes existing memory — update in place
-    DELETE = "delete"    # Incoming info invalidates an existing memory
-    NONE = "none"        # Duplicate or irrelevant — discard
+
+    ADD = "add"  # New knowledge, store it
+    UPDATE = "update"  # Contradicts/supersedes existing memory — update in place
+    DELETE = "delete"  # Incoming info invalidates an existing memory
+    NONE = "none"  # Duplicate or irrelevant — discard
 
 
 @dataclass
 class AUDNResult:
     """Result of AUDN evaluation."""
+
     decision: AUDNDecision
     reason: str = ""
     target_memory_id: Optional[str] = None  # For UPDATE/DELETE: which memory to affect
@@ -207,7 +216,7 @@ class AUDNEvaluator:
     """
     AUDN Loop: Before storing any memory, evaluate against existing memories.
     Uses a fast LLM call to decide: Add, Update, Delete, or None.
-    
+
     This prevents "retrieval pollution" from append-only stores (Mem0 insight).
     Without AUDN, contradictory memories accumulate and confuse retrieval.
     """
@@ -235,10 +244,9 @@ class AUDNEvaluator:
             return AUDNResult(decision=AUDNDecision.ADD, reason="No existing memories to compare")
 
         # Build context of existing memories
-        existing_block = "\n".join([
-            f"- [id={m.get('id','?')}] {m.get('content','')[:200]}"
-            for m in existing_memories[:5]
-        ])
+        existing_block = "\n".join(
+            [f"- [id={m.get('id', '?')}] {m.get('content', '')[:200]}" for m in existing_memories[:5]]
+        )
 
         prompt = f"""You are a memory curation system. Given an INCOMING memory and EXISTING memories, decide the action.
 
@@ -290,6 +298,7 @@ Respond in JSON: {{"decision": "add|update|delete|none", "reason": "...", "targe
 # ═══════════════════════════════════════════════════════════════════════
 # EMBEDDING ENGINE (OpenAI 1536 for DB + Gemini 3072 for internal + Cohere Rerank)
 # ═══════════════════════════════════════════════════════════════════════
+
 
 class EmbeddingEngine:
     """Dual embedding with Cohere reranking."""
@@ -345,9 +354,7 @@ class EmbeddingEngine:
         """Generate embedding for search queries — must match DB dimension (1536)."""
         return await self.embed_for_db(text)
 
-    async def rerank_cohere(
-        self, query: str, documents: list[str], top_n: int = 10
-    ) -> list[dict]:
+    async def rerank_cohere(self, query: str, documents: list[str], top_n: int = 10) -> list[dict]:
         """Cohere rerank-v3.5 (+15-30% RAG precision)."""
         if not COHERE_API_KEY or not RERANK_ENABLED or not documents:
             return [{"index": i, "relevance_score": 1.0 - (i * 0.01)} for i in range(min(top_n, len(documents)))]
@@ -378,6 +385,7 @@ class EmbeddingEngine:
 # ═══════════════════════════════════════════════════════════════════════
 # BACKEND ADAPTERS (delegates to existing Monstruo systems)
 # ═══════════════════════════════════════════════════════════════════════
+
 
 class SupabaseBackend:
     """Direct Supabase adapter for sovereign tables + Anti-Dory RPCs."""
@@ -491,6 +499,7 @@ class CausalKBAdapter:
         """Try to import and initialize the real CausalKB."""
         try:
             from memory.causal_kb import get_causal_kb
+
             self._kb = get_causal_kb()
             await self._kb.initialize()
             return True
@@ -504,6 +513,7 @@ class CausalKBAdapter:
             return None
         try:
             from memory.causal_kb import CausalEvent, CausalFactor
+
             event = CausalEvent(
                 description=content,
                 factors=[CausalFactor(**f) for f in factors],
@@ -541,37 +551,47 @@ class AntiDoryAdapter:
         Uses the canonical RPC signature from migration 0032:
         rpc_write_runtime_event(p_project_id, p_front_id, p_actor_type, p_event_type, p_payload, p_thread_id, p_snapshot_id)
         """
-        result = await self._sb.call_rpc("rpc_write_runtime_event", {
-            "p_project_id": SMS_PROJECT_ID,
-            "p_front_id": SMS_FRONT_ID,
-            "p_actor_type": SMS_ACTOR_TYPE,
-            "p_event_type": event_type,
-            "p_payload": payload,
-            "p_thread_id": thread_id,
-            "p_snapshot_id": None,
-        })
+        result = await self._sb.call_rpc(
+            "rpc_write_runtime_event",
+            {
+                "p_project_id": SMS_PROJECT_ID,
+                "p_front_id": SMS_FRONT_ID,
+                "p_actor_type": SMS_ACTOR_TYPE,
+                "p_event_type": event_type,
+                "p_payload": payload,
+                "p_thread_id": thread_id,
+                "p_snapshot_id": None,
+            },
+        )
         return result is not None
 
     async def get_context_head(self, thread_id: str = "sms_v3") -> Optional[dict]:
         """Get the latest context snapshot for a thread."""
-        result = await self._sb.call_rpc("rpc_get_context_head", {
-            "p_project_id": SMS_PROJECT_ID,
-            "p_front_id": SMS_FRONT_ID,
-        })
+        result = await self._sb.call_rpc(
+            "rpc_get_context_head",
+            {
+                "p_project_id": SMS_PROJECT_ID,
+                "p_front_id": SMS_FRONT_ID,
+            },
+        )
         return result
 
     async def recovery_scan(self, thread_id: str = "sms_v3") -> list[dict]:
         """Scan for recovery events (post-compaction)."""
-        result = await self._sb.call_rpc("rpc_recovery_scan", {
-            "p_project_id": SMS_PROJECT_ID,
-            "p_front_id": SMS_FRONT_ID,
-        })
+        result = await self._sb.call_rpc(
+            "rpc_recovery_scan",
+            {
+                "p_project_id": SMS_PROJECT_ID,
+                "p_front_id": SMS_FRONT_ID,
+            },
+        )
         return result if result else []
 
 
 # ═══════════════════════════════════════════════════════════════════════
 # SOVEREIGN MEMORY SYSTEM v3 — CORE ENGINE
 # ═══════════════════════════════════════════════════════════════════════
+
 
 class SovereignMemoryV3:
     """
@@ -616,7 +636,7 @@ class SovereignMemoryV3:
         # Supabase connectivity
         if self.supabase.available:
             try:
-                result = await self.supabase.query("sovereign_axioms", "id", "limit=1")
+                await self.supabase.query("sovereign_axioms", "id", "limit=1")
                 status["supabase"] = True
             except Exception:
                 status["supabase"] = False
@@ -668,12 +688,15 @@ class SovereignMemoryV3:
         # Find similar existing memories to compare against
         existing = []
         if self.supabase.available and event.embedding:
-            similar = await self.supabase.call_rpc("match_sovereign_memories", {
-                "query_embedding": json.dumps(event.embedding),
-                "match_threshold": 0.75,
-                "match_count": 5,
-                "only_alive": True,
-            })
+            similar = await self.supabase.call_rpc(
+                "match_sovereign_memories",
+                {
+                    "query_embedding": json.dumps(event.embedding),
+                    "match_threshold": 0.75,
+                    "match_count": 5,
+                    "only_alive": True,
+                },
+            )
             if similar:
                 existing = similar
 
@@ -694,8 +717,11 @@ class SovereignMemoryV3:
             await self.supabase.patch(
                 "sovereign_memories",
                 f"id=eq.{audn_result.target_memory_id}",
-                {"is_alive": False, "invalidated_by": event.content_hash,
-                 "invalid_at": datetime.now(timezone.utc).isoformat()},
+                {
+                    "is_alive": False,
+                    "invalidated_by": event.content_hash,
+                    "invalid_at": datetime.now(timezone.utc).isoformat(),
+                },
             )
             self._stats["audn_deletes"] += 1
             logger.info(f"AUDN:DELETE — invalidated {audn_result.target_memory_id}")
@@ -706,8 +732,11 @@ class SovereignMemoryV3:
             await self.supabase.patch(
                 "sovereign_memories",
                 f"id=eq.{audn_result.target_memory_id}",
-                {"is_alive": False, "superseded_by": event.content_hash,
-                 "invalid_at": datetime.now(timezone.utc).isoformat()},
+                {
+                    "is_alive": False,
+                    "superseded_by": event.content_hash,
+                    "invalid_at": datetime.now(timezone.utc).isoformat(),
+                },
             )
             self._stats["audn_updates"] += 1
             logger.info(f"AUDN:UPDATE — superseded {audn_result.target_memory_id}")
@@ -740,12 +769,15 @@ class SovereignMemoryV3:
             await self.supabase.upsert("sovereign_memories", data, on_conflict="content_hash")
 
         # Audit trail via Anti-Dory RPC
-        await self.anti_dory.write_runtime_event("sms_memory_ingested", {
-            "content_hash": event.content_hash,
-            "memory_type": event.memory_type.value,
-            "agent_id": event.agent_id,
-            "layer": event.layer,
-        })
+        await self.anti_dory.write_runtime_event(
+            "sms_memory_ingested",
+            {
+                "content_hash": event.content_hash,
+                "memory_type": event.memory_type.value,
+                "agent_id": event.agent_id,
+                "layer": event.layer,
+            },
+        )
 
         # If causal chain provided, also store in CausalKB
         if event.causal_chain and event.memory_type == MemoryType.CAUSAL:
@@ -818,15 +850,17 @@ class SovereignMemoryV3:
         # Convert to SearchResult objects
         search_results = []
         for r in results:
-            search_results.append(SearchResult(
-                content=r.get("content", ""),
-                memory_type=r.get("memory_type", "episodic"),
-                agent_id=r.get("agent_id", ""),
-                confidence=r.get("confidence", 0.7),
-                similarity=r.get("similarity", 0.0),
-                source="vector",
-                raw_data=r,
-            ))
+            search_results.append(
+                SearchResult(
+                    content=r.get("content", ""),
+                    memory_type=r.get("memory_type", "episodic"),
+                    agent_id=r.get("agent_id", ""),
+                    confidence=r.get("confidence", 0.7),
+                    similarity=r.get("similarity", 0.0),
+                    source="vector",
+                    raw_data=r,
+                )
+            )
 
         # RERANK with Cohere if enabled
         if RERANK_ENABLED and len(search_results) > 1:
@@ -880,15 +914,17 @@ class SovereignMemoryV3:
 
         search_results = []
         for r in results:
-            search_results.append(SearchResult(
-                content=r.get("statement", ""),
-                memory_type="axiom",
-                agent_id=r.get("source_agent", ""),
-                confidence=r.get("confidence", 1.0),
-                similarity=r.get("similarity", 0.0),
-                source="axiom_rpc",
-                raw_data=r,
-            ))
+            search_results.append(
+                SearchResult(
+                    content=r.get("statement", ""),
+                    memory_type="axiom",
+                    agent_id=r.get("source_agent", ""),
+                    confidence=r.get("confidence", 1.0),
+                    similarity=r.get("similarity", 0.0),
+                    source="axiom_rpc",
+                    raw_data=r,
+                )
+            )
 
         return search_results
 
@@ -918,25 +954,29 @@ class SovereignMemoryV3:
         keyword_lower = query.lower()
         for axiom in self._axiom_cache.values():
             if keyword_lower in axiom.statement.lower():
-                results.append(SearchResult(
-                    content=axiom.statement,
-                    memory_type="axiom",
-                    agent_id=axiom.source_agent,
-                    confidence=axiom.confidence,
-                    similarity=(1 - vector_weight) * 0.95,
-                    source="axiom_cache",
-                ))
+                results.append(
+                    SearchResult(
+                        content=axiom.statement,
+                        memory_type="axiom",
+                        agent_id=axiom.source_agent,
+                        confidence=axiom.confidence,
+                        similarity=(1 - vector_weight) * 0.95,
+                        source="axiom_cache",
+                    )
+                )
 
         # 4. Causal KB search
         causal_results = await self.causal_kb.search_causal(query, limit=3)
         for cr in causal_results:
-            results.append(SearchResult(
-                content=cr.get("description", ""),
-                memory_type="causal",
-                similarity=(1 - vector_weight) * 0.8,
-                source="causal_kb",
-                raw_data=cr,
-            ))
+            results.append(
+                SearchResult(
+                    content=cr.get("description", ""),
+                    memory_type="causal",
+                    similarity=(1 - vector_weight) * 0.8,
+                    source="causal_kb",
+                    raw_data=cr,
+                )
+            )
 
         # Deduplicate by content hash and sort by similarity
         seen = set()
@@ -988,7 +1028,7 @@ class SovereignMemoryV3:
         memories = await self.supabase.query(
             "sovereign_memories",
             "id,content,memory_type,agent_id,confidence,strength,valid_at,invalid_at,created_at",
-            f"{filters}&order=valid_at.desc&limit={limit * 2}"
+            f"{filters}&order=valid_at.desc&limit={limit * 2}",
         )
 
         if not memories:
@@ -1003,15 +1043,17 @@ class SovereignMemoryV3:
                 idx = rr.get("index", 0)
                 if idx < len(memories):
                     m = memories[idx]
-                    results.append(SearchResult(
-                        content=m.get("content", ""),
-                        memory_type=m.get("memory_type", "episodic"),
-                        agent_id=m.get("agent_id", ""),
-                        confidence=m.get("confidence", 0.7),
-                        similarity=rr.get("relevance_score", 0.5),
-                        source="temporal_reranked",
-                        raw_data=m,
-                    ))
+                    results.append(
+                        SearchResult(
+                            content=m.get("content", ""),
+                            memory_type=m.get("memory_type", "episodic"),
+                            agent_id=m.get("agent_id", ""),
+                            confidence=m.get("confidence", 0.7),
+                            similarity=rr.get("relevance_score", 0.5),
+                            source="temporal_reranked",
+                            raw_data=m,
+                        )
+                    )
             return results
 
         # No query — return chronologically
@@ -1087,12 +1129,15 @@ class SovereignMemoryV3:
         self._axiom_cache[cache_key] = axiom
 
         # Audit trail
-        await self.anti_dory.write_runtime_event("sms_axiom_crystallized", {
-            "axiom_id": axiom.axiom_id,
-            "statement_preview": statement[:100],
-            "source_agent": source_agent,
-            "confidence": confidence,
-        })
+        await self.anti_dory.write_runtime_event(
+            "sms_axiom_crystallized",
+            {
+                "axiom_id": axiom.axiom_id,
+                "statement_preview": statement[:100],
+                "source_agent": source_agent,
+                "confidence": confidence,
+            },
+        )
 
         self._stats["axioms_crystallized"] += 1
         logger.info(f"Axiom crystallized: {statement[:60]}... by {source_agent}")
@@ -1132,7 +1177,7 @@ class SovereignMemoryV3:
         results = await self.supabase.query(
             "sovereign_memories",
             "id,layer,confidence,strength,access_count,created_at",
-            "is_alive=eq.true&layer=lt.4&strength=lt.0.5&access_count=lt.3&order=strength.asc&limit=50"
+            "is_alive=eq.true&layer=lt.4&strength=lt.0.5&access_count=lt.3&order=strength.asc&limit=50",
         )
 
         decayed = 0
@@ -1200,24 +1245,30 @@ class SovereignMemoryV3:
         # Store gaps in DB
         for gap in gaps:
             if self.supabase.available:
-                await self.supabase.insert("sovereign_knowledge_gaps", {
-                    "question": gap.question,
-                    "evidence": gap.evidence,
-                    "severity": gap.severity,
-                    "resolution_strategy": gap.resolution_strategy,
-                    "agent_id": gap.agent_id,
-                    "is_resolved": False,
-                })
+                await self.supabase.insert(
+                    "sovereign_knowledge_gaps",
+                    {
+                        "question": gap.question,
+                        "evidence": gap.evidence,
+                        "severity": gap.severity,
+                        "resolution_strategy": gap.resolution_strategy,
+                        "agent_id": gap.agent_id,
+                        "is_resolved": False,
+                    },
+                )
 
         if gaps:
             self._stats["gaps_detected"] += len(gaps)
             self._gap_registry.extend(gaps)
-            await self.anti_dory.write_runtime_event("sms_gaps_detected", {
-                "query": query,
-                "agent_id": agent_id,
-                "gap_count": len(gaps),
-                "questions": [g.question for g in gaps],
-            })
+            await self.anti_dory.write_runtime_event(
+                "sms_gaps_detected",
+                {
+                    "query": query,
+                    "agent_id": agent_id,
+                    "gap_count": len(gaps),
+                    "questions": [g.question for g in gaps],
+                },
+            )
 
         return gaps
 
@@ -1296,11 +1347,13 @@ class SovereignMemoryV3:
         # 1. Search for relevant axioms
         axiom_results = await self.search_axioms(action, limit=5)
         for ar in axiom_results:
-            result["axioms_relevant"].append({
-                "statement": ar.content,
-                "similarity": ar.similarity,
-                "confidence": ar.confidence,
-            })
+            result["axioms_relevant"].append(
+                {
+                    "statement": ar.content,
+                    "similarity": ar.similarity,
+                    "confidence": ar.confidence,
+                }
+            )
 
         # 2. Check for blocking axioms
         blocking_keywords = ["NEVER", "PROHIBIDO", "NO HACER", "HALT", "BLOCKED", "NUNCA"]
@@ -1352,7 +1405,9 @@ class SovereignMemoryV3:
             "agent_type": agent_type,
             "provider": provider,
             "model": model,
-            "permissions": json.dumps(permissions or {"read": True, "write": True, "crystallize": False, "forget": False}),
+            "permissions": json.dumps(
+                permissions or {"read": True, "write": True, "crystallize": False, "forget": False}
+            ),
             "is_active": True,
             "last_active": datetime.now(timezone.utc).isoformat(),
         }
@@ -1372,26 +1427,26 @@ class SovereignMemoryV3:
 
         # All axioms (they're universal)
         for axiom in self._axiom_cache.values():
-            context["axioms"].append({
-                "statement": axiom.statement,
-                "confidence": axiom.confidence,
-                "source_agent": axiom.source_agent,
-            })
+            context["axioms"].append(
+                {
+                    "statement": axiom.statement,
+                    "confidence": axiom.confidence,
+                    "source_agent": axiom.source_agent,
+                }
+            )
 
         # Agent-specific recent memories
         if self.supabase.available:
             agent_memories = await self.supabase.query(
                 "sovereign_memories",
                 "id,content,memory_type,created_at",
-                f"agent_id=eq.{agent_id}&is_alive=eq.true&order=created_at.desc&limit=10"
+                f"agent_id=eq.{agent_id}&is_alive=eq.true&order=created_at.desc&limit=10",
             )
             context["recent_memories"] = agent_memories
 
         # Active gaps
         context["active_gaps"] = [
-            {"question": g.question, "severity": g.severity}
-            for g in self._gap_registry
-            if not g.is_resolved
+            {"question": g.question, "severity": g.severity} for g in self._gap_registry if not g.is_resolved
         ]
 
         return context
@@ -1405,9 +1460,7 @@ class SovereignMemoryV3:
         if not self.supabase.available:
             return
         try:
-            axioms = await self.supabase.query(
-                "sovereign_axioms", "*", "is_active=eq.true&order=confidence.desc"
-            )
+            axioms = await self.supabase.query("sovereign_axioms", "*", "is_active=eq.true&order=confidence.desc")
             for a in axioms:
                 self._axiom_cache[str(a["id"])] = Axiom(
                     axiom_id=str(a["id"]),

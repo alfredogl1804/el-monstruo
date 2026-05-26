@@ -6,12 +6,12 @@ Cubre:
   - proposal_processor: expire_loop, execute_loop, notify post-execute
   - Resilience: errores transitorios no rompen el worker
 """
+
 from __future__ import annotations
 
 import asyncio
 import os
-from typing import Any
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -21,7 +21,6 @@ from kernel.runner.executor_registry import (
     _exec_code_commit,
     _exec_db_write,
     _exec_external_api_call,
-    _exec_noop,
     _is_real,
 )
 from kernel.runner.proposal_processor import (
@@ -79,6 +78,7 @@ def test_registry_unknown_type_falls_back_to_noop():
 
 def test_registry_dispatch_unhandled_exception_returns_failed():
     """Si executor lanza excepción inesperada, dispatch retorna failed (no propaga)."""
+
     def buggy_executor(p):
         raise RuntimeError("boom")
 
@@ -123,19 +123,23 @@ def test_is_real_with_invalid_payload_false():
 # -----------------------------------------------------------------------------
 def test_external_api_noop_when_not_real():
     """Sin executor='real', external_api_call retorna noop."""
-    result = _exec_external_api_call(make_proposal(
-        proposal_type="external_api_call",
-        payload={"url": "https://example.com"},
-    ))
+    result = _exec_external_api_call(
+        make_proposal(
+            proposal_type="external_api_call",
+            payload={"url": "https://example.com"},
+        )
+    )
     assert result.success is True
     assert result.result["noop"] is True
 
 
 def test_external_api_missing_url_fails():
-    result = _exec_external_api_call(make_proposal(
-        proposal_type="external_api_call",
-        payload={"executor": "real"},
-    ))
+    result = _exec_external_api_call(
+        make_proposal(
+            proposal_type="external_api_call",
+            payload={"executor": "real"},
+        )
+    )
     assert result.success is False
     assert "missing payload.url" in result.error
 
@@ -189,19 +193,23 @@ def test_external_api_http_500_marks_failed():
 # -----------------------------------------------------------------------------
 def test_db_write_noop_when_not_real():
     """Sin executor='real', db_write es noop (CRÍTICO: protección por defecto)."""
-    result = _exec_db_write(make_proposal(
-        proposal_type="db_write",
-        payload={"sql": "DELETE FROM users"},  # peligroso, pero noop sin opt-in
-    ))
+    result = _exec_db_write(
+        make_proposal(
+            proposal_type="db_write",
+            payload={"sql": "DELETE FROM users"},  # peligroso, pero noop sin opt-in
+        )
+    )
     assert result.success is True
     assert result.result["noop"] is True
 
 
 def test_db_write_missing_sql_fails():
-    result = _exec_db_write(make_proposal(
-        proposal_type="db_write",
-        payload={"executor": "real"},
-    ))
+    result = _exec_db_write(
+        make_proposal(
+            proposal_type="db_write",
+            payload={"executor": "real"},
+        )
+    )
     assert result.success is False
     assert "missing or invalid payload.sql" in result.error
 
@@ -212,10 +220,12 @@ def test_db_write_no_db_url_fails():
         # Limpiar las dos vars
         for var in ("SUPABASE_DB_URL", "DATABASE_URL"):
             os.environ.pop(var, None)
-        result = _exec_db_write(make_proposal(
-            proposal_type="db_write",
-            payload={"executor": "real", "sql": "SELECT 1"},
-        ))
+        result = _exec_db_write(
+            make_proposal(
+                proposal_type="db_write",
+                payload={"executor": "real", "sql": "SELECT 1"},
+            )
+        )
     assert result.success is False
     assert "DB_URL" in result.error or "DATABASE_URL" in result.error
 
@@ -225,10 +235,12 @@ def test_db_write_no_db_url_fails():
 # -----------------------------------------------------------------------------
 def test_code_commit_always_noop_for_now():
     """code_commit es noop hasta Sprint futuro (incluso con executor=real)."""
-    result = _exec_code_commit(make_proposal(
-        proposal_type="code_commit",
-        payload={"executor": "real"},
-    ))
+    result = _exec_code_commit(
+        make_proposal(
+            proposal_type="code_commit",
+            payload={"executor": "real"},
+        )
+    )
     assert result.success is True
     assert result.result["noop"] is True
     assert "diferido" in result.result["reason"].lower()
@@ -323,8 +335,10 @@ async def test_expire_loop_stops_on_event():
     db_client = MagicMock()
     stop_event = asyncio.Event()
 
-    with patch("kernel.runner.proposal_processor.expire_old", return_value=0), \
-         patch("kernel.runner.proposal_processor.EXPIRE_INTERVAL_SEC", 0.01):
+    with (
+        patch("kernel.runner.proposal_processor.expire_old", return_value=0),
+        patch("kernel.runner.proposal_processor.EXPIRE_INTERVAL_SEC", 0.01),
+    ):
         task = asyncio.create_task(expire_loop(db_client, stop_event))
         await asyncio.sleep(0.05)
         stop_event.set()
@@ -346,8 +360,10 @@ async def test_expire_loop_swallows_errors():
             raise RuntimeError("transient error")
         return 0
 
-    with patch("kernel.runner.proposal_processor.expire_old", side_effect=buggy), \
-         patch("kernel.runner.proposal_processor.EXPIRE_INTERVAL_SEC", 0.001):
+    with (
+        patch("kernel.runner.proposal_processor.expire_old", side_effect=buggy),
+        patch("kernel.runner.proposal_processor.EXPIRE_INTERVAL_SEC", 0.001),
+    ):
         task = asyncio.create_task(expire_loop(db_client, stop_event))
         # Ceder control suficientes veces para garantizar >=2 iteraciones
         for _ in range(20):
@@ -361,9 +377,7 @@ async def test_expire_loop_swallows_errors():
     assert task.done()
     assert task.exception() is None, f"loop crashed: {task.exception()}"
     # CRITICAL: el loop debe haber sobrevivido al RuntimeError y seguir ejecutando
-    assert call_count["n"] >= 2, (
-        f"expected loop to swallow error and re-run, got call_count={call_count['n']}"
-    )
+    assert call_count["n"] >= 2, f"expected loop to swallow error and re-run, got call_count={call_count['n']}"
 
 
 @pytest.mark.asyncio
@@ -390,11 +404,11 @@ async def test_execute_loop_calls_notify_when_executed():
             return executed
         return None  # subsequent calls return None
 
-    with patch("kernel.runner.proposal_processor.execute_next", side_effect=fake_execute_next), \
-         patch("kernel.runner.proposal_processor.EXECUTE_INTERVAL_SEC", 0.01):
-        task = asyncio.create_task(
-            execute_loop(db_client, registry, notifier, stop_event)
-        )
+    with (
+        patch("kernel.runner.proposal_processor.execute_next", side_effect=fake_execute_next),
+        patch("kernel.runner.proposal_processor.EXECUTE_INTERVAL_SEC", 0.01),
+    ):
+        task = asyncio.create_task(execute_loop(db_client, registry, notifier, stop_event))
         await asyncio.sleep(0.05)
         stop_event.set()
         await asyncio.wait_for(task, timeout=1.0)

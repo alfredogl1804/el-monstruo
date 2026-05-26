@@ -74,6 +74,7 @@ class TestRegisterCheck:
     def test_register_with_handler(self, guardian, sample_check):
         def handler():
             return True
+
         guardian.register_check(sample_check, handler=handler)
         assert len(guardian.get_registered_checks()) == 1
 
@@ -152,15 +153,21 @@ class TestGuardianRunResult:
     def test_overall_healthy_no_failures(self):
         result = GuardianRunResult(
             timestamp=datetime.utcnow(),
-            checks_run=3, checks_passed=2, checks_warned=1,
-            checks_failed=0, checks_skipped=0,
+            checks_run=3,
+            checks_passed=2,
+            checks_warned=1,
+            checks_failed=0,
+            checks_skipped=0,
         )
         assert result.overall_healthy is True
 
     def test_overall_unhealthy_with_failure(self):
         result = GuardianRunResult(
             timestamp=datetime.utcnow(),
-            checks_run=3, checks_passed=1, checks_warned=0,
-            checks_failed=1, checks_skipped=1,
+            checks_run=3,
+            checks_passed=1,
+            checks_warned=0,
+            checks_failed=1,
+            checks_skipped=1,
         )
         assert result.overall_healthy is False

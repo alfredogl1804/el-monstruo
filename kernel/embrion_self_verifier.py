@@ -59,13 +59,15 @@ import re
 import unicodedata
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
-from typing import Any, Optional
+from typing import Optional
 
 try:
     import structlog
+
     logger = structlog.get_logger("embrion.self_verifier")
 except ImportError:  # pragma: no cover
     import logging
+
     logger = logging.getLogger("embrion.self_verifier")
 
 
@@ -81,31 +83,31 @@ JACCARD_THRESHOLD = float(os.environ.get("EMBRION_VERIFIER_JACCARD_THRESHOLD", "
 # Esto cubre formas conjugadas: "aprender" -> "aprendi", "aprendiendo", etc.
 # El stem mínimo de 4 chars evita falsos positivos absurdos.
 PURPOSE_KEYWORDS = (
-    "constru",   # construir, construyendo, construye
-    "monstr",    # monstruo
-    "soberan",   # soberano, soberania
+    "constru",  # construir, construyendo, construye
+    "monstr",  # monstruo
+    "soberan",  # soberano, soberania
     "alfredo",
     "investig",  # investigar, investigando, investigue
-    "codig",     # código, codigo, códigos
+    "codig",  # código, codigo, códigos
     "kernel",
-    "aprend",    # aprender, aprendi, aprendiendo, aprende
-    "anticip",   # anticipar, anticipando, anticipa
-    "necesi",    # necesidad, necesito, necesita
-    "mejor",     # mejorar, mejora, mejorando
-    "implem",    # implementar, implementando
-    "disen",     # diseñar (sin acento) -> disen, disenar
-    "valid",     # validar, valido, validacion
-    "asisten",   # asistente, asistencia
-    "doctrin",   # doctrina
-    "engran",    # engranaje
+    "aprend",  # aprender, aprendi, aprendiendo, aprende
+    "anticip",  # anticipar, anticipando, anticipa
+    "necesi",  # necesidad, necesito, necesita
+    "mejor",  # mejorar, mejora, mejorando
+    "implem",  # implementar, implementando
+    "disen",  # diseñar (sin acento) -> disen, disenar
+    "valid",  # validar, valido, validacion
+    "asisten",  # asistente, asistencia
+    "doctrin",  # doctrina
+    "engran",  # engranaje
     "sprint",
     "supabase",
-    "embrion",   # embrion, embrión (post-normalize accent)
+    "embrion",  # embrion, embrión (post-normalize accent)
     "telegram",
-    "escrib",    # escribir, escribi, escribiendo
-    "crear",     # crear, creando
-    "propos",    # proposito, proposita
-    "util",      # util, utilizar (cubre "algo util" que pidió Cowork)
+    "escrib",  # escribir, escribi, escribiendo
+    "crear",  # crear, creando
+    "propos",  # proposito, proposita
+    "util",  # util, utilizar (cubre "algo util" que pidió Cowork)
 )
 
 ANTI_PURPOSE_PHRASES = (
@@ -119,13 +121,26 @@ ANTI_PURPOSE_PHRASES = (
 
 VERIFIABLE_MARKERS = (
     # Acciones concretas en pasado (output ya producido)
-    r"\bcre[éo]\b", r"\bhice commit\b", r"\babri[oó] pr\b", r"\babri pr\b",
-    r"\bescribi[oó]?\b", r"\bmodifiqu[éo]\b", r"\bdecid[íi]\b",
-    r"\bejecut[éo]\b", r"\benvi[éo]\b", r"\bactualic[éo]\b",
-    r"\binsert[éo]\b", r"\bcomite[éo]\b", r"\bpushe[éo]\b",
-    r"\bcorri[óo]\b", r"\bgenere\b", r"\bdesplegu[ée]\b",
+    r"\bcre[éo]\b",
+    r"\bhice commit\b",
+    r"\babri[oó] pr\b",
+    r"\babri pr\b",
+    r"\bescribi[oó]?\b",
+    r"\bmodifiqu[éo]\b",
+    r"\bdecid[íi]\b",
+    r"\bejecut[éo]\b",
+    r"\benvi[éo]\b",
+    r"\bactualic[éo]\b",
+    r"\binsert[éo]\b",
+    r"\bcomite[éo]\b",
+    r"\bpushe[éo]\b",
+    r"\bcorri[óo]\b",
+    r"\bgenere\b",
+    r"\bdesplegu[ée]\b",
     # Acciones en pasado del embrión hacia su mundo (incluye auto-referencia)
-    r"\b(yo )?escrib[íi]\b", r"\b(yo )?cre[éo]\b", r"\b(yo )?guard[éo]\b",
+    r"\b(yo )?escrib[íi]\b",
+    r"\b(yo )?cre[éo]\b",
+    r"\b(yo )?guard[éo]\b",
     # Marcadores futuros con compromiso ejecutable
     r"\bvoy a (escribir|crear|abrir|implementar|hacer|ejecutar|enviar|insertar)\b",
     r"\b(siguiente acci[óo]n|propuesta concreta|decisi[óo]n registrada)\b",
@@ -143,14 +158,16 @@ _VERIFIABLE_RE = re.compile("|".join(VERIFIABLE_MARKERS), re.IGNORECASE)
 
 # ── DTOs
 
+
 @dataclass
 class SelfVerifyDecision:
     """Resultado del verifier. Determinístico para inputs iguales."""
-    abort: bool                      # True si hay que abortar el cycle
-    decision_purpose: bool           # D1: contribuye al PURPOSE
-    decision_novelty: bool           # D2: es nuevo
-    decision_verifiable: bool        # D3: produce output verificable
-    votes_no: int                    # cuántas decisiones dieron NO
+
+    abort: bool  # True si hay que abortar el cycle
+    decision_purpose: bool  # D1: contribuye al PURPOSE
+    decision_novelty: bool  # D2: es nuevo
+    decision_verifiable: bool  # D3: produce output verificable
+    votes_no: int  # cuántas decisiones dieron NO
     reasons: list[str] = field(default_factory=list)
     similarity_match_id: Optional[str] = None
     similarity_score: Optional[float] = None
@@ -200,7 +217,7 @@ def _bigrams(text: str) -> set[str]:
     tokens = norm.split()
     if len(tokens) < 2:
         return set(tokens)
-    return {f"{tokens[i]} {tokens[i+1]}" for i in range(len(tokens) - 1)}
+    return {f"{tokens[i]} {tokens[i + 1]}" for i in range(len(tokens) - 1)}
 
 
 def _jaccard_bigrams(a: str, b: str) -> float:
@@ -216,6 +233,7 @@ def _jaccard_bigrams(a: str, b: str) -> float:
 
 
 # ── Decisiones individuales
+
 
 def evaluate_purpose(thought: str) -> tuple[bool, str]:
     """D1: ¿contribuye al PURPOSE?"""
@@ -313,6 +331,7 @@ def evaluate_novelty(
 
 # ── API principal
 
+
 def verify(
     thought: str,
     *,
@@ -336,6 +355,7 @@ def verify(
     if supabase_client is None and persist:
         try:
             from kernel.embrion_budget import _get_supabase_client
+
             supabase_client = _get_supabase_client()
         except Exception as e:
             logger.warning("embrion_self_verifier_no_client", error=str(e))
@@ -349,7 +369,8 @@ def verify(
 
     # D2
     d2, r2, match_id, sim_score = evaluate_novelty(
-        thought, supabase_client=supabase_client,
+        thought,
+        supabase_client=supabase_client,
     )
     reasons.append(f"D2 novelty={d2}: {r2}")
 
@@ -377,9 +398,7 @@ def verify(
     if persist and supabase_client is not None:
         try:
             payload = {
-                "detected_pattern": (
-                    "self_verifier_abort" if abort else "self_verifier_pass"
-                ),
+                "detected_pattern": ("self_verifier_abort" if abort else "self_verifier_pass"),
                 # severity debe cumplir CHECK constraint de la tabla:
                 # ('warning' | 'critical' | 'emergency').
                 # cycle_pass -> warning (informational), cycle_abort -> critical.
@@ -407,7 +426,9 @@ def verify(
         cycle_id=cycle_id,
         abort=abort,
         votes_no=votes_no,
-        d1=d1, d2=d2, d3=d3,
+        d1=d1,
+        d2=d2,
+        d3=d3,
     )
 
     return decision
@@ -475,9 +496,10 @@ def evaluate_input_for_skip(message: str) -> tuple[bool, str]:
 
 def daily_metrics(*, supabase_client=None) -> dict:
     """Métrica registrada (requerida por el spec):
-       ratio de aborts por self-verifier vs cycles totales evaluados hoy."""
+    ratio de aborts por self-verifier vs cycles totales evaluados hoy."""
     if supabase_client is None:
         from kernel.embrion_budget import _get_supabase_client
+
         supabase_client = _get_supabase_client()
 
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")

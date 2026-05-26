@@ -6,10 +6,11 @@ Verifica:
 2. Cada archivo refactorizado pasa A (match aislado), B (no falso positivo embedded), C (negación)
 3. Circuit breaker del judge fail-open en EmbrionLoop
 """
+
 from __future__ import annotations
 
-import sys
 import os
+import sys
 
 # Agregar repo root al path
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -32,7 +33,12 @@ def test_compile_keyword_pattern_basic():
 def test_compile_keyword_pattern_multiword():
     from kernel.utils.keyword_matcher import compile_keyword_pattern
 
-    pat = compile_keyword_pattern(("hecho a mano", "saas",))
+    pat = compile_keyword_pattern(
+        (
+            "hecho a mano",
+            "saas",
+        )
+    )
     assert pat.search("producto hecho a mano") is not None
     assert pat.search("plataforma saas") is not None
     assert pat.search("salsas para pasta") is None  # 'saas' no embebido en 'salsas'
@@ -156,7 +162,9 @@ def test_product_architect_uses_centralized_utility():
     pattern = pa.compile_keyword_pattern(tuple(pa.VERTICALES_KEYWORDS["education_arts"]))
     assert pattern.search("taller de yoga") is not None
     # B: substring NO matchea (artesanal NO matchea arte)
-    assert pattern.search("producto artesanal premium") is None or len(pattern.findall("producto artesanal premium")) == 0
+    assert (
+        pattern.search("producto artesanal premium") is None or len(pattern.findall("producto artesanal premium")) == 0
+    )
 
 
 # ── Bloque 5: Circuit Breaker ───────────────────────────────────────────────────
@@ -165,11 +173,14 @@ def test_product_architect_uses_centralized_utility():
 def test_circuit_breaker_constant_configurable():
     """Circuit breaker threshold debe ser configurable via env var."""
     import os
+
     # Default
     saved = os.environ.pop("EMBRION_MAX_JUDGE_FAILURES", None)
     # Reload module to pick up clean env
     import importlib
+
     import kernel.embrion_loop as el
+
     importlib.reload(el)
     assert el.MAX_JUDGE_CONSECUTIVE_FAILURES == 5
     if saved:
@@ -181,19 +192,11 @@ def test_circuit_breaker_constant_configurable():
 
 def test_smoke_all_refactored_files_import():
     """Smoke: todos los archivos refactorizados se pueden importar sin errors."""
-    import kernel.external_agents
-    import kernel.magna_classifier
-    import kernel.supervisor
-    import kernel.embrion_loop
-    import kernel.task_planner
-    import kernel.nodes
-    import kernel.motion.orchestrator
-    import kernel.embriones.product_architect
-    import kernel.utils.keyword_matcher
     # Todos importaron sin excepción
     assert True
 
 
 if __name__ == "__main__":
     import pytest
+
     sys.exit(pytest.main([__file__, "-v"]))

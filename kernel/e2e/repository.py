@@ -33,9 +33,7 @@ class DBClient(Protocol):
     @property
     def connected(self) -> bool: ...
 
-    async def insert(
-        self, table: str, data: dict[str, Any]
-    ) -> Optional[dict]: ...
+    async def insert(self, table: str, data: dict[str, Any]) -> Optional[dict]: ...
 
     async def select(
         self,

@@ -1,4 +1,5 @@
 """Tests del decorator @requires_perplexity_validation (DSC-V-001)."""
+
 from __future__ import annotations
 
 import sys
@@ -22,9 +23,7 @@ from kernel.validation.perplexity_decorator import (  # noqa: E402
 
 
 def _fresh_storage() -> LocalFileStorage:
-    f = tempfile.NamedTemporaryFile(
-        "w", suffix=".jsonl", delete=False, encoding="utf-8"
-    )
+    f = tempfile.NamedTemporaryFile("w", suffix=".jsonl", delete=False, encoding="utf-8")
     f.close()
     return LocalFileStorage(Path(f.name))
 
@@ -139,18 +138,26 @@ def test_supabase_storage_interface_mocked():
             self._filter_claim_type = None
             self._filter_fingerprint = None
 
-        def select(self, *_a, **_kw): return self
+        def select(self, *_a, **_kw):
+            return self
+
         def eq(self, col, val):
             if col == "claim_type":
                 self._filter_claim_type = val
             elif col == "claim_fingerprint":
                 self._filter_fingerprint = val
             return self
-        def order(self, *_a, **_kw): return self
-        def limit(self, _n): return self
+
+        def order(self, *_a, **_kw):
+            return self
+
+        def limit(self, _n):
+            return self
 
         def execute(self):
-            class _R: pass
+            class _R:
+                pass
+
             r = _R()
             rows = self._store
             if self._filter_claim_type:
@@ -168,6 +175,7 @@ def test_supabase_storage_interface_mocked():
     class _MockClient:
         def __init__(self):
             self._store = []
+
         def table(self, name):
             return _MockChain(name, self._store)
 

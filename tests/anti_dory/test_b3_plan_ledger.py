@@ -140,9 +140,7 @@ class TestTransitionStatus:
 class TestListPlans:
     def test_list_all(self, adapter, mock_client, sample_row):
         mock_chain = mock_client.table.return_value.select.return_value
-        mock_chain.order.return_value.limit.return_value.execute.return_value = MagicMock(
-            data=[sample_row]
-        )
+        mock_chain.order.return_value.limit.return_value.execute.return_value = MagicMock(data=[sample_row])
         result = adapter.list_plans()
         assert len(result) == 1
 

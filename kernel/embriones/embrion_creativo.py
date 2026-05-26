@@ -30,6 +30,7 @@ Soberanía:
   - Gemini 2.0 Flash como fallback
   - Heurísticas de color si LLM no disponible
 """
+
 from __future__ import annotations
 
 import json
@@ -44,26 +45,28 @@ logger = structlog.get_logger("monstruo.embrion.creativo")
 
 # ── Errores con identidad ──────────────────────────────────────────────────────
 
+
 class EMBRION_CREATIVO_SIN_SABIOS(RuntimeError):
     """No hay cliente de Sabios configurado para generación creativa.
-    
+
     Sugerencia: Inyecta _sabios al instanciar EmbrionCreativo.
     """
 
 
 class EMBRION_CREATIVO_JSON_INVALIDO(ValueError):
     """El LLM retornó JSON inválido en la respuesta creativa.
-    
+
     Sugerencia: Verifica el prompt o usa el fallback de heurísticas.
     """
 
 
 # ── Dataclasses de dominio ─────────────────────────────────────────────────────
 
+
 @dataclass
 class BrandIdentity:
     """Identidad de marca generada por el Embrión-Creativo.
-    
+
     Args:
         name_options: 3 opciones de nombre memorables y disponibles como .com.
         tagline: Tagline memorable en el idioma del mercado objetivo.
@@ -74,6 +77,7 @@ class BrandIdentity:
         logo_prompt: Prompt detallado para generación de logo con AI.
         generated_at: Timestamp de generación.
     """
+
     name_options: list[str]
     tagline: str
     color_palette: dict[str, str]
@@ -81,9 +85,7 @@ class BrandIdentity:
     design_principles: list[str]
     mood: str
     logo_prompt: str
-    generated_at: str = field(
-        default_factory=lambda: datetime.now(timezone.utc).isoformat()
-    )
+    generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> dict:
         """Serializar para el Command Center."""
@@ -120,21 +122,23 @@ RESTRICCIONES:
 
 # ── Embrión principal ──────────────────────────────────────────────────────────
 
+
 @dataclass
 class EmbrionCreativo:
     """Embrión especializado en diseño, branding y creatividad visual.
-    
+
     Genera identidades de marca completas y evalúa calidad de diseño
     contra los estándares del Objetivo #2 (Nivel Apple/Tesla).
-    
+
     Args:
         _sabios: Cliente de Sabios para generación creativa via LLM.
         budget_daily_usd: Presupuesto diario máximo en USD.
-    
+
     Soberanía:
         - GPT-4o (creatividad alta) → Gemini Flash (fallback)
         - Heurísticas de color si LLM no disponible
     """
+
     _sabios: Optional[object] = field(default=None, repr=False)
     budget_daily_usd: float = 1.5
     _spent_today: float = field(default=0.0, repr=False)
@@ -144,28 +148,31 @@ class EmbrionCreativo:
     EMBRION_ID: str = field(default="embrion-creativo", init=False)
     SPECIALIZATION: str = field(default="Diseño, Branding, UX, Identidad Visual", init=False)
 
-    DEFAULT_TASKS: dict = field(default_factory=lambda: {
-        "brand_generation": {
-            "description": "Generar identidad de marca completa para un proyecto",
-            "interval_hours": 0,  # On-demand
-            "handler": "generate_brand_identity",
+    DEFAULT_TASKS: dict = field(
+        default_factory=lambda: {
+            "brand_generation": {
+                "description": "Generar identidad de marca completa para un proyecto",
+                "interval_hours": 0,  # On-demand
+                "handler": "generate_brand_identity",
+            },
+            "design_review": {
+                "description": "Revisar diseño de proyecto contra estándares Apple/Tesla",
+                "interval_hours": 0,  # On-demand
+                "handler": "review_design_quality",
+            },
+            "trend_scan": {
+                "description": "Escanear tendencias de diseño actuales",
+                "interval_hours": 24,
+                "handler": "scan_design_trends",
+            },
+            "palette_generator": {
+                "description": "Generar paleta de color basada en industria y mood",
+                "interval_hours": 0,  # On-demand
+                "handler": "generate_color_palette",
+            },
         },
-        "design_review": {
-            "description": "Revisar diseño de proyecto contra estándares Apple/Tesla",
-            "interval_hours": 0,  # On-demand
-            "handler": "review_design_quality",
-        },
-        "trend_scan": {
-            "description": "Escanear tendencias de diseño actuales",
-            "interval_hours": 24,
-            "handler": "scan_design_trends",
-        },
-        "palette_generator": {
-            "description": "Generar paleta de color basada en industria y mood",
-            "interval_hours": 0,  # On-demand
-            "handler": "generate_color_palette",
-        },
-    }, init=False)
+        init=False,
+    )
 
     async def generate_brand_identity(
         self,
@@ -175,23 +182,21 @@ class EmbrionCreativo:
         locale: str = "es",
     ) -> BrandIdentity:
         """Generar identidad de marca completa para un nicho y audiencia.
-        
+
         Args:
             niche: Nicho o industria del negocio (ej: 'ropa deportiva premium').
             target_audience: Descripción de la audiencia objetivo.
             mood: Estilo visual deseado ('minimal', 'bold', 'playful', 'elegant', 'brutalist').
             locale: Idioma del mercado principal para nombres y tagline.
-        
+
         Returns:
             BrandIdentity con nombre, colores, tipografía y logo prompt.
-        
+
         Raises:
             EMBRION_CREATIVO_SIN_SABIOS: Si no hay cliente LLM configurado.
         """
         if not self._sabios:
-            raise EMBRION_CREATIVO_SIN_SABIOS(
-                "EmbrionCreativo requiere _sabios para generar identidades de marca."
-            )
+            raise EMBRION_CREATIVO_SIN_SABIOS("EmbrionCreativo requiere _sabios para generar identidades de marca.")
 
         prompt = f"""{CREATIVE_SYSTEM_PROMPT}
 
@@ -253,20 +258,18 @@ RULES:
 
     async def review_design_quality(self, design_description: str) -> dict:
         """Revisar calidad de diseño contra estándares Apple/Tesla (Objetivo #2).
-        
+
         Args:
             design_description: Descripción del diseño a evaluar.
-        
+
         Returns:
             Dict con scores por dimensión, fortalezas, debilidades y fixes específicos.
-        
+
         Raises:
             EMBRION_CREATIVO_SIN_SABIOS: Si no hay cliente LLM configurado.
         """
         if not self._sabios:
-            raise EMBRION_CREATIVO_SIN_SABIOS(
-                "EmbrionCreativo requiere _sabios para revisar diseños."
-            )
+            raise EMBRION_CREATIVO_SIN_SABIOS("EmbrionCreativo requiere _sabios para revisar diseños.")
 
         prompt = f"""Review this design against Apple/Tesla quality standards.
 
@@ -306,28 +309,26 @@ Respond in JSON:
         base_color: Optional[str] = None,
     ) -> dict:
         """Generar paleta de colores basada en industria y mood.
-        
+
         Args:
             industry: Industria o nicho (ej: 'fintech', 'wellness', 'gaming').
             mood: Estilo visual ('minimal', 'bold', 'playful', 'elegant', 'brutalist').
             base_color: Color base opcional en hex (ej: '#2D4A8A').
-        
+
         Returns:
             Dict con 5 colores (primary, secondary, accent, background, text)
             incluyendo nombre, hex, uso y tipo de armonía.
-        
+
         Raises:
             EMBRION_CREATIVO_SIN_SABIOS: Si no hay cliente LLM configurado.
         """
         if not self._sabios:
-            raise EMBRION_CREATIVO_SIN_SABIOS(
-                "EmbrionCreativo requiere _sabios para generar paletas de color."
-            )
+            raise EMBRION_CREATIVO_SIN_SABIOS("EmbrionCreativo requiere _sabios para generar paletas de color.")
 
         prompt = f"""Generate a professional color palette for:
 - Industry: {industry}
 - Mood: {mood}
-- Base color (optional): {base_color or 'choose the best'}
+- Base color (optional): {base_color or "choose the best"}
 
 Requirements:
 - 5 colors: primary, secondary, accent, background, text
@@ -357,7 +358,7 @@ Respond in JSON:
 
     async def scan_design_trends(self) -> dict:
         """Tarea autónoma: escanear tendencias actuales de diseño web/app.
-        
+
         Returns:
             Dict con lista de tendencias actuales y tips de implementación.
         """
@@ -396,13 +397,13 @@ Respond in JSON array format:
 
     def _parse_json_response(self, response: str) -> dict:
         """Extraer y parsear JSON de respuesta LLM.
-        
+
         Args:
             response: Respuesta raw del LLM.
-        
+
         Returns:
             Dict parseado del JSON.
-        
+
         Raises:
             EMBRION_CREATIVO_JSON_INVALIDO: Si el JSON no es parseable.
         """
@@ -415,13 +416,11 @@ Respond in JSON array format:
         try:
             return json.loads(json_str)
         except json.JSONDecodeError as _e:
-            raise EMBRION_CREATIVO_JSON_INVALIDO(
-                f"JSON inválido en respuesta del LLM: {str(_e)[:100]}"
-            ) from _e
+            raise EMBRION_CREATIVO_JSON_INVALIDO(f"JSON inválido en respuesta del LLM: {str(_e)[:100]}") from _e
 
     def to_dict(self) -> dict:
         """Estado del embrión para consumo del Command Center.
-        
+
         Returns:
             Dict serializable con estado actual del Embrión-Creativo.
         """

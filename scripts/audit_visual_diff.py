@@ -46,6 +46,7 @@ Exit code:
     1  = score < min_score  (template detectado, declaracion rechazada)
     2  = error de configuracion / fetch (mas de 50% paginas inalcanzables)
 """
+
 from __future__ import annotations
 
 import argparse
@@ -61,28 +62,116 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-
 # Stopwords minimas ES + EN. No exhaustivo a proposito — el objetivo es
 # evitar que palabras funcionales hinflen artificialmente la similitud,
 # no hacer NLP perfecto.
 STOPWORDS = {
     # ES
-    "a", "al", "ante", "bajo", "con", "como", "contra", "de", "del", "desde",
-    "el", "en", "entre", "es", "ese", "esa", "eso", "esta", "este", "esto",
-    "hacia", "hasta", "la", "las", "le", "les", "lo", "los", "más", "mas", "mi",
-    "ni", "no", "nos", "nuestra", "nuestro", "o", "para", "pero", "por",
-    "porque", "que", "se", "si", "sí", "sin", "sobre", "su", "sus", "te", "ti",
-    "tu", "tus", "un", "una", "unas", "uno", "unos", "y", "ya", "yo",
+    "a",
+    "al",
+    "ante",
+    "bajo",
+    "con",
+    "como",
+    "contra",
+    "de",
+    "del",
+    "desde",
+    "el",
+    "en",
+    "entre",
+    "es",
+    "ese",
+    "esa",
+    "eso",
+    "esta",
+    "este",
+    "esto",
+    "hacia",
+    "hasta",
+    "la",
+    "las",
+    "le",
+    "les",
+    "lo",
+    "los",
+    "más",
+    "mas",
+    "mi",
+    "ni",
+    "no",
+    "nos",
+    "nuestra",
+    "nuestro",
+    "o",
+    "para",
+    "pero",
+    "por",
+    "porque",
+    "que",
+    "se",
+    "si",
+    "sí",
+    "sin",
+    "sobre",
+    "su",
+    "sus",
+    "te",
+    "ti",
+    "tu",
+    "tus",
+    "un",
+    "una",
+    "unas",
+    "uno",
+    "unos",
+    "y",
+    "ya",
+    "yo",
     # EN
-    "a", "an", "and", "are", "as", "at", "be", "but", "by", "for", "from",
-    "has", "have", "he", "her", "his", "i", "if", "in", "is", "it", "its", "of",
-    "on", "or", "she", "that", "the", "this", "to", "was", "we", "were", "with",
-    "you", "your", "our", "their", "them",
+    "a",
+    "an",
+    "and",
+    "are",
+    "as",
+    "at",
+    "be",
+    "but",
+    "by",
+    "for",
+    "from",
+    "has",
+    "have",
+    "he",
+    "her",
+    "his",
+    "i",
+    "if",
+    "in",
+    "is",
+    "it",
+    "its",
+    "of",
+    "on",
+    "or",
+    "she",
+    "that",
+    "the",
+    "this",
+    "to",
+    "was",
+    "we",
+    "were",
+    "with",
+    "you",
+    "your",
+    "our",
+    "their",
+    "them",
 }
 
 # Tags de los que extraemos texto para vocabulario general
-TEXT_TAGS = {"h1", "h2", "h3", "h4", "h5", "h6", "p", "li", "span", "div",
-             "a", "button", "label", "title"}
+TEXT_TAGS = {"h1", "h2", "h3", "h4", "h5", "h6", "p", "li", "span", "div", "a", "button", "label", "title"}
 HEADING_TAGS = {"h1", "h2", "h3"}
 CTA_TAGS = {"button", "a"}  # Para CTAs filtramos por texto corto despues
 CTA_MAX_WORDS = 8  # Un CTA real es corto
@@ -163,11 +252,7 @@ def _tokenize(text: str) -> set[str]:
     # Replace any non-alphanum with space
     text = re.sub(r"[^\w\sñáéíóúü]", " ", text, flags=re.UNICODE)
     tokens = text.split()
-    return {
-        t
-        for t in tokens
-        if len(t) >= 3 and t not in STOPWORDS and not t.isdigit()
-    }
+    return {t for t in tokens if len(t) >= 3 and t not in STOPWORDS and not t.isdigit()}
 
 
 def _normalize(text: str) -> str:
@@ -181,10 +266,7 @@ def _fetch(url: str, timeout: int = 30) -> tuple[bool, int | None, bytes, str | 
         req = urllib.request.Request(
             url,
             headers={
-                "User-Agent": (
-                    "Mozilla/5.0 (compatible; "
-                    "ElMonstruo-VisualAudit/1.0; +https://el-monstruo.dev)"
-                ),
+                "User-Agent": ("Mozilla/5.0 (compatible; ElMonstruo-VisualAudit/1.0; +https://el-monstruo.dev)"),
                 "Accept": "text/html,application/xhtml+xml",
             },
         )
@@ -289,13 +371,15 @@ def compute_metrics(pages: list[PageExtract]) -> dict[str, Any]:
         js_text.append(jt)
         js_head.append(jh)
         js_cta.append(jc)
-        pair_results.append({
-            "a": a.vertical,
-            "b": b.vertical,
-            "jaccard_text": round(jt, 4),
-            "jaccard_headings": round(jh, 4),
-            "jaccard_ctas": round(jc, 4),
-        })
+        pair_results.append(
+            {
+                "a": a.vertical,
+                "b": b.vertical,
+                "jaccard_text": round(jt, 4),
+                "jaccard_headings": round(jh, 4),
+                "jaccard_ctas": round(jc, 4),
+            }
+        )
 
     mean_jt = sum(js_text) / len(js_text)
     mean_jh = sum(js_head) / len(js_head) if js_head else 0.0
@@ -342,7 +426,7 @@ def audit(urls_file: Path, min_score: float, output_file: Path) -> tuple[bool, d
     if not verticals:
         raise ValueError(
             f"{urls_file} no contiene campo 'verticals' o esta vacio. "
-            "Shape esperado: {\"verticals\": [{\"vertical\": ..., \"url\": ...}, ...]}"
+            'Shape esperado: {"verticals": [{"vertical": ..., "url": ...}, ...]}'
         )
 
     pages: list[PageExtract] = []
@@ -353,9 +437,7 @@ def audit(urls_file: Path, min_score: float, output_file: Path) -> tuple[bool, d
 
     metrics = compute_metrics(pages)
     fetch_errors = [
-        {"vertical": p.vertical, "url": p.url, "error": p.error, "status": p.status}
-        for p in pages
-        if not p.fetched
+        {"vertical": p.vertical, "url": p.url, "error": p.error, "status": p.status} for p in pages if not p.fetched
     ]
 
     # Si mas de 50% paginas no se pudieron fetchar, exit 2 (config error)
@@ -403,9 +485,7 @@ def _interpret(score: float, metrics: dict[str, Any]) -> str:
             f"Template detectado: {tr:.0%} del vocabulario es comun a todas las paginas. "
             "Cumple el patron 'cascaron' (DSC-G-014)."
         )
-    return (
-        "Diferenciacion baja. Paginas demasiado similares; revisar copy y CTAs per vertical."
-    )
+    return "Diferenciacion baja. Paginas demasiado similares; revisar copy y CTAs per vertical."
 
 
 def main() -> int:
@@ -419,7 +499,7 @@ def main() -> int:
         "--urls",
         required=True,
         type=Path,
-        help="JSON con shape {\"verticals\": [{\"vertical\": ..., \"url\": ...}, ...]}",
+        help='JSON con shape {"verticals": [{"vertical": ..., "url": ...}, ...]}',
     )
     parser.add_argument(
         "--min-score",
@@ -456,16 +536,12 @@ def main() -> int:
 
     score = result["differentiation_score"]
     if passed:
-        print(
-            f"[ok] differentiation_score={score} >= {args.min_score}. "
-            f"Audit visual VERDE. Evidencia: {args.output}"
-        )
+        print(f"[ok] differentiation_score={score} >= {args.min_score}. Audit visual VERDE. Evidencia: {args.output}")
         print(f"     {result['interpretacion']}")
         return 0
 
     print(
-        f"[fail] differentiation_score={score} < {args.min_score}. "
-        f"Audit visual ROJO (DSC-V-002 + DSC-G-014).",
+        f"[fail] differentiation_score={score} < {args.min_score}. Audit visual ROJO (DSC-V-002 + DSC-G-014).",
         file=sys.stderr,
     )
     print(f"       {result['interpretacion']}", file=sys.stderr)

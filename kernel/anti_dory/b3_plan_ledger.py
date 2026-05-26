@@ -17,6 +17,7 @@ from typing import Optional, Protocol
 
 class SupabaseClient(Protocol):
     """Protocol for Supabase client dependency injection."""
+
     def table(self, name: str): ...
 
 
@@ -43,6 +44,7 @@ VALID_TRANSITIONS = {
 @dataclass
 class PlanEntry:
     """Represents a single plan in the ledger."""
+
     id: str
     plan_hash: str
     plan_summary: str
@@ -58,6 +60,7 @@ class PlanEntry:
 @dataclass
 class PlanCreateRequest:
     """Request to create a new plan entry."""
+
     plan_summary: str
     delegated_to: Optional[str] = None
     parent_plan_id: Optional[str] = None
@@ -138,13 +141,7 @@ class PlanLedgerAdapter:
 
     def get_plan(self, plan_id: str) -> PlanEntry:
         """Retrieve a plan by ID."""
-        response = (
-            self.client.table(self.TABLE_NAME)
-            .select("*")
-            .eq("id", plan_id)
-            .limit(1)
-            .execute()
-        )
+        response = self.client.table(self.TABLE_NAME).select("*").eq("id", plan_id).limit(1).execute()
         if not response.data:
             raise PlanNotFoundError(f"Plan '{plan_id}' not found")
         return self._row_to_plan(response.data[0])
@@ -167,12 +164,7 @@ class PlanLedgerAdapter:
         if new_status in (PlanStatus.COMPLETED, PlanStatus.FAILED, PlanStatus.CANCELLED):
             update_data["completed_at"] = datetime.utcnow().isoformat()
 
-        response = (
-            self.client.table(self.TABLE_NAME)
-            .update(update_data)
-            .eq("id", plan_id)
-            .execute()
-        )
+        response = self.client.table(self.TABLE_NAME).update(update_data).eq("id", plan_id).execute()
 
         if not response.data:
             raise PlanLedgerError("Update returned no data")

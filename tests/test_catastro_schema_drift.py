@@ -20,6 +20,7 @@ En cualquier caso, el bug se detecta ANTES de llegar a producción.
 
 Autor: Hilo Manus · 2026-05-05
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -70,6 +71,7 @@ def test_generated_file_exists():
 def test_generated_file_importable():
     """schema_generated.py debe ser importable (Python válido)."""
     from kernel.catastro import schema_generated  # noqa: F401
+
     assert hasattr(schema_generated, "TABLE_COLUMNS")
     assert hasattr(schema_generated, "__SOURCE_HASH__")
     assert hasattr(schema_generated, "__GENERATED_AT__")
@@ -87,14 +89,14 @@ def test_generated_has_all_5_tables():
         "catastro_curadores",
     }
     assert set(TABLE_COLUMNS.keys()) == expected, (
-        f"diferencia: faltan={expected - set(TABLE_COLUMNS.keys())}, "
-        f"sobran={set(TABLE_COLUMNS.keys()) - expected}"
+        f"diferencia: faltan={expected - set(TABLE_COLUMNS.keys())}, sobran={set(TABLE_COLUMNS.keys()) - expected}"
     )
 
 
 def test_generated_has_validated_by_in_modelos():
     """Migration 019.1 hotfix debe estar reflejada (validated_by)."""
     from kernel.catastro.schema_generated import TABLE_COLUMNS
+
     assert "validated_by" in TABLE_COLUMNS["catastro_modelos"], (
         "validated_by debe estar en catastro_modelos (de migration 019.1)"
     )
@@ -104,6 +106,7 @@ def test_generated_uses_correct_column_names():
     """Verifica que los nombres canónicos del schema (que generaron 3 bugs en"""
     """Bloque 1) están correctamente capturados."""
     from kernel.catastro.schema_generated import TABLE_COLUMNS
+
     cols = TABLE_COLUMNS["catastro_modelos"]
     # Estos nombres son los CORRECTOS según el SQL productivo
     assert "ultima_validacion" in cols, "debe ser ultima_validacion (no last_validated_at)"
@@ -117,21 +120,18 @@ def test_pydantic_models_instantiable():
     """Los Row models generados deben ser instanciables con datos válidos."""
     from kernel.catastro.schema_generated import (
         CatastroModeloRow,
-        CatastroHistorialRow,
-        CatastroEventoRow,
-        CatastroNotaRow,
-        CatastroCuradorRow,
     )
 
     # NOT NULL fields requeridos por SQL DDL
-    m = CatastroModeloRow(
-        id="test", nombre="Test", proveedor="Test", macroarea="llm"
-    )
+    m = CatastroModeloRow(id="test", nombre="Test", proveedor="Test", macroarea="llm")
     assert m.id == "test"
 
     # Campos array text[] → list[str]
     m2 = CatastroModeloRow(
-        id="test2", nombre="T2", proveedor="P2", macroarea="llm",
+        id="test2",
+        nombre="T2",
+        proveedor="P2",
+        macroarea="llm",
         dominios=["llm_frontier", "vision"],
     )
     assert m2.dominios == ["llm_frontier", "vision"]
@@ -157,6 +157,7 @@ def test_audit_drift_no_new_drifts(python_executable):
 def test_audit_json_output_well_formed(python_executable):
     """Audit con --json debe emitir JSON válido."""
     import json
+
     result = _run([python_executable, str(AUDIT_SCRIPT), "--json"])
     # Exit code puede ser 0 o 1 según drift, pero JSON debe parsear
     parsed = json.loads(result.stdout)
@@ -169,11 +170,11 @@ def test_table_columns_consistency_with_pydantic_fields():
     """TABLE_COLUMNS debe coincidir con los campos de cada Pydantic model."""
     from kernel.catastro.schema_generated import (
         TABLE_COLUMNS,
-        CatastroModeloRow,
-        CatastroHistorialRow,
-        CatastroEventoRow,
-        CatastroNotaRow,
         CatastroCuradorRow,
+        CatastroEventoRow,
+        CatastroHistorialRow,
+        CatastroModeloRow,
+        CatastroNotaRow,
     )
 
     mapping = {
@@ -187,6 +188,5 @@ def test_table_columns_consistency_with_pydantic_fields():
         sql_cols = set(TABLE_COLUMNS[table])
         pyd_cols = set(cls.model_fields.keys())
         assert sql_cols == pyd_cols, (
-            f"{table}: TABLE_COLUMNS != Pydantic fields. "
-            f"diff={sql_cols.symmetric_difference(pyd_cols)}"
+            f"{table}: TABLE_COLUMNS != Pydantic fields. diff={sql_cols.symmetric_difference(pyd_cols)}"
         )

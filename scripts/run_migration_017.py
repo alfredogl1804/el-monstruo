@@ -36,8 +36,8 @@ _MEMENTO_AVAILABLE = True
 try:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from tools.memento_preflight import (  # type: ignore
-        preflight_check,
         MementoPreflightError,
+        preflight_check,
     )
 except Exception as _import_exc:
     _MEMENTO_AVAILABLE = False
@@ -77,11 +77,11 @@ def preflight_db_url() -> str:
 
     # Sanity check: debe ser postgresql:// y apuntar a Supabase pooler
     if not db_url.startswith("postgresql://"):
-        print(f"[ERROR] SUPABASE_DB_URL no tiene scheme postgresql://. Aborto.")
+        print("[ERROR] SUPABASE_DB_URL no tiene scheme postgresql://. Aborto.")
         sys.exit(3)
 
     if "supabase" not in db_url and "pooler.supabase" not in db_url:
-        print(f"[WARN] SUPABASE_DB_URL no parece apuntar a Supabase. Continuando con cautela.")
+        print("[WARN] SUPABASE_DB_URL no parece apuntar a Supabase. Continuando con cautela.")
 
     if "localhost" in db_url or "127.0.0.1" in db_url:
         print("[ERROR] SUPABASE_DB_URL apunta a localhost. Aborto.")
@@ -135,9 +135,7 @@ def validate_tables(db_url: str) -> None:
                     sys.exit(6)
                 print(f"[OK] Tabla {table} existe.")
 
-            cur.execute(
-                "SELECT id FROM memento_critical_operations WHERE activo = TRUE ORDER BY id"
-            )
+            cur.execute("SELECT id FROM memento_critical_operations WHERE activo = TRUE ORDER BY id")
             ops = [row[0] for row in cur.fetchall()]
             for expected in EXPECTED_BOOTSTRAP_OPS:
                 if expected not in ops:
@@ -145,9 +143,7 @@ def validate_tables(db_url: str) -> None:
                     sys.exit(7)
             print(f"[OK] {len(ops)} operaciones críticas bootstrapped: {ops}")
 
-            cur.execute(
-                "SELECT id FROM memento_sources_of_truth WHERE activo = TRUE ORDER BY id"
-            )
+            cur.execute("SELECT id FROM memento_sources_of_truth WHERE activo = TRUE ORDER BY id")
             sources = [row[0] for row in cur.fetchall()]
             for expected in EXPECTED_BOOTSTRAP_SOURCES:
                 if expected not in sources:
@@ -155,9 +151,7 @@ def validate_tables(db_url: str) -> None:
                     sys.exit(8)
             print(f"[OK] {len(sources)} fuentes de verdad bootstrapped: {sources}")
 
-            cur.execute(
-                "SELECT COUNT(*) FROM memento_validations"
-            )
+            cur.execute("SELECT COUNT(*) FROM memento_validations")
             validation_count = cur.fetchone()[0]
             print(f"[OK] memento_validations vacía (count={validation_count}) — esperado en bootstrap.")
     finally:

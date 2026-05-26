@@ -6,9 +6,9 @@ Score compuesto configurable que mide qué tan superior es la nueva
 solución vs la referencia. Escala 0-100, donde >= 80 = "10x superior".
 """
 
-import json
-import yaml
 from pathlib import Path
+
+import yaml
 
 SKILL_DIR = Path(__file__).parent.parent
 
@@ -20,8 +20,7 @@ def load_weights():
         return yaml.safe_load(f)
 
 
-def calculate_10x_score(build_result: dict, research: dict,
-                        validation: dict, weights: dict = None) -> float:
+def calculate_10x_score(build_result: dict, research: dict, validation: dict, weights: dict = None) -> float:
     """
     Calculate the composite 10x score.
 
@@ -58,8 +57,7 @@ def calculate_10x_score(build_result: dict, research: dict,
     return min(max(normalized, 0), 100)
 
 
-def _calculate_component(comp_id: str, build: dict, research: dict,
-                         validation: dict) -> float:
+def _calculate_component(comp_id: str, build: dict, research: dict, validation: dict) -> float:
     """Calculate a single component score (0-1)."""
     if comp_id == "user_value":
         # Based on opportunities identified and artifacts generated

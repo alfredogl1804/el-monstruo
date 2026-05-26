@@ -58,9 +58,7 @@ class BaseCapturer(ABC):
         persist_fn: Optional[PersistCallable] = None,
     ) -> None:
         if self.SOURCE not in VALID_SOURCES:
-            raise ValueError(
-                f"{self.__class__.__name__}.SOURCE={self.SOURCE!r} no esta en VALID_SOURCES"
-            )
+            raise ValueError(f"{self.__class__.__name__}.SOURCE={self.SOURCE!r} no esta en VALID_SOURCES")
         self._persist_fn = persist_fn
 
     @abstractmethod
@@ -88,14 +86,18 @@ class BaseCapturer(ABC):
             row_id = self._persist_fn(activity)
             logger.info(
                 "rotor.capture: source=%s actor=%s row_id=%s",
-                activity.source, activity.actor, row_id,
+                activity.source,
+                activity.actor,
+                row_id,
             )
             return row_id
         except Exception as exc:
             # Fail-soft: capturer never tira el caller process. Log + return None.
             logger.error(
                 "rotor.capture FAIL: source=%s actor=%s err=%s",
-                activity.source, activity.actor, exc,
+                activity.source,
+                activity.actor,
+                exc,
             )
             return None
 
@@ -111,13 +113,14 @@ def _build_registry() -> dict:
     from kernel.rotor.capturers.manus_capturer import ManusCapturer
     from kernel.rotor.capturers.supabase_capturer import SupabaseCapturer
     from kernel.rotor.capturers.telegram_capturer import TelegramCapturer
+
     return {
-        "github_commit":    GitHubCapturer,
-        "supabase_query":   SupabaseCapturer,
+        "github_commit": GitHubCapturer,
+        "supabase_query": SupabaseCapturer,
         "telegram_message": TelegramCapturer,
-        "cowork_session":   CoworkCapturer,
-        "manus_session":    ManusCapturer,
-        "embrion_latido":   LatidoCapturer,
+        "cowork_session": CoworkCapturer,
+        "manus_session": ManusCapturer,
+        "embrion_latido": LatidoCapturer,
     }
 
 

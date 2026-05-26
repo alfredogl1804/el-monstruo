@@ -35,30 +35,35 @@ import re
 from dataclasses import dataclass, field
 from typing import Optional
 
-
 # Whitelist canónica — sincronizada con CHECK constraint en 0012_embrion_inbox.sql
-KNOWN_COMMANDS = frozenset({
-    "/context",
-    "/override",
-    "/help",
-    "/status",
-    "/answer",
-    "/feedback",
-})
+KNOWN_COMMANDS = frozenset(
+    {
+        "/context",
+        "/override",
+        "/help",
+        "/status",
+        "/answer",
+        "/feedback",
+    }
+)
 
 # Comandos que requieren payload obligatorio (no pueden ir vacíos)
-COMMANDS_WITH_REQUIRED_PAYLOAD = frozenset({
-    "/context",
-    "/override",
-    "/answer",
-    "/feedback",
-})
+COMMANDS_WITH_REQUIRED_PAYLOAD = frozenset(
+    {
+        "/context",
+        "/override",
+        "/answer",
+        "/feedback",
+    }
+)
 
 # Comandos sin payload (cualquier texto extra se ignora)
-COMMANDS_WITHOUT_PAYLOAD = frozenset({
-    "/help",
-    "/status",
-})
+COMMANDS_WITHOUT_PAYLOAD = frozenset(
+    {
+        "/help",
+        "/status",
+    }
+)
 
 # Regex auxiliares
 # /override <uuid> <param=value>[ <param=value>...]
@@ -73,11 +78,12 @@ _PRINTABLE_RE = re.compile(r"^[\x20-\x7E\u00C0-\u017F\u0080-\uFFFF\s]*$")
 @dataclass
 class ParsedCommand:
     """Resultado del parseo. Determinista, serializable a jsonb."""
-    comando: str = ""              # texto crudo del comando (ej "/override")
+
+    comando: str = ""  # texto crudo del comando (ej "/override")
     payload: dict = field(default_factory=dict)
     valid: bool = False
-    reason: Optional[str] = None   # explicación legible si valid=False
-    raw_text: str = ""             # texto original (útil para audit)
+    reason: Optional[str] = None  # explicación legible si valid=False
+    raw_text: str = ""  # texto original (útil para audit)
 
 
 def _normalize(text: str) -> str:

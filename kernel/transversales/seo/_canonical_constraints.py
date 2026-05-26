@@ -10,6 +10,7 @@ asertean que estos valores coinciden con texto canonico.
 
 Origen: DSC-G-017 (DSC-as-Contract). Texto puede ser desobedecido, codigo no.
 """
+
 from __future__ import annotations
 
 from kernel.transversales.base import GeoRegion, VerticalId
@@ -18,7 +19,6 @@ from kernel.transversales.ventas._canonical_constraints import (
     is_commercial,
     require_commercial,
 )
-
 
 SEO_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
     VerticalId.CIP: {

@@ -25,6 +25,7 @@ Doctrina anti-Dory:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 5 · 2026-05-04 · v0.86.5
 """
+
 from __future__ import annotations
 
 from typing import Any, Optional

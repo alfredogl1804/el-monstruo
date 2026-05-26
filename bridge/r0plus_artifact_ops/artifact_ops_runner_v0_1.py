@@ -22,13 +22,13 @@ Constraints:
     - No secrets, no Supabase, no memory writes
     - Kill-switch state read but never modified
 """
+
 import json
 import sys
 import traceback
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
-
 
 # Resolve artifact paths
 ARTIFACTS_DIR = Path(__file__).parents[1] / "r0plus_production_surge_001" / "artifacts"
@@ -65,6 +65,7 @@ def run_artifact_indexer(config: dict) -> dict:
     """Execute R0+ Artifact Indexer and return results."""
     try:
         from r0plus_artifact_indexer_v0_1 import build_index
+
         bridge_dir = Path(config["bridge_dir"])
         index = build_index(bridge_dir)
         return {
@@ -85,6 +86,7 @@ def run_pattern_detector(config: dict) -> dict:
     """Execute Memory Palace Pattern Detector and return results."""
     try:
         from memory_palace_pattern_detector_v0_1 import run_full_analysis
+
         report = run_full_analysis()
         return {
             "status": "SUCCESS" if report["status"] != "EMPTY_MEMORY_PALACE" else "EMPTY",
@@ -103,6 +105,7 @@ def run_history_analyzer(config: dict) -> dict:
     """Execute Embryo Run History Analyzer and return results."""
     try:
         from embryo_run_history_analyzer_v0_1 import run_full_analysis
+
         base_dir = Path(config["base_dir"])
         report = run_full_analysis(base_dir)
         return {
@@ -124,20 +127,22 @@ def detect_untested_artifacts(indexer_result: dict) -> list[dict]:
     """Identify artifacts without tests from indexer results."""
     if indexer_result["status"] != "SUCCESS":
         return []
-    
+
     untested = []
     for art in indexer_result.get("artifacts", []):
         if not art.get("has_tests", False):
-            untested.append({
-                "artifact_id": art["artifact_id"],
-                "name": art["name"],
-                "path": art["path"],
-                "source_type": art["source_type"],
-                "function_count": art["function_count"],
-                "lines_of_code": art["lines_of_code"],
-                "risk_if_untested": "HIGH" if art["function_count"] >= 3 else "MEDIUM",
-            })
-    
+            untested.append(
+                {
+                    "artifact_id": art["artifact_id"],
+                    "name": art["name"],
+                    "path": art["path"],
+                    "source_type": art["source_type"],
+                    "function_count": art["function_count"],
+                    "lines_of_code": art["lines_of_code"],
+                    "risk_if_untested": "HIGH" if art["function_count"] >= 3 else "MEDIUM",
+                }
+            )
+
     return untested
 
 
@@ -145,7 +150,7 @@ def detect_cost_anomalies(pattern_result: dict) -> list[dict]:
     """Extract cost anomalies from pattern detector results."""
     if pattern_result["status"] != "SUCCESS":
         return []
-    
+
     patterns = pattern_result.get("patterns", {})
     return patterns.get("cost_anomalies", [])
 
@@ -154,11 +159,11 @@ def detect_task_overspecialization(pattern_result: dict) -> dict:
     """Check for task over-specialization from pattern detector."""
     if pattern_result["status"] != "SUCCESS":
         return {"detected": False}
-    
+
     patterns = pattern_result.get("patterns", {})
     task_conc = patterns.get("task_concentration", {})
     dominant = task_conc.get("dominant_tasks", [])
-    
+
     return {
         "detected": len(dominant) > 0,
         "dominant_tasks": dominant,
@@ -171,7 +176,7 @@ def detect_regression_flags(history_result: dict) -> list[dict]:
     """Extract regression flags from history analyzer."""
     if history_result["status"] != "SUCCESS":
         return []
-    
+
     regressions = []
     regressions.extend(history_result.get("oracle_regressions", []))
     regressions.extend(history_result.get("auditor_regressions", []))
@@ -182,19 +187,23 @@ def generate_remediation_queue(untested: list[dict]) -> list[dict]:
     """Generate a prioritized remediation queue for untested artifacts."""
     queue = []
     for i, art in enumerate(sorted(untested, key=lambda x: -x["function_count"])):
-        queue.append({
-            "priority": i + 1,
-            "artifact_id": art["artifact_id"],
-            "artifact_path": art["path"],
-            "has_tests": False,
-            "test_path_expected": art["path"].replace(".py", "").replace(art["name"].replace(".py", ""), f"test_{art['name']}"),
-            "risk_if_untested": art["risk_if_untested"],
-            "value_if_tested": "Prevents silent regressions, enables CI validation",
-            "recommended_action": "WRITE_TESTS",
-            "status": "READY_R0PLUS",
-            "forbidden_actions": ["R1", "main", "deploy", "Supabase"],
-            "source_ref": f"artifact_ops_runner_v0_1 @ {datetime.now(timezone.utc).strftime('%Y-%m-%d')}",
-        })
+        queue.append(
+            {
+                "priority": i + 1,
+                "artifact_id": art["artifact_id"],
+                "artifact_path": art["path"],
+                "has_tests": False,
+                "test_path_expected": art["path"]
+                .replace(".py", "")
+                .replace(art["name"].replace(".py", ""), f"test_{art['name']}"),
+                "risk_if_untested": art["risk_if_untested"],
+                "value_if_tested": "Prevents silent regressions, enables CI validation",
+                "recommended_action": "WRITE_TESTS",
+                "status": "READY_R0PLUS",
+                "forbidden_actions": ["R1", "main", "deploy", "Supabase"],
+                "source_ref": f"artifact_ops_runner_v0_1 @ {datetime.now(timezone.utc).strftime('%Y-%m-%d')}",
+            }
+        )
     return queue
 
 
@@ -204,24 +213,25 @@ def determine_next_action(indexer_result: dict, pattern_result: dict, history_re
     regressions = detect_regression_flags(history_result)
     if any(r.get("severity") == "HIGH" for r in regressions):
         return "INVESTIGATE_HIGH_REGRESSION"
-    
+
     # Priority 2: If test coverage is low, remediate
     if indexer_result["status"] == "SUCCESS":
         coverage = indexer_result.get("test_coverage_pct", 0)
         if coverage < 50:
             return "EXECUTE_TEST_REMEDIATION_TOP3"
-    
+
     # Priority 3: If memory palace health is degrading
     if pattern_result["status"] == "SUCCESS":
         if pattern_result.get("health_score", 100) < 50:
             return "INVESTIGATE_MEMORY_PALACE_HEALTH"
-    
+
     # Priority 4: Default — produce next surge
     return "PRODUCE_NEXT_SURGE"
 
 
-def consolidate_output(config: dict, indexer_result: dict, pattern_result: dict,
-                       history_result: dict, kill_switch: dict) -> dict:
+def consolidate_output(
+    config: dict, indexer_result: dict, pattern_result: dict, history_result: dict, kill_switch: dict
+) -> dict:
     """Consolidate all results into a single output."""
     untested = detect_untested_artifacts(indexer_result)
     cost_anomalies = detect_cost_anomalies(pattern_result)
@@ -229,7 +239,7 @@ def consolidate_output(config: dict, indexer_result: dict, pattern_result: dict,
     regression_flags = detect_regression_flags(history_result)
     remediation_queue = generate_remediation_queue(untested)
     next_action = determine_next_action(indexer_result, pattern_result, history_result)
-    
+
     return {
         "runner_version": "0.1",
         "timestamp": config["timestamp"],
@@ -280,18 +290,18 @@ def run(base_dir: Optional[Path] = None) -> dict:
     """Main entry point: run all artifacts and consolidate."""
     if base_dir is None:
         base_dir = Path(__file__).parents[2]  # repo root
-    
+
     config = load_config(base_dir)
     kill_switch = read_kill_switch(config)
-    
+
     # Execute all 3 artifacts
     indexer_result = run_artifact_indexer(config)
     pattern_result = run_pattern_detector(config)
     history_result = run_history_analyzer(config)
-    
+
     # Consolidate
     output = consolidate_output(config, indexer_result, pattern_result, history_result, kill_switch)
-    
+
     return output
 
 
@@ -299,6 +309,6 @@ if __name__ == "__main__":
     base_dir = None
     if len(sys.argv) > 2 and sys.argv[1] == "--base-dir":
         base_dir = Path(sys.argv[2])
-    
+
     result = run(base_dir)
     print(json.dumps(result, indent=2))

@@ -15,20 +15,22 @@ Soberanía:
 - Supabase → in-memory fallback si no hay SUPABASE_URL
 - Sabios LLM → reglas heurísticas si no hay API key
 """
+
 from __future__ import annotations
 
-import json
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
+
 import structlog
 
 logger = structlog.get_logger("monstruo.learning")
 
 
 # ── Excepciones con identidad ──────────────────────────────────────────────
+
 
 class AprendizajePatronInvalido(ValueError):
     """El patrón de aprendizaje tiene formato inválido.
@@ -48,8 +50,10 @@ class AprendizajeFeedbackInvalido(ValueError):
 
 # ── Enums ──────────────────────────────────────────────────────────────────
 
+
 class OutcomeType(str, Enum):
     """Tipos de outcomes aprendibles."""
+
     SUCCESS = "success"
     FAILURE = "failure"
     PARTIAL = "partial"
@@ -58,6 +62,7 @@ class OutcomeType(str, Enum):
 
 class PatternCategory(str, Enum):
     """Categorías de patrones detectados."""
+
     DESIGN = "design"
     TECHNICAL = "technical"
     BUSINESS = "business"
@@ -66,6 +71,7 @@ class PatternCategory(str, Enum):
 
 
 # ── Dataclasses ────────────────────────────────────────────────────────────
+
 
 @dataclass
 class LearningPattern:
@@ -82,6 +88,7 @@ class LearningPattern:
         occurrences: Número de veces que se ha observado.
         last_seen: ISO 8601 UTC de la última observación.
     """
+
     id: str
     category: PatternCategory
     context: str
@@ -118,6 +125,7 @@ class FeedbackSignal:
         context: Contexto adicional del feedback.
         source: Fuente del feedback ("user", "metrics", "embrion").
     """
+
     id: str
     decision_id: str
     decision_type: str
@@ -151,6 +159,7 @@ class DistilledRule:
         times_applied: Número de veces que se aplicó la regla.
         times_successful: Número de veces que fue exitosa.
     """
+
     id: str
     rule: str
     category: PatternCategory
@@ -178,6 +187,7 @@ class DistilledRule:
 
 # ── Motor principal ────────────────────────────────────────────────────────
 
+
 @dataclass
 class AdaptiveLearningEngine:
     """Motor de aprendizaje adaptativo.
@@ -193,6 +203,7 @@ class AdaptiveLearningEngine:
         Sin Supabase: patrones en memoria (se pierden al reiniciar).
         Sin Sabios: reglas heurísticas basadas en frecuencia.
     """
+
     _supabase: Optional[object] = field(default=None, repr=False)
     _sabios: Optional[object] = field(default=None, repr=False)
     _patterns: dict[str, LearningPattern] = field(default_factory=dict)
@@ -202,9 +213,15 @@ class AdaptiveLearningEngine:
 
     # ── Registro de Patrones ───────────────────────────────────────────────
 
-    async def record_pattern(self, category: PatternCategory, context: str,
-                              outcome: str, outcome_type: OutcomeType,
-                              lesson: str, confidence: float = 0.5) -> LearningPattern:
+    async def record_pattern(
+        self,
+        category: PatternCategory,
+        context: str,
+        outcome: str,
+        outcome_type: OutcomeType,
+        lesson: str,
+        confidence: float = 0.5,
+    ) -> LearningPattern:
         """Registrar un patrón de aprendizaje.
 
         Args:
@@ -250,14 +267,17 @@ class AdaptiveLearningEngine:
         # Persistir en Supabase
         if self._supabase:
             try:
-                self._supabase.table("learning_patterns").insert(
-                    pattern.to_dict()
-                ).execute()
+                self._supabase.table("learning_patterns").insert(pattern.to_dict()).execute()
             except Exception as e:
                 logger.warning("pattern_persist_failed", error=str(e))
 
-        logger.info("patron_registrado", id=pattern.id, category=category.value,
-                    outcome_type=outcome_type.value, confidence=confidence)
+        logger.info(
+            "patron_registrado",
+            id=pattern.id,
+            category=category.value,
+            outcome_type=outcome_type.value,
+            confidence=confidence,
+        )
 
         # Trigger destilación si hay suficientes patrones
         if len(self._patterns) % 10 == 0:
@@ -292,9 +312,9 @@ class AdaptiveLearningEngine:
 
     # ── Feedback Loop ──────────────────────────────────────────────────────
 
-    async def receive_feedback(self, decision_id: str, decision_type: str,
-                               score: float, context: str,
-                               source: str = "metrics") -> FeedbackSignal:
+    async def receive_feedback(
+        self, decision_id: str, decision_type: str, score: float, context: str, source: str = "metrics"
+    ) -> FeedbackSignal:
         """Recibir señal de feedback para ajustar pesos.
 
         Args:
@@ -311,13 +331,9 @@ class AdaptiveLearningEngine:
             AprendizajeFeedbackInvalido: Si score está fuera de [0, 1] o decision_id vacío.
         """
         if not (0.0 <= score <= 1.0):
-            raise AprendizajeFeedbackInvalido(
-                f"Score inválido: {score}. Debe ser float entre 0.0 y 1.0."
-            )
+            raise AprendizajeFeedbackInvalido(f"Score inválido: {score}. Debe ser float entre 0.0 y 1.0.")
         if not decision_id:
-            raise AprendizajeFeedbackInvalido(
-                "decision_id vacío. Incluir el ID de la decisión que se evalúa."
-            )
+            raise AprendizajeFeedbackInvalido("decision_id vacío. Incluir el ID de la decisión que se evalúa.")
 
         signal = FeedbackSignal(
             id=str(uuid.uuid4())[:8],
@@ -338,14 +354,11 @@ class AdaptiveLearningEngine:
         # Persistir en Supabase
         if self._supabase:
             try:
-                self._supabase.table("feedback_signals").insert(
-                    signal.to_dict()
-                ).execute()
+                self._supabase.table("feedback_signals").insert(signal.to_dict()).execute()
             except Exception as e:
                 logger.warning("feedback_persist_failed", error=str(e))
 
-        logger.info("feedback_recibido", decision_type=decision_type,
-                    score=score, new_weight=new_weight, source=source)
+        logger.info("feedback_recibido", decision_type=decision_type, score=score, new_weight=new_weight, source=source)
         return signal
 
     def get_decision_weight(self, decision_type: str) -> float:
@@ -405,8 +418,7 @@ class AdaptiveLearningEngine:
                 new_rules.append(rule)
 
         if new_rules:
-            logger.info("reglas_destiladas", count=len(new_rules),
-                        total_rules=len(self._distilled_rules))
+            logger.info("reglas_destiladas", count=len(new_rules), total_rules=len(self._distilled_rules))
 
         return new_rules
 
@@ -451,8 +463,7 @@ Responde SOLO con la regla, sin explicación adicional."""
 
     # ── Consultas ──────────────────────────────────────────────────────────
 
-    def get_relevant_rules(self, category: PatternCategory,
-                           min_confidence: float = 0.6) -> list[DistilledRule]:
+    def get_relevant_rules(self, category: PatternCategory, min_confidence: float = 0.6) -> list[DistilledRule]:
         """Obtener reglas relevantes para una categoría.
 
         Args:
@@ -462,10 +473,7 @@ Responde SOLO con la regla, sin explicación adicional."""
         Returns:
             Lista de reglas ordenadas por confianza descendente.
         """
-        rules = [
-            r for r in self._distilled_rules.values()
-            if r.category == category and r.confidence >= min_confidence
-        ]
+        rules = [r for r in self._distilled_rules.values() if r.category == category and r.confidence >= min_confidence]
         return sorted(rules, key=lambda r: r.confidence, reverse=True)
 
     def to_dict(self) -> dict:
@@ -476,8 +484,7 @@ Responde SOLO con la regla, sin explicación adicional."""
             "reglas_destiladas": len(self._distilled_rules),
             "decision_weights": self._decision_weights,
             "patrones_por_categoria": {
-                cat.value: len([p for p in self._patterns.values() if p.category == cat])
-                for cat in PatternCategory
+                cat.value: len([p for p in self._patterns.values() if p.category == cat]) for cat in PatternCategory
             },
         }
 
@@ -507,7 +514,7 @@ def init_adaptive_learning_engine(supabase=None, sabios=None) -> AdaptiveLearnin
         _supabase=supabase,
         _sabios=sabios,
     )
-    logger.info("adaptive_learning_engine_inicializado",
-                con_supabase=supabase is not None,
-                con_sabios=sabios is not None)
+    logger.info(
+        "adaptive_learning_engine_inicializado", con_supabase=supabase is not None, con_sabios=sabios is not None
+    )
     return _learning_engine_instance

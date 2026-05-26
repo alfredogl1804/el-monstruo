@@ -12,14 +12,15 @@ Soberanía:
     - Framer Motion / Motion: alternativa → CSS transitions nativas
 """
 
-import structlog
 from dataclasses import dataclass
-from typing import Optional
+
+import structlog
 
 logger = structlog.get_logger("motion.tokens")
 
 
 # ── Modelo de datos ────────────────────────────────────────────────────────────
+
 
 @dataclass
 class MotionToken:
@@ -38,6 +39,7 @@ class MotionToken:
     Soberanía:
         CSS: compatible con cualquier framework frontend
     """
+
     name: str
     duration: str
     easing: str
@@ -69,13 +71,16 @@ MOTION_TOKENS: dict = {
     "slow": MotionToken("slow", "500ms", "cubic-bezier(0.4, 0, 0.2, 1)", "16px", "Elementos entrando"),
     "deliberate": MotionToken("deliberate", "800ms", "cubic-bezier(0.22, 1, 0.36, 1)", "32px", "Hero animations"),
     "cinematic": MotionToken("cinematic", "1200ms", "cubic-bezier(0.22, 1, 0.36, 1)", "64px", "Transiciones de página"),
-
     # Springs (para Motion/Framer Motion)
-    "spring_snappy": MotionToken("spring_snappy", "spring", "stiffness:400,damping:30", "auto", "Interacciones rápidas"),
+    "spring_snappy": MotionToken(
+        "spring_snappy", "spring", "stiffness:400,damping:30", "auto", "Interacciones rápidas"
+    ),
     "spring_gentle": MotionToken("spring_gentle", "spring", "stiffness:120,damping:14", "auto", "Movimientos suaves"),
     "spring_bouncy": MotionToken("spring_bouncy", "spring", "stiffness:300,damping:10", "auto", "Rebotes lúdicos"),
     "spring_stiff": MotionToken("spring_stiff", "spring", "stiffness:500,damping:40", "auto", "Respuesta inmediata"),
-    "spring_wobbly": MotionToken("spring_wobbly", "spring", "stiffness:180,damping:8", "auto", "Animaciones expresivas"),
+    "spring_wobbly": MotionToken(
+        "spring_wobbly", "spring", "stiffness:180,damping:8", "auto", "Animaciones expresivas"
+    ),
 }
 
 

@@ -15,14 +15,10 @@ from __future__ import annotations
 import re
 from typing import Any, Optional
 
-
 # ── Brand DNA — Identidad Inmutable ──────────────────────────────────
 
 BRAND_DNA: dict[str, Any] = {
-    "mission": (
-        "Crear el primer agente de IA soberano del mundo "
-        "que genera negocios exitosos de forma autónoma"
-    ),
+    "mission": ("Crear el primer agente de IA soberano del mundo que genera negocios exitosos de forma autónoma"),
     "vision": (
         "Un ecosistema de Monstruos interconectados que democratiza "
         "la creación de empresas — cualquier persona puede tener un "
@@ -58,9 +54,9 @@ BRAND_DNA: dict[str, Any] = {
         "never": ["service", "handler", "utils", "helper", "misc", "manager"],
     },
     "visual": {
-        "primary": "#F97316",      # Naranja forja
-        "background": "#1C1917",   # Graphite oscuro
-        "accent": "#A8A29E",       # Acero
+        "primary": "#F97316",  # Naranja forja
+        "background": "#1C1917",  # Graphite oscuro
+        "accent": "#A8A29E",  # Acero
         "fonts": {
             "display": "Bebas Neue",
             "body": "Inter",
@@ -151,6 +147,7 @@ def get_forbidden_matches(name: str) -> list[str]:
 
 # ── Error Message Factory ────────────────────────────────────────────
 
+
 def get_error_message(
     module: str,
     action: str,
@@ -185,15 +182,17 @@ def get_error_message(
 
 # ── Generic Error Detection ──────────────────────────────────────────
 
-_GENERIC_ERRORS = frozenset([
-    "internal server error",
-    "something went wrong",
-    "unknown error",
-    "an error occurred",
-    "error",
-    "fail",
-    "unexpected error",
-])
+_GENERIC_ERRORS = frozenset(
+    [
+        "internal server error",
+        "something went wrong",
+        "unknown error",
+        "an error occurred",
+        "error",
+        "fail",
+        "unexpected error",
+    ]
+)
 
 
 def is_generic_error(message: str) -> bool:

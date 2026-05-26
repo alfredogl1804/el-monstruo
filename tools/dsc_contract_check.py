@@ -24,6 +24,7 @@ Exit code:
     1 = al menos uno viola DSC-G-017 sin marcador aspiracional
     2 = error de uso
 """
+
 from __future__ import annotations
 
 import argparse
@@ -40,9 +41,7 @@ except ImportError:
 
 
 # Path canonico al index central (DSC-G-017 enforcement sistemico).
-DSC_CONTRACTS_INDEX_PATH = Path(
-    "discovery_forense/CAPILLA_DECISIONES/_dsc_contracts_index.yaml"
-)
+DSC_CONTRACTS_INDEX_PATH = Path("discovery_forense/CAPILLA_DECISIONES/_dsc_contracts_index.yaml")
 
 
 CONTRACT_SECTION_PATTERNS = [
@@ -58,9 +57,7 @@ ASPIRATIONAL_MARKERS = [
 ]
 
 PATH_PATTERNS = [
-    re.compile(
-        r"`(\.?[\w/.\-]+\.(?:py|yml|yaml|sh|sql|toml|json|md|js|ts|tsx|go|rs))`"
-    ),
+    re.compile(r"`(\.?[\w/.\-]+\.(?:py|yml|yaml|sh|sql|toml|json|md|js|ts|tsx|go|rs))`"),
     re.compile(
         r"(?:^|[\s\(\|>])(\.?(?:[\w.\-]+/)+[\w.\-]+"
         r"\.(?:py|yml|yaml|sh|sql|toml|json|md|js|ts|tsx|go|rs))"
@@ -107,7 +104,7 @@ def _extract_paths_from_section(text: str) -> list[str]:
     rest = text[section_start:]
     after_heading = rest.split("\n", 1)[1] if "\n" in rest else ""
     next_heading = re.search(r"\n#{1,6}\s+", after_heading)
-    section_text = after_heading[:next_heading.start()] if next_heading else after_heading
+    section_text = after_heading[: next_heading.start()] if next_heading else after_heading
 
     paths = []
     for pat in PATH_PATTERNS:
@@ -189,10 +186,7 @@ def check_dsc(path: Path, repo_root: Path) -> CheckResult:
                 paths_found=[],
                 paths_missing=[],
                 passed=True,
-                reason=(
-                    f"Aspirational via index. Razon: "
-                    f"{entry.get('reason', 'sin razon documentada')[:200]}"
-                ),
+                reason=(f"Aspirational via index. Razon: {entry.get('reason', 'sin razon documentada')[:200]}"),
             )
 
     # 2. Fallback: parsing del .md (legacy path para DSCs no en index).
@@ -271,10 +265,7 @@ def check_dsc(path: Path, repo_root: Path) -> CheckResult:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description=(
-            "Verifica que cada DSC tenga contrato ejecutable adjunto (DSC-G-017). "
-            "Pre-commit hook."
-        )
+        description=("Verifica que cada DSC tenga contrato ejecutable adjunto (DSC-G-017). Pre-commit hook.")
     )
     parser.add_argument(
         "files",

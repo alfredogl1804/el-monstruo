@@ -35,6 +35,7 @@ Política Cowork-DSC-G-008: este script NO toca repos del codebase del Monstruo
 (el-monstruo, monstruo-memoria, monstruo-tickets, etc.). Solo afecta repos con
 prefijo `monstruo-` que NO sean parte del registro persistente del Monstruo.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -160,9 +161,7 @@ def archive_repo(name: str, owner: str = PIPELINE_OWNER) -> bool:
 
 
 def parse_args():
-    p = argparse.ArgumentParser(
-        description="Cleanup de repos GitHub Pages generados por el pipeline E2E del Monstruo"
-    )
+    p = argparse.ArgumentParser(description="Cleanup de repos GitHub Pages generados por el pipeline E2E del Monstruo")
     mode = p.add_mutually_exclusive_group(required=True)
     mode.add_argument(
         "--older-than-days",

@@ -23,6 +23,7 @@ Exit code:
     1  = al menos un error
     2  = error de uso o archivo no existe
 """
+
 from __future__ import annotations
 
 import argparse
@@ -31,7 +32,6 @@ import re
 import sys
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-
 
 # Perfiles de riesgo canonicos (DSC-G-012)
 PERFILES_VALIDOS = {
@@ -86,8 +86,7 @@ def _check_title(lines: list[str]) -> list[Finding]:
                 idx = i + 1
                 break
         else:
-            return [Finding("error", "structure.frontmatter",
-                            1, "frontmatter YAML abierto sin cierre '---'")]
+            return [Finding("error", "structure.frontmatter", 1, "frontmatter YAML abierto sin cierre '---'")]
 
     # Skip HTML comments (<!-- ... -->) que pueden contener marcadores como
     # <!-- lint_strict --> antes del titulo.
@@ -109,12 +108,14 @@ def _check_title(lines: list[str]) -> list[Finding]:
 
     first = lines[idx] if idx < len(lines) else ""
     if not first.lstrip().startswith("# "):
-        return [Finding(
-            "error",
-            "structure.title",
-            idx + 1,
-            f"primera linea no-vacia post-frontmatter/comments debe ser titulo H1 ('# ...'). got: {first[:80]!r}",
-        )]
+        return [
+            Finding(
+                "error",
+                "structure.title",
+                idx + 1,
+                f"primera linea no-vacia post-frontmatter/comments debe ser titulo H1 ('# ...'). got: {first[:80]!r}",
+            )
+        ]
     return []
 
 
@@ -123,12 +124,14 @@ def _check_field(text: str, label: str, rule: str) -> list[Finding]:
     pattern = r"\*?\*?" + re.escape(label) + r"\s*:\*?\*?\s*\S"
     if re.search(pattern, text, flags=re.IGNORECASE):
         return []
-    return [Finding(
-        "error",
-        rule,
-        0,
-        f"falta campo obligatorio '{label}:' (formato '**{label}:** valor' o 'Label: valor')",
-    )]
+    return [
+        Finding(
+            "error",
+            rule,
+            0,
+            f"falta campo obligatorio '{label}:' (formato '**{label}:** valor' o 'Label: valor')",
+        )
+    ]
 
 
 def _check_field_any(text: str, labels: list[str], rule: str) -> list[Finding]:
@@ -136,42 +139,46 @@ def _check_field_any(text: str, labels: list[str], rule: str) -> list[Finding]:
     for lab in labels:
         if not _check_field(text, lab, rule):
             return []
-    return [Finding(
-        "error",
-        rule,
-        0,
-        f"falta campo obligatorio. Aceptados: {labels}",
-    )]
+    return [
+        Finding(
+            "error",
+            rule,
+            0,
+            f"falta campo obligatorio. Aceptados: {labels}",
+        )
+    ]
 
 
-def _check_section(lines: list[str], section_pattern: str, rule: str,
-                   severity: str = "error") -> list[Finding]:
+def _check_section(lines: list[str], section_pattern: str, rule: str, severity: str = "error") -> list[Finding]:
     """Verifica que exista al menos un heading que matchea section_pattern."""
     # Nota: NO usar f-string aqui — `{1,6}` se interpolaria como tupla en f-string raw.
     pat = re.compile(r"^#{1,6}\s+.*" + section_pattern, flags=re.IGNORECASE)
     for ln in lines:
         if pat.match(ln):
             return []
-    return [Finding(
-        severity,
-        rule,
-        0,
-        f"falta seccion que matchea /{section_pattern}/",
-    )]
+    return [
+        Finding(
+            severity,
+            rule,
+            0,
+            f"falta seccion que matchea /{section_pattern}/",
+        )
+    ]
 
 
-def _check_section_any(lines: list[str], section_patterns: list[str],
-                        rule: str) -> list[Finding]:
+def _check_section_any(lines: list[str], section_patterns: list[str], rule: str) -> list[Finding]:
     """Pasa si CUALQUIER seccion matchea."""
     for pat in section_patterns:
         if not _check_section(lines, pat, rule):
             return []
-    return [Finding(
-        "error",
-        rule,
-        0,
-        f"falta seccion. Patterns aceptados: {section_patterns}",
-    )]
+    return [
+        Finding(
+            "error",
+            rule,
+            0,
+            f"falta seccion. Patterns aceptados: {section_patterns}",
+        )
+    ]
 
 
 def _detect_strict_mode(text: str) -> bool:
@@ -207,25 +214,28 @@ def _check_perfil_riesgo_per_task(lines: list[str], strict: bool) -> list[Findin
     )
     for idx, (start_line, heading) in enumerate(headings):
         end_line = headings[idx + 1][0] - 1 if idx + 1 < len(headings) else n
-        block = "\n".join(lines[start_line - 1:end_line])
+        block = "\n".join(lines[start_line - 1 : end_line])
         match = perfil_pat.search(block)
         if not match:
-            findings.append(Finding(
-                severity,
-                "dsc-g-012.perfil_riesgo_missing",
-                start_line,
-                f"tarea {heading[:60]!r} no declara perfil_riesgo "
-                f"(valores: {sorted(PERFILES_VALIDOS)})",
-            ))
+            findings.append(
+                Finding(
+                    severity,
+                    "dsc-g-012.perfil_riesgo_missing",
+                    start_line,
+                    f"tarea {heading[:60]!r} no declara perfil_riesgo (valores: {sorted(PERFILES_VALIDOS)})",
+                )
+            )
         else:
             value = match.group(1).lower()
             if value not in PERFILES_VALIDOS:
-                findings.append(Finding(
-                    "error",
-                    "dsc-g-012.perfil_riesgo_invalid",
-                    start_line + block[:match.start()].count("\n"),
-                    f"perfil_riesgo invalido: {value!r}. valores validos: {sorted(PERFILES_VALIDOS)}",
-                ))
+                findings.append(
+                    Finding(
+                        "error",
+                        "dsc-g-012.perfil_riesgo_invalid",
+                        start_line + block[: match.start()].count("\n"),
+                        f"perfil_riesgo invalido: {value!r}. valores validos: {sorted(PERFILES_VALIDOS)}",
+                    )
+                )
     return findings
 
 
@@ -233,25 +243,31 @@ def _check_dsc_contracts_section(text: str, strict: bool) -> list[Finding]:
     """DSC-G-017: si el spec menciona producir DSCs, debe tener seccion de contratos."""
     severity = "error" if strict else "warning"
     findings: list[Finding] = []
-    produces_dscs = bool(re.search(
-        r"\b(produce|produc[ie]r|firma|firmar|canoniz[ae]r?|nuevo[s]? DSC)s?\b.{0,80}DSC-",
-        text,
-        flags=re.IGNORECASE | re.DOTALL,
-    ))
-    has_contract_section = bool(re.search(
-        r"^#{2,6}\s+.*(?:contrato[s]?\s+ejecutable[s]?|dsc-as-contract|"
-        r"contratos\s+adjuntos|contratos\s+que\s+(?:ana[dD]e|adjunta))",
-        text,
-        flags=re.MULTILINE | re.IGNORECASE,
-    ))
+    produces_dscs = bool(
+        re.search(
+            r"\b(produce|produc[ie]r|firma|firmar|canoniz[ae]r?|nuevo[s]? DSC)s?\b.{0,80}DSC-",
+            text,
+            flags=re.IGNORECASE | re.DOTALL,
+        )
+    )
+    has_contract_section = bool(
+        re.search(
+            r"^#{2,6}\s+.*(?:contrato[s]?\s+ejecutable[s]?|dsc-as-contract|"
+            r"contratos\s+adjuntos|contratos\s+que\s+(?:ana[dD]e|adjunta))",
+            text,
+            flags=re.MULTILINE | re.IGNORECASE,
+        )
+    )
     if produces_dscs and not has_contract_section:
-        findings.append(Finding(
-            severity,
-            "dsc-g-017.contracts_section_missing",
-            0,
-            "spec menciona producir DSCs pero no tiene seccion '## Contratos ejecutables' "
-            "(DSC-G-017 exige enforzamiento adjunto)",
-        ))
+        findings.append(
+            Finding(
+                severity,
+                "dsc-g-017.contracts_section_missing",
+                0,
+                "spec menciona producir DSCs pero no tiene seccion '## Contratos ejecutables' "
+                "(DSC-G-017 exige enforzamiento adjunto)",
+            )
+        )
     return findings
 
 
@@ -275,19 +291,23 @@ def _check_criterios_cierre_specifics(lines: list[str], strict: bool) -> list[Fi
             section_lines.append(ln)
     if in_section and section_lines:
         joined = "\n".join(section_lines).lower()
-        has_reproducible = bool(re.search(
-            r"(comando|command|exit\s+code|test|pytest|curl|http|"
-            r"smoke|reporte|artifact|json|coverage)",
-            joined,
-        ))
+        has_reproducible = bool(
+            re.search(
+                r"(comando|command|exit\s+code|test|pytest|curl|http|"
+                r"smoke|reporte|artifact|json|coverage)",
+                joined,
+            )
+        )
         if not has_reproducible:
-            findings.append(Finding(
-                severity,
-                "dsc-g-010.cierre_no_reproducible",
-                section_start,
-                "criterios de cierre no mencionan comando/test/artifact reproducible "
-                "(DSC-G-010: cierre verde requiere verificacion E2E)",
-            ))
+            findings.append(
+                Finding(
+                    severity,
+                    "dsc-g-010.cierre_no_reproducible",
+                    section_start,
+                    "criterios de cierre no mencionan comando/test/artifact reproducible "
+                    "(DSC-G-010: cierre verde requiere verificacion E2E)",
+                )
+            )
     return findings
 
 
@@ -305,25 +325,33 @@ def lint_file(path: Path, force_strict: bool = False) -> LintResult:
     # Reglas de estructura (siempre errores)
     result.findings.extend(_check_title(lines))
     result.findings.extend(_check_field(text, "Estado", "structure.estado"))
-    result.findings.extend(_check_field_any(
-        text,
-        ["Objetivo Maestro", "Objetivo", "Goal", "Meta"],
-        "structure.objetivo",
-    ))
-    result.findings.extend(_check_section(
-        lines, r"tareas?\b", "structure.tareas_section",
-    ))
-    result.findings.extend(_check_section_any(
-        lines,
-        [
-            r"criterios?\s+(?:de\s+)?cierre",
-            r"definition\s+of\s+done",
-            r"deliverable[s]?\b",
-            r"entreg(?:able|a)[s]?\b",
-            r"resultado[s]?\s+esperado[s]?",
-        ],
-        "structure.criterios_cierre",
-    ))
+    result.findings.extend(
+        _check_field_any(
+            text,
+            ["Objetivo Maestro", "Objetivo", "Goal", "Meta"],
+            "structure.objetivo",
+        )
+    )
+    result.findings.extend(
+        _check_section(
+            lines,
+            r"tareas?\b",
+            "structure.tareas_section",
+        )
+    )
+    result.findings.extend(
+        _check_section_any(
+            lines,
+            [
+                r"criterios?\s+(?:de\s+)?cierre",
+                r"definition\s+of\s+done",
+                r"deliverable[s]?\b",
+                r"entreg(?:able|a)[s]?\b",
+                r"resultado[s]?\s+esperado[s]?",
+            ],
+            "structure.criterios_cierre",
+        )
+    )
 
     # Reglas DSC (warning por default, error si strict)
     result.findings.extend(_check_perfil_riesgo_per_task(lines, strict))
@@ -404,10 +432,7 @@ def main() -> int:
             print(f"[{'ERR' if r.errors else 'warn'}] {r.file} ({mode})")
             for f in r.findings:
                 print(f)
-        print(
-            f"\nResumen: {len(all_results)} specs, "
-            f"{total_errors} errores, {total_warnings} warnings."
-        )
+        print(f"\nResumen: {len(all_results)} specs, {total_errors} errores, {total_warnings} warnings.")
 
     return 0 if total_errors == 0 else 1
 

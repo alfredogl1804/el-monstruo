@@ -12,20 +12,18 @@ Cubre:
     - Errores: config (sin API key), discrepancy (proceed=False), unavailable
     - Hallazgo del B3: aceptar ambos detail strings de 401
 """
+
 from __future__ import annotations
 
-import asyncio
 import json
 import time
-from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch
 
 import httpx
 import pytest
 
 from tools.memento_preflight import (
-    DEFAULT_CACHE_TTL_SECONDS,
     DEFAULT_VALIDATOR_URL,
     MementoPreflightConfigError,
     MementoPreflightDiscrepancyError,
@@ -47,6 +45,7 @@ from tools.memento_preflight import (
 # ===========================================================================
 # Fixtures
 # ===========================================================================
+
 
 @pytest.fixture(autouse=True)
 def _clean_cache_and_env(monkeypatch):
@@ -70,6 +69,7 @@ def _clean_cache_and_env(monkeypatch):
 # MockHttpClient — emula httpx.AsyncClient inyectable
 # ===========================================================================
 
+
 class _MockResponse:
     def __init__(self, status_code: int, json_data: Optional[Dict[str, Any]] = None, text: str = "") -> None:
         self.status_code = status_code
@@ -85,16 +85,19 @@ class _MockResponse:
 class MockHttpClient:
     """
     Reemplazo inyectable de httpx.AsyncClient.
-    
+
     Modos:
         - responses=[lista de _MockResponse o Exception]: cada call consume una entrada.
         - exception=<Exception>: TODAS las calls levantan esa excepción.
         - default_response: si la lista se agota, devuelve esto.
     """
-    def __init__(self,
-                 responses: Optional[List[Any]] = None,
-                 exception: Optional[Exception] = None,
-                 default_response: Optional[_MockResponse] = None) -> None:
+
+    def __init__(
+        self,
+        responses: Optional[List[Any]] = None,
+        exception: Optional[Exception] = None,
+        default_response: Optional[_MockResponse] = None,
+    ) -> None:
         self.responses = list(responses or [])
         self.exception = exception
         self.default_response = default_response
@@ -106,8 +109,9 @@ class MockHttpClient:
     async def __aexit__(self, exc_type, exc, tb):
         return False
 
-    async def post(self, url: str, json: Optional[Dict[str, Any]] = None,
-                   headers: Optional[Dict[str, str]] = None, **kwargs) -> _MockResponse:
+    async def post(
+        self, url: str, json: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, str]] = None, **kwargs
+    ) -> _MockResponse:
         self.calls.append({"url": url, "json": json, "headers": headers or {}})
         if self.exception is not None:
             raise self.exception
@@ -130,8 +134,8 @@ def _factory(client: MockHttpClient):
 # Section 1 — Config helpers (anti-Dory: fresh env por request)
 # ===========================================================================
 
-class TestConfigHelpers:
 
+class TestConfigHelpers:
     def test_resolve_validator_url_default(self):
         assert _resolve_validator_url() == DEFAULT_VALIDATOR_URL
 
@@ -185,8 +189,8 @@ class TestConfigHelpers:
 # Section 2 — PreflightCache
 # ===========================================================================
 
-class TestPreflightCache:
 
+class TestPreflightCache:
     def test_set_get_basic(self):
         cache = PreflightCache(default_ttl_seconds=60)
         result = PreflightResult(validation_id="mv_test_1", validation_status="ok", proceed=True)
@@ -233,20 +237,23 @@ class TestPreflightCache:
 # Section 3 — preflight_check_async (camino feliz + variaciones)
 # ===========================================================================
 
-class TestPreflightCheckAsyncHappyPath:
 
+class TestPreflightCheckAsyncHappyPath:
     @pytest.mark.asyncio
     async def test_returns_parsed_result_on_200(self):
-        ok_response = _MockResponse(200, {
-            "validation_id": "mv_2026-05-04T12:00_abc123",
-            "validation_status": "ok",
-            "proceed": True,
-            "context_freshness_seconds": 30,
-            "discrepancy": None,
-            "remediation": None,
-            "source_consulted": "ticketlike_credentials",
-            "persistence_failed": False,
-        })
+        ok_response = _MockResponse(
+            200,
+            {
+                "validation_id": "mv_2026-05-04T12:00_abc123",
+                "validation_status": "ok",
+                "proceed": True,
+                "context_freshness_seconds": 30,
+                "discrepancy": None,
+                "remediation": None,
+                "source_consulted": "ticketlike_credentials",
+                "persistence_failed": False,
+            },
+        )
         client = MockHttpClient(responses=[ok_response])
         result = await preflight_check_async(
             operation="sql_against_production",
@@ -268,11 +275,14 @@ class TestPreflightCheckAsyncHappyPath:
 
     @pytest.mark.asyncio
     async def test_uses_cache_on_second_call(self):
-        ok_response = _MockResponse(200, {
-            "validation_id": "mv_cache_1",
-            "validation_status": "ok",
-            "proceed": True,
-        })
+        ok_response = _MockResponse(
+            200,
+            {
+                "validation_id": "mv_cache_1",
+                "validation_status": "ok",
+                "proceed": True,
+            },
+        )
         client = MockHttpClient(responses=[ok_response])
         # First call → hits endpoint
         await preflight_check_async(
@@ -292,7 +302,10 @@ class TestPreflightCheckAsyncHappyPath:
 
     @pytest.mark.asyncio
     async def test_use_cache_false_skips_cache(self):
-        responses = [_MockResponse(200, {"validation_id": "mv_no_cache", "validation_status": "ok", "proceed": True}) for _ in range(3)]
+        responses = [
+            _MockResponse(200, {"validation_id": "mv_no_cache", "validation_status": "ok", "proceed": True})
+            for _ in range(3)
+        ]
         client = MockHttpClient(responses=responses)
         for _ in range(3):
             await preflight_check_async(
@@ -333,7 +346,6 @@ class TestPreflightCheckAsyncHappyPath:
 
 
 class TestPreflightCheckAsyncAuthFormats:
-
     @pytest.mark.asyncio
     async def test_x_api_key_default_format(self):
         ok_response = _MockResponse(200, {"validation_id": "mv_a", "validation_status": "ok", "proceed": True})
@@ -368,13 +380,15 @@ class TestPreflightCheckAsyncAuthFormats:
 # Section 4 — Errores y retries
 # ===========================================================================
 
-class TestPreflightCheckAsyncErrorsAndRetries:
 
+class TestPreflightCheckAsyncErrorsAndRetries:
     @pytest.mark.asyncio
     async def test_raises_config_error_when_no_api_key(self, monkeypatch):
         monkeypatch.delenv("MONSTRUO_API_KEY", raising=False)
         monkeypatch.delenv("MEMENTO_API_KEY", raising=False)
-        client = MockHttpClient(responses=[_MockResponse(200, {"validation_id": "mv_x", "validation_status": "ok", "proceed": True})])
+        client = MockHttpClient(
+            responses=[_MockResponse(200, {"validation_id": "mv_x", "validation_status": "ok", "proceed": True})]
+        )
         with pytest.raises(MementoPreflightConfigError, match="memento_api_key_missing"):
             await preflight_check_async(
                 operation="op_x",
@@ -492,8 +506,8 @@ class TestPreflightCheckAsyncErrorsAndRetries:
 # Section 5 — Sync wrapper preflight_check
 # ===========================================================================
 
-class TestPreflightCheckSync:
 
+class TestPreflightCheckSync:
     def test_sync_call_works_when_no_loop(self):
         ok_response = _MockResponse(200, {"validation_id": "mv_sync_1", "validation_status": "ok", "proceed": True})
         client = MockHttpClient(responses=[ok_response])
@@ -512,8 +526,8 @@ class TestPreflightCheckSync:
 # Section 6 — Decorator @requires_memento_preflight
 # ===========================================================================
 
-class TestDecoratorAsync:
 
+class TestDecoratorAsync:
     @pytest.mark.asyncio
     async def test_async_function_executes_when_proceed_true(self):
         ok_response = _MockResponse(200, {"validation_id": "mv_dec_1", "validation_status": "ok", "proceed": True})
@@ -529,6 +543,7 @@ class TestDecoratorAsync:
 
         async def _proxy(**kw):
             return await client.post(kw["url"], json=kw["payload"], headers=kw["headers"])
+
         with patch("tools.memento_preflight._do_request", side_effect=_proxy):
             result = await query(host="gateway05", user="postgres", query="SELECT 1")
             assert result == "gateway05/postgres/SELECT 1"
@@ -537,13 +552,21 @@ class TestDecoratorAsync:
 
     @pytest.mark.asyncio
     async def test_async_function_blocked_when_proceed_false(self):
-        block_response = _MockResponse(200, {
-            "validation_id": "mv_blocked",
-            "validation_status": "discrepancy_detected",
-            "proceed": False,
-            "discrepancy": {"field": "host", "context_used": "gateway01", "source_of_truth": "gateway05", "source": "credentials.md"},
-            "remediation": "context_stale_or_contaminated",
-        })
+        block_response = _MockResponse(
+            200,
+            {
+                "validation_id": "mv_blocked",
+                "validation_status": "discrepancy_detected",
+                "proceed": False,
+                "discrepancy": {
+                    "field": "host",
+                    "context_used": "gateway01",
+                    "source_of_truth": "gateway05",
+                    "source": "credentials.md",
+                },
+                "remediation": "context_stale_or_contaminated",
+            },
+        )
         client = MockHttpClient(responses=[block_response])
 
         @requires_memento_preflight(
@@ -556,6 +579,7 @@ class TestDecoratorAsync:
 
         async def _proxy(**kw):
             return await client.post(kw["url"], json=kw["payload"], headers=kw["headers"])
+
         with patch("tools.memento_preflight._do_request", side_effect=_proxy):
             with pytest.raises(MementoPreflightDiscrepancyError) as exc_info:
                 await query(host="gateway01")
@@ -573,13 +597,13 @@ class TestDecoratorAsync:
 
         async def _proxy(**kw):
             return await client.post(kw["url"], json=kw["payload"], headers=kw["headers"])
+
         with patch("tools.memento_preflight._do_request", side_effect=_proxy):
             await some_op(a=10, b="hello")
             assert client.calls[0]["json"]["context_used"] == {"a": 10, "b": "hello"}
 
 
 class TestDecoratorSync:
-
     def test_sync_function_executes_when_proceed_true(self):
         ok_response = _MockResponse(200, {"validation_id": "mv_sync_dec", "validation_status": "ok", "proceed": True})
         client = MockHttpClient(responses=[ok_response])
@@ -594,17 +618,21 @@ class TestDecoratorSync:
 
         async def _proxy(**kw):
             return await client.post(kw["url"], json=kw["payload"], headers=kw["headers"])
+
         with patch("tools.memento_preflight._do_request", side_effect=_proxy):
             assert compute(x=5) == 10
             assert client.calls[0]["json"]["context_used"] == {"x": 5}
 
     def test_sync_function_blocked(self):
-        block_response = _MockResponse(200, {
-            "validation_id": "mv_block",
-            "validation_status": "unknown_operation",
-            "proceed": False,
-            "remediation": "operation_not_in_catalog",
-        })
+        block_response = _MockResponse(
+            200,
+            {
+                "validation_id": "mv_block",
+                "validation_status": "unknown_operation",
+                "proceed": False,
+                "remediation": "operation_not_in_catalog",
+            },
+        )
         client = MockHttpClient(responses=[block_response])
 
         @requires_memento_preflight(operation="bogus_op", use_cache=False)
@@ -613,6 +641,7 @@ class TestDecoratorSync:
 
         async def _proxy(**kw):
             return await client.post(kw["url"], json=kw["payload"], headers=kw["headers"])
+
         with patch("tools.memento_preflight._do_request", side_effect=_proxy):
             with pytest.raises(MementoPreflightDiscrepancyError):
                 some_call(z=42)
@@ -622,8 +651,8 @@ class TestDecoratorSync:
 # Section 7 — Integración: cache + decorator
 # ===========================================================================
 
-class TestCacheIntegration:
 
+class TestCacheIntegration:
     @pytest.mark.asyncio
     async def test_decorator_uses_cache_across_calls(self):
         ok_response = _MockResponse(200, {"validation_id": "mv_int_cache", "validation_status": "ok", "proceed": True})
@@ -639,6 +668,7 @@ class TestCacheIntegration:
 
         async def _proxy(**kw):
             return await client.post(kw["url"], json=kw["payload"], headers=kw["headers"])
+
         with patch("tools.memento_preflight._do_request", side_effect=_proxy):
             r1 = await op(arg="hello")
             r2 = await op(arg="hello")  # cache hit
@@ -655,6 +685,7 @@ class TestCacheIntegration:
 
         async def _proxy(**kw):
             return await client.post(kw["url"], json=kw["payload"], headers=kw["headers"])
+
         with patch("tools.memento_preflight._do_request", side_effect=_proxy):
             r1 = await preflight_check_async(operation="op_x", context_used={"a": 1}, hilo_id="h")
             assert r1.validation_id == "mv_first"

@@ -11,6 +11,7 @@ Verifica:
 4. Stats e historial se actualizan correctamente
 5. CLI funciona (exit code + json)
 """
+
 from __future__ import annotations
 
 import json
@@ -27,9 +28,7 @@ if str(REPO_ROOT) not in sys.path:
 
 from kernel.cowork_runtime.pre_response_hook import (
     CoworkPreResponseHook,
-    HookStats,
 )
-
 
 # ============================================================================
 # Caso canonico de Definition of Done (T1)
@@ -96,13 +95,9 @@ class TestDefinitionOfDone:
 
 
 class TestCasosBorde:
-
     def test_output_limpio_con_avance_pasa(self):
         hook = CoworkPreResponseHook()
-        output = (
-            "PR #89 mergeado. kernel/cowork_runtime/__init__.py push. "
-            "apply_migration corrido en Supabase."
-        )
+        output = "PR #89 mergeado. kernel/cowork_runtime/__init__.py push. apply_migration corrido en Supabase."
         permitido, payload = hook.intercept(output, "avanzar")
         assert permitido is True
         assert payload == output
@@ -175,7 +170,6 @@ class TestCasosBorde:
 
 
 class TestCLI:
-
     def test_cli_bloquea_y_devuelve_exit_1(self):
         result = subprocess.run(
             [

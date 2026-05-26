@@ -8,10 +8,11 @@ Contrato (DSC-G-014):
   (ecommerce: plan → beneficios; otros: beneficios → plan).
 - Fix 4/4: Hero image curada per vertical (URL de Unsplash).
 """
+
 from __future__ import annotations
 
-from kernel.e2e.deploy.real_deploy import render_landing_html
 from kernel.e2e.deploy.image_gen import generate_hero_image
+from kernel.e2e.deploy.real_deploy import render_landing_html
 
 
 def _make_state(frase: str, nombre: str = "TestCo") -> dict:
@@ -38,27 +39,21 @@ def _make_state(frase: str, nombre: str = "TestCo") -> dict:
 
 def test_ecommerce_section_title_es_como_comprar():
     state = _make_state("Vender ropa premium online")
-    files = render_landing_html(
-        state=state, run_id="test_fix234_a", ingest_url="https://x.test/i"
-    )
+    files = render_landing_html(state=state, run_id="test_fix234_a", ingest_url="https://x.test/i")
     html = files["index.html"]
     assert "Cómo comprar" in html
 
 
 def test_saas_section_title_es_como_funciona():
     state = _make_state("Software SaaS de gestión de inventario")
-    files = render_landing_html(
-        state=state, run_id="test_fix234_b", ingest_url="https://x.test/i"
-    )
+    files = render_landing_html(state=state, run_id="test_fix234_b", ingest_url="https://x.test/i")
     html = files["index.html"]
     assert "Cómo funciona" in html
 
 
 def test_servicios_section_title_es_nuestro_proceso():
     state = _make_state("Consultoría de marketing digital")
-    files = render_landing_html(
-        state=state, run_id="test_fix234_c", ingest_url="https://x.test/i"
-    )
+    files = render_landing_html(state=state, run_id="test_fix234_c", ingest_url="https://x.test/i")
     html = files["index.html"]
     assert "Nuestro proceso" in html
 
@@ -72,9 +67,7 @@ def test_ecommerce_layout_plan_antes_de_beneficios():
     """En e-commerce el flujo de compra (plan) debe ir antes que los beneficios."""
     state = _make_state("Vender pintura al óleo artesanal")
     state["architect"]["brief"]["beneficios"] = ["Calidad premium", "Envío rápido"]
-    files = render_landing_html(
-        state=state, run_id="test_fix234_d", ingest_url="https://x.test/i"
-    )
+    files = render_landing_html(state=state, run_id="test_fix234_d", ingest_url="https://x.test/i")
     html = files["index.html"]
     pos_plan = html.find('id="plan"')
     pos_beneficios = html.find('id="beneficios"')
@@ -86,9 +79,7 @@ def test_saas_layout_beneficios_antes_de_plan():
     """En SaaS, los beneficios (valor) deben ir antes que el plan (cómo funciona)."""
     state = _make_state("Software de gestión de tareas")
     state["architect"]["brief"]["beneficios"] = ["Ahorra tiempo", "Más productividad"]
-    files = render_landing_html(
-        state=state, run_id="test_fix234_e", ingest_url="https://x.test/i"
-    )
+    files = render_landing_html(state=state, run_id="test_fix234_e", ingest_url="https://x.test/i")
     html = files["index.html"]
     pos_plan = html.find('id="plan"')
     pos_beneficios = html.find('id="beneficios"')
@@ -103,12 +94,10 @@ def test_saas_layout_beneficios_antes_de_plan():
 
 def test_hero_image_se_inyecta_en_html():
     state = _make_state("Tienda online de zapatos")
-    files = render_landing_html(
-        state=state, run_id="test_fix234_f", ingest_url="https://x.test/i"
-    )
+    files = render_landing_html(state=state, run_id="test_fix234_f", ingest_url="https://x.test/i")
     html = files["index.html"]
     assert 'class="hero-image"' in html
-    assert 'images.unsplash.com' in html
+    assert "images.unsplash.com" in html
 
 
 def test_generate_hero_image_returns_url_per_vertical():

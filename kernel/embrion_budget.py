@@ -44,14 +44,15 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Optional
-from uuid import UUID
+from typing import Optional
 
 try:
     import structlog
+
     logger = structlog.get_logger("embrion.budget")
 except ImportError:  # pragma: no cover
     import logging
+
     logger = logging.getLogger("embrion.budget")
 
 # ── Configuración (canónica, lee env al import)
@@ -67,6 +68,7 @@ DAILY_SAFETY_MARGIN = 0.95
 @dataclass
 class BudgetDecision:
     """Resultado de check_before_cycle. Determinístico."""
+
     allow: bool
     reason: str  # "ok" | "estimated_exceeds_cap" | "daily_budget_near_limit" | "daily_budget_exhausted"
     cap_per_latido_usd: float
@@ -83,6 +85,7 @@ class BudgetDecision:
 @dataclass
 class CycleResult:
     """Resultado real al cerrar un cycle. Lo escribimos en embrion_budget_state."""
+
     cycle_id: int
     cost_actual_usd: float
     tokens_used: int = 0
@@ -97,6 +100,7 @@ class CycleResult:
 
 
 # ── Cliente Supabase (lazy, para no romper imports en tests sin red)
+
 
 class _SupabaseRest:
     """Cliente REST mínimo y testeable. No usa supabase-py para mantener
@@ -118,6 +122,7 @@ class _SupabaseRest:
 
     def select(self, table: str, params: dict, prefer: Optional[str] = None):
         import requests
+
         r = requests.get(
             f"{self.url}/rest/v1/{table}",
             headers=self._headers(prefer=prefer),
@@ -129,6 +134,7 @@ class _SupabaseRest:
 
     def insert(self, table: str, payload: dict | list[dict]):
         import requests
+
         r = requests.post(
             f"{self.url}/rest/v1/{table}",
             headers=self._headers(prefer="return=representation"),
@@ -141,11 +147,7 @@ class _SupabaseRest:
 
 def _get_supabase_client() -> _SupabaseRest:
     url = os.environ.get("SUPABASE_URL", "https://xsumzuhwmivjgftsneov.supabase.co")
-    key = (
-        os.environ.get("SUPABASE_SERVICE_KEY")
-        or os.environ.get("SUPABASE_KEY")
-        or os.environ.get("SUPA_KEY")
-    )
+    key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_KEY") or os.environ.get("SUPA_KEY")
     if not key:
         raise RuntimeError(
             "embrion_budget: ninguna env var Supabase encontrada "
@@ -155,6 +157,7 @@ def _get_supabase_client() -> _SupabaseRest:
 
 
 # ── Funciones puras de cálculo (testeable sin red)
+
 
 def estimate_cost_usd(
     *,
@@ -173,10 +176,10 @@ def estimate_cost_usd(
     Devuelve costo total en USD (no por 1M, ya escalado al volumen real).
     """
     pricing = {
-        "gpt-5":           (2.50, 10.00),
-        "gpt-5.5":         (3.00, 12.00),
+        "gpt-5": (2.50, 10.00),
+        "gpt-5.5": (3.00, 12.00),
         "claude-opus-4.7": (3.00, 15.00),
-        "gemini-3.1-pro":  (1.25, 5.00),
+        "gemini-3.1-pro": (1.25, 5.00),
     }
     inp, out = pricing.get(model.lower(), pricing["gpt-5"])
     return (estimated_tokens_in / 1_000_000.0) * inp + (estimated_tokens_out / 1_000_000.0) * out
@@ -187,6 +190,7 @@ def _today_iso_date() -> str:
 
 
 # ── API pública
+
 
 def check_before_cycle(
     *,
@@ -268,10 +272,7 @@ def check_before_cycle(
         )
 
     # 4) Soft warning si estamos cerca del límite diario
-    near_limit = (
-        daily_spent >= 0
-        and (daily_spent + estimated) > daily_cap * DAILY_SAFETY_MARGIN
-    )
+    near_limit = daily_spent >= 0 and (daily_spent + estimated) > daily_cap * DAILY_SAFETY_MARGIN
     reason = "daily_budget_near_limit" if near_limit else "ok"
 
     return BudgetDecision(
@@ -484,7 +485,6 @@ def _group_cost_by_model(rows: list[dict]) -> dict:
     return out
 
 
-
 # ── Sprint ROTOR-001 (2026-05-12) Hilo Ejecutor 2 ─────────────────────────
 # add_recycled_energy: API pública para que kernel.rotor.recharge devuelva
 # energy_units (USD-equivalent) al budget del Embrión. Esta función NO calcula
@@ -506,8 +506,8 @@ def _group_cost_by_model(rows: list[dict]) -> dict:
 #
 # Spec firmado: bridge/sprints_propuestos/sprint_ROTOR_001_reciclador_actividad.md
 
-from decimal import Decimal as _RotorDecimal
 import json as _rotor_json
+from decimal import Decimal as _RotorDecimal
 
 
 def add_recycled_energy(
@@ -562,9 +562,9 @@ def add_recycled_energy(
     }
     if source_breakdown:
         # Persistir breakdown como JSON en abort_reason (campo TEXT libre)
-        payload["abort_reason"] = (
-            "rotor_recharge:" + _rotor_json.dumps(source_breakdown, default=str)
-        )[:500]  # truncar para no romper si hay muchos sources
+        payload["abort_reason"] = ("rotor_recharge:" + _rotor_json.dumps(source_breakdown, default=str))[
+            :500
+        ]  # truncar para no romper si hay muchos sources
 
     try:
         result = client.insert("embrion_budget_state", payload)
@@ -593,6 +593,7 @@ def add_recycled_energy(
 # Spec firmado: bridge/sprints_propuestos/sprint_ESCAPE_001_throttler_deterministico.md
 # Patrón alineado con record_after_cycle: sync, idempotente, fail-soft.
 # DSC enforzados: DSC-MO-006 v1.1, DSC-MO-010, DSC-G-008 v2, DSC-S-016 (anti-fabricación).
+
 
 def consume(
     amount,
@@ -627,8 +628,8 @@ def consume(
     Raises:
         ValueError: si amount <= 0.
     """
-    from decimal import Decimal  # noqa: PLC0415
     import uuid  # noqa: PLC0415
+    from decimal import Decimal  # noqa: PLC0415
 
     amt = Decimal(str(amount))
     if amt <= 0:
@@ -672,5 +673,6 @@ def consume(
             err=str(exc),
         )
         return False
+
 
 # ── /Sprint ESCAPE-001 ─────────────────────────────────────────────────────────

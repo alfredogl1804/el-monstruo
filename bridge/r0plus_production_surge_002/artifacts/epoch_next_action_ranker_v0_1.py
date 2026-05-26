@@ -12,18 +12,28 @@ No external API calls. No state modification. Pure local computation.
 Usage:
     python3 epoch_next_action_ranker_v0_1.py [--base-dir /path]
 """
+
 import json
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-
 # Actions that are ALWAYS blocked in R0+
 BLOCKED_KEYWORDS = [
-    "merge_to_main", "create_pr", "deploy", "supabase", "database",
-    "memory_write", "memento", "anti_dory", "app_vision", "canon",
-    "pre_ia", "kill_switch_modify", "provider_call", "secret",
+    "merge_to_main",
+    "create_pr",
+    "deploy",
+    "supabase",
+    "database",
+    "memory_write",
+    "memento",
+    "anti_dory",
+    "app_vision",
+    "canon",
+    "pre_ia",
+    "kill_switch_modify",
+    "provider_call",
+    "secret",
 ]
 
 
@@ -74,74 +84,88 @@ def generate_candidate_actions(snapshot: dict, ops_output: dict, ledger: dict) -
     candidates = []
 
     # Always available: produce more artifacts
-    candidates.append({
-        "action_id": "PRODUCE_NEXT_SURGE",
-        "title": "Execute Production Surge 003",
-        "category": "R0PLUS",
-        "value": 85,
-        "risk_reduction": 60,
-        "evidence": "System healthy, all tests pass, Ops integrated",
-    })
+    candidates.append(
+        {
+            "action_id": "PRODUCE_NEXT_SURGE",
+            "title": "Execute Production Surge 003",
+            "category": "R0PLUS",
+            "value": 85,
+            "risk_reduction": 60,
+            "evidence": "System healthy, all tests pass, Ops integrated",
+        }
+    )
 
     # Provider migration verification
-    candidates.append({
-        "action_id": "VERIFY_PROVIDER_MIGRATION",
-        "title": "Verify Anthropic fallback path before EOL",
-        "category": "R0PLUS",
-        "value": 70,
-        "risk_reduction": 80,
-        "evidence": "Anthropic EOL in 25 days, no verified fallback",
-    })
+    candidates.append(
+        {
+            "action_id": "VERIFY_PROVIDER_MIGRATION",
+            "title": "Verify Anthropic fallback path before EOL",
+            "category": "R0PLUS",
+            "value": 70,
+            "risk_reduction": 80,
+            "evidence": "Anthropic EOL in 25 days, no verified fallback",
+        }
+    )
 
     # Epoch 010 with integrated ops
-    candidates.append({
-        "action_id": "EXECUTE_EPOCH_010",
-        "title": "Run Epoch 010 with full Ops integration",
-        "category": "R0PLUS",
-        "value": 75,
-        "risk_reduction": 40,
-        "evidence": "Epoch 009 confirmed Ops integration works",
-    })
+    candidates.append(
+        {
+            "action_id": "EXECUTE_EPOCH_010",
+            "title": "Run Epoch 010 with full Ops integration",
+            "category": "R0PLUS",
+            "value": 75,
+            "risk_reduction": 40,
+            "evidence": "Epoch 009 confirmed Ops integration works",
+        }
+    )
 
     # Memory Palace enrichment
-    candidates.append({
-        "action_id": "ENRICH_MEMORY_PALACE",
-        "title": "Grow Memory Palace to 15+ entries for pattern significance",
-        "category": "R0PLUS",
-        "value": 65,
-        "risk_reduction": 30,
-        "evidence": "Currently 8 entries, pattern detector needs more data",
-    })
+    candidates.append(
+        {
+            "action_id": "ENRICH_MEMORY_PALACE",
+            "title": "Grow Memory Palace to 15+ entries for pattern significance",
+            "category": "R0PLUS",
+            "value": 65,
+            "risk_reduction": 30,
+            "evidence": "Currently 8 entries, pattern detector needs more data",
+        }
+    )
 
     # Merge to main (blocked in R0+)
-    candidates.append({
-        "action_id": "MERGE_TO_MAIN",
-        "title": "Merge branch to main",
-        "category": "R1",
-        "value": 90,
-        "risk_reduction": 10,
-        "evidence": "176+ tests pass, but requires T1 approval",
-    })
+    candidates.append(
+        {
+            "action_id": "MERGE_TO_MAIN",
+            "title": "Merge branch to main",
+            "category": "R1",
+            "value": 90,
+            "risk_reduction": 10,
+            "evidence": "176+ tests pass, but requires T1 approval",
+        }
+    )
 
     # Deploy (blocked in R0+)
-    candidates.append({
-        "action_id": "DEPLOY_PRODUCTION",
-        "title": "Deploy to production",
-        "category": "R1",
-        "value": 95,
-        "risk_reduction": 5,
-        "evidence": "Not ready for production deployment",
-    })
+    candidates.append(
+        {
+            "action_id": "DEPLOY_PRODUCTION",
+            "title": "Deploy to production",
+            "category": "R1",
+            "value": 95,
+            "risk_reduction": 5,
+            "evidence": "Not ready for production deployment",
+        }
+    )
 
     # Supabase integration (blocked in R0+)
-    candidates.append({
-        "action_id": "SUPABASE_INTEGRATION",
-        "title": "Connect to Supabase for persistent storage",
-        "category": "R1",
-        "value": 80,
-        "risk_reduction": 50,
-        "evidence": "Requires R1 approval and security review",
-    })
+    candidates.append(
+        {
+            "action_id": "SUPABASE_INTEGRATION",
+            "title": "Connect to Supabase for persistent storage",
+            "category": "R1",
+            "value": 80,
+            "risk_reduction": 50,
+            "evidence": "Requires R1 approval and security review",
+        }
+    )
 
     return candidates
 
@@ -231,6 +255,7 @@ def run_ranker(base_dir: Optional[Path] = None) -> dict:
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Epoch Next Action Ranker v0.1")
     parser.add_argument("--base-dir", default=None)
     args = parser.parse_args()

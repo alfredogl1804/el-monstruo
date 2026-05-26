@@ -2,23 +2,28 @@
 10 mandatory tests for T1 Directive Resolver v0.1.
 Criterion: 10/10 PASS.
 """
+
+import copy
+import json
 import os
 import sys
-import json
-import copy
 
 DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, DIR)
 
 from t1_directive_resolver import (
-    load_t1_directives, validate_directive, get_active_directives,
-    resolve_directives_for_embryo, compute_directive_weight,
-    apply_directive_to_task_scores, detect_conflicting_directives,
-    expire_old_directives, export_directive_snapshot
+    apply_directive_to_task_scores,
+    detect_conflicting_directives,
+    export_directive_snapshot,
+    get_active_directives,
+    load_t1_directives,
+    resolve_directives_for_embryo,
+    validate_directive,
 )
 
 passed = 0
 failed = 0
+
 
 def test(name, condition):
     global passed, failed
@@ -27,7 +32,8 @@ def test(name, condition):
         print(f"  PASS [{passed:02d}] {name}")
     else:
         failed += 1
-        print(f"  FAIL [{passed+failed:02d}] {name}")
+        print(f"  FAIL [{passed + failed:02d}] {name}")
+
 
 print("=" * 60)
 print("TEST SUITE: T1 Directive Resolver v0.1 — 10 Tests")
@@ -47,13 +53,16 @@ test("expired directive ignored", d_expired["status"] != "ACTIVE")
 # 3. Directive affects scoring
 tasks = [
     {"task_id": "produce_cockpit_fixture", "purpose": "Produce cockpit fixture to increase visible pilot value"},
-    {"task_id": "write_report", "purpose": "Write another report document"}
+    {"task_id": "write_report", "purpose": "Write another report document"},
 ]
 modifiers = apply_directive_to_task_scores(tasks, active)
 # The directive says "artefactos que aumenten valor visible" — cockpit fixture should get a boost
 cockpit_mod = next((m for m in modifiers if m["task_id"] == "produce_cockpit_fixture"), None)
 report_mod = next((m for m in modifiers if m["task_id"] == "write_report"), None)
-test("directive affects scoring", cockpit_mod is not None and cockpit_mod["score_modifier"] >= report_mod["score_modifier"])
+test(
+    "directive affects scoring",
+    cockpit_mod is not None and cockpit_mod["score_modifier"] >= report_mod["score_modifier"],
+)
 
 # 4. Directive cannot authorize R1
 d_r1 = copy.deepcopy(directives[0])
@@ -94,8 +103,11 @@ no_secrets = not any(p in snapshot_str for p in secret_patterns)
 test("no secrets", no_secrets)
 
 # 10. Snapshot export works
-test("snapshot export works", snapshot["total_directives"] >= 1 and "active_directive_ids" in snapshot and snapshot["active_count"] >= 1)
+test(
+    "snapshot export works",
+    snapshot["total_directives"] >= 1 and "active_directive_ids" in snapshot and snapshot["active_count"] >= 1,
+)
 
 print("=" * 60)
-print(f"RESULT: {passed}/{passed+failed} PASS, {failed}/{passed+failed} FAIL")
+print(f"RESULT: {passed}/{passed + failed} PASS, {failed}/{passed + failed} FAIL")
 print("=" * 60)

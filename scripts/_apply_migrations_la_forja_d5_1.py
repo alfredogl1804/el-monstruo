@@ -17,6 +17,7 @@ Exit codes:
     1 — error en migración o verificación RLS falla
     2 — env var SUPABASE_DB_URL no configurada
 """
+
 from __future__ import annotations
 
 import os
@@ -105,7 +106,7 @@ def main() -> int:
         print("ERROR: SUPABASE_DB_URL not set", file=sys.stderr)
         return 2
 
-    print(f"=== La Forja D5.1: Aplicando 9 migraciones forja_* ===")
+    print("=== La Forja D5.1: Aplicando 9 migraciones forja_* ===")
     print(f"DB host: {dsn.split('@')[-1].split('/')[0] if '@' in dsn else 'unknown'}")
     print()
 
@@ -128,10 +129,7 @@ def main() -> int:
                 if not rls or policies < 2:
                     all_ok = False
 
-                print(
-                    f"  {table_name:<20} RLS={rls!s:<5} "
-                    f"policies={policies} checks={checks} → {status}"
-                )
+                print(f"  {table_name:<20} RLS={rls!s:<5} policies={policies} checks={checks} → {status}")
 
             if not all_ok:
                 print()

@@ -9,18 +9,20 @@ Fuentes:
 3. Instagram (via location search / hashtag research)
 4. General web (via Perplexity Sonar)
 """
+
 import asyncio
 import json
 import os
 import re
 import subprocess
-import requests
 from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+import requests
 
 # ── Google Images Search ─────────────────────────────────────────────────────
+
 
 async def _search_google_images(site_name: str, location: str, output_dir: Path) -> list:
     """Search for recent images of the site via Perplexity."""
@@ -84,10 +86,10 @@ async def _search_google_images(site_name: str, location: str, output_dir: Path)
                     "confidence": 0.65,
                 }
                 observations.append(obs)
-                print(f"      Google Images {i+1}/4: {len(citations)} citas, {len(_extract_urls(text))} URLs")
+                print(f"      Google Images {i + 1}/4: {len(citations)} citas, {len(_extract_urls(text))} URLs")
 
         except Exception as e:
-            print(f"      Google Images {i+1}/4 error: {str(e)[:60]}")
+            print(f"      Google Images {i + 1}/4 error: {str(e)[:60]}")
 
         await asyncio.sleep(1)
 
@@ -95,6 +97,7 @@ async def _search_google_images(site_name: str, location: str, output_dir: Path)
 
 
 # ── YouTube Video Search ─────────────────────────────────────────────────────
+
 
 async def _search_youtube(site_name: str, location: str, output_dir: Path) -> list:
     """Search YouTube for recent videos of the site and analyze them."""
@@ -161,7 +164,7 @@ async def _search_youtube(site_name: str, location: str, output_dir: Path) -> li
             # Analyze up to 3 YouTube videos with manus-analyze-video
             for j, url in enumerate(yt_urls[:3]):
                 try:
-                    print(f"      Analizando video {j+1}/3: {url[:60]}...")
+                    print(f"      Analizando video {j + 1}/3: {url[:60]}...")
                     result = subprocess.run(
                         [
                             "manus-analyze-video",
@@ -191,12 +194,12 @@ async def _search_youtube(site_name: str, location: str, output_dir: Path) -> li
                             "confidence": 0.75,
                         }
                         observations.append(video_obs)
-                        print(f"      Video {j+1} analizado: {len(result.stdout)} chars")
+                        print(f"      Video {j + 1} analizado: {len(result.stdout)} chars")
 
                 except subprocess.TimeoutExpired:
-                    print(f"      Video {j+1} timeout")
+                    print(f"      Video {j + 1} timeout")
                 except Exception as e:
-                    print(f"      Video {j+1} error: {str(e)[:60]}")
+                    print(f"      Video {j + 1} error: {str(e)[:60]}")
 
     except Exception as e:
         print(f"      YouTube search error: {str(e)[:60]}")
@@ -205,6 +208,7 @@ async def _search_youtube(site_name: str, location: str, output_dir: Path) -> li
 
 
 # ── Instagram Location Search ────────────────────────────────────────────────
+
 
 async def _search_instagram(site_name: str, lat: float, lng: float, output_dir: Path) -> list:
     """Search Instagram for location-tagged posts near the site."""
@@ -251,7 +255,7 @@ async def _search_instagram(site_name: str, lat: float, lng: float, output_dir: 
             citations = data.get("citations", [])
 
             # Extract hashtags
-            hashtags = re.findall(r'#\w+', text)
+            hashtags = re.findall(r"#\w+", text)
 
             obs = {
                 "observation_id": "social_instagram_search",
@@ -277,6 +281,7 @@ async def _search_instagram(site_name: str, lat: float, lng: float, output_dir: 
 
 # ── Render/SketchUp Catalog ──────────────────────────────────────────────────
 
+
 async def _catalog_existing_renders(renders_dir: str, site_name: str) -> list:
     """Analyze existing renders and SketchUp screenshots from the project."""
     from google import genai
@@ -293,11 +298,8 @@ async def _catalog_existing_renders(renders_dir: str, site_name: str) -> list:
     if not renders_path.exists():
         return []
 
-    extensions = {'.jpg', '.jpeg', '.png', '.webp', '.tiff', '.bmp'}
-    render_files = sorted([
-        f for f in renders_path.rglob("*")
-        if f.suffix.lower() in extensions and f.is_file()
-    ])
+    extensions = {".jpg", ".jpeg", ".png", ".webp", ".tiff", ".bmp"}
+    render_files = sorted([f for f in renders_path.rglob("*") if f.suffix.lower() in extensions and f.is_file()])
 
     if not render_files:
         return []
@@ -310,8 +312,9 @@ async def _catalog_existing_renders(renders_dir: str, site_name: str) -> list:
                 img_bytes = f.read()
 
             ext = render_file.suffix.lower()
-            mime = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png",
-                    "webp": "image/webp"}.get(ext.lstrip("."), "image/jpeg")
+            mime = {"jpg": "image/jpeg", "jpeg": "image/jpeg", "png": "image/png", "webp": "image/webp"}.get(
+                ext.lstrip("."), "image/jpeg"
+            )
 
             prompt = f"""Esta es una imagen de render/diseño/screenshot del proyecto "{site_name}".
 Analiza qué muestra esta imagen y extrae información útil para reconstruir la realidad del espacio.
@@ -329,12 +332,14 @@ Responde en JSON:
 }}"""
 
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model="gemini-2.5-flash",
                 contents=[
-                    types.Content(parts=[
-                        types.Part(text=prompt),
-                        types.Part(inline_data=types.Blob(mime_type=mime, data=img_bytes)),
-                    ])
+                    types.Content(
+                        parts=[
+                            types.Part(text=prompt),
+                            types.Part(inline_data=types.Blob(mime_type=mime, data=img_bytes)),
+                        ]
+                    )
                 ],
                 config=types.GenerateContentConfig(response_mime_type="application/json"),
             )
@@ -361,7 +366,7 @@ Responde en JSON:
             observations.append(obs)
 
             if (i + 1) % 5 == 0:
-                print(f"      Renders: {i+1}/{min(len(render_files), 30)} analizados")
+                print(f"      Renders: {i + 1}/{min(len(render_files), 30)} analizados")
 
         except Exception as e:
             print(f"      Render {render_file.name} error: {str(e)[:60]}")
@@ -375,13 +380,15 @@ Responde en JSON:
 
 # ── Utilities ────────────────────────────────────────────────────────────────
 
+
 def _extract_urls(text: str) -> list:
     """Extract URLs from text."""
-    url_pattern = r'https?://[^\s\)\]\}\"\'<>]+'
+    url_pattern = r"https?://[^\s\)\]\}\"\'<>]+"
     return list(set(re.findall(url_pattern, text)))
 
 
 # ── Main Entry Point ─────────────────────────────────────────────────────────
+
 
 async def collect_social_media(
     site_name: str,
@@ -401,7 +408,7 @@ async def collect_social_media(
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    print(f"  Buscando en redes sociales y web...")
+    print("  Buscando en redes sociales y web...")
 
     # Run searches in parallel
     tasks = [
@@ -435,12 +442,18 @@ async def collect_social_media(
 
     # Save raw results
     with open(output_path / "social_media_raw.json", "w") as f:
-        json.dump({
-            "site_name": site_name,
-            "search_date": datetime.now().isoformat(),
-            "sources": sources_summary,
-            "observations": all_observations,
-        }, f, indent=2, ensure_ascii=False, default=str)
+        json.dump(
+            {
+                "site_name": site_name,
+                "search_date": datetime.now().isoformat(),
+                "sources": sources_summary,
+                "observations": all_observations,
+            },
+            f,
+            indent=2,
+            ensure_ascii=False,
+            default=str,
+        )
 
     print(f"\n  ✓ Total: {len(all_observations)} observaciones de redes/web")
 

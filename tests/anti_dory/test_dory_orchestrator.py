@@ -10,14 +10,10 @@ Tests the full pipeline with mocked subsystems to verify:
 5. Decorator API (@dory_gate)
 6. Feature flag behavior
 """
-import asyncio
+
 import json
-import os
 import sys
-import tempfile
-from dataclasses import dataclass
 from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -27,22 +23,20 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from kernel.anti_dory.dory_orchestrator import (
     DoryContext,
     DoryHaltError,
-    DoryResult,
     DoryVerdict,
     StepStatus,
-    _compute_verdict,
     _build_enriched_prompt,
-    _step_guardian_anchor,
+    _compute_verdict,
     _step_b8_classify,
-    _step_b9_authority,
+    _step_guardian_anchor,
     dory_gate,
     run_pipeline,
 )
 
-
 # ═══════════════════════════════════════════════════════════════════════════════
 # FIXTURES
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 @pytest.fixture(autouse=True)
 def enable_orchestrator(monkeypatch):
@@ -57,11 +51,15 @@ def identity_file(tmp_path, monkeypatch):
     state_dir = tmp_path / ".monstruo" / "state"
     state_dir.mkdir(parents=True)
     identity = state_dir / "identity.json"
-    identity.write_text(json.dumps({
-        "hilo_id": "test_hilo",
-        "proyecto_activo": "el_monstruo",
-        "errores_criticos_no_repetir": ["never merge without PR"],
-    }))
+    identity.write_text(
+        json.dumps(
+            {
+                "hilo_id": "test_hilo",
+                "proyecto_activo": "el_monstruo",
+                "errores_criticos_no_repetir": ["never merge without PR"],
+            }
+        )
+    )
     monkeypatch.setenv("HOME", str(tmp_path))
     return identity
 
@@ -69,6 +67,7 @@ def identity_file(tmp_path, monkeypatch):
 # ═══════════════════════════════════════════════════════════════════════════════
 # TEST: STEP 1 — GUARDIAN ANCHOR
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestGuardianAnchor:
     """Tests for Step 1: Guardian Anchor verification."""
@@ -93,6 +92,7 @@ class TestGuardianAnchor:
 # ═══════════════════════════════════════════════════════════════════════════════
 # TEST: STEP 7 — B8 CLASSIFY
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestB8Classify:
     """Tests for Step 7: B8 Magna Classifier."""
@@ -125,13 +125,14 @@ class TestB8Classify:
             action_type="deploy_production",
             action_description="Deploy kernel to Railway production",
         )
-        result = await _step_b8_classify(ctx)
+        await _step_b8_classify(ctx)
         assert ctx.risk_level == "MAGNA"
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # TEST: VERDICT LOGIC
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestVerdictLogic:
     """Tests for the verdict computation logic."""
@@ -211,6 +212,7 @@ class TestVerdictLogic:
 # TEST: ENRICHED PROMPT
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestEnrichedPrompt:
     """Tests for the enriched prompt builder."""
 
@@ -266,6 +268,7 @@ class TestEnrichedPrompt:
 # ═══════════════════════════════════════════════════════════════════════════════
 # TEST: FULL PIPELINE (integration with real B8)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestFullPipeline:
     """Integration tests for the full pipeline."""
@@ -333,6 +336,7 @@ class TestFullPipeline:
 # TEST: DECORATOR API
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestDoryGateDecorator:
     """Tests for the @dory_gate decorator."""
 
@@ -368,6 +372,7 @@ class TestDoryGateDecorator:
 # TEST: GRACEFUL DEGRADATION
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class TestGracefulDegradation:
     """Tests that the pipeline never crashes, even with broken subsystems."""
 
@@ -376,7 +381,7 @@ class TestGracefulDegradation:
         """Even if every kernel module is missing, pipeline still returns a verdict."""
         monkeypatch.setenv("HOME", str(tmp_path))
         # Remove kernel from path to simulate missing modules
-        original_path = sys.path.copy()
+        sys.path.copy()
         result = await run_pipeline(
             action_type="test",
             description="test with broken imports",
@@ -401,6 +406,7 @@ class TestGracefulDegradation:
 # ═══════════════════════════════════════════════════════════════════════════════
 # TEST: ANTI-DORY SCENARIOS (simulated context loss)
 # ═══════════════════════════════════════════════════════════════════════════════
+
 
 class TestAntiDoryScenarios:
     """

@@ -14,6 +14,7 @@ disponible, degrada a heuristic mode determinístico.
 
 [Hilo Manus Catastro] · Sprint 86.7 · 2026-05-05
 """
+
 from __future__ import annotations
 
 import logging
@@ -21,7 +22,6 @@ import os
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field
-
 
 logger = logging.getLogger(__name__)
 
@@ -54,30 +54,20 @@ REASONING_TAGS_VOCABULARY = (
 # STRUCTURED OUTPUT SCHEMA (39va semilla - LLM-as-parser Pydantic)
 # ============================================================================
 
+
 class ReasoningClassification(BaseModel):
     """Output estructurado del reasoning classifier."""
 
-    tags: list[str] = Field(
-        ...,
-        description="Subcapacidades de razonamiento del vocabulario de 13."
-    )
-    primary_strength: str = Field(
-        ...,
-        description="Fortaleza principal del modelo en razonamiento estructurado."
-    )
-    confidence: float = Field(
-        ..., ge=0.0, le=1.0,
-        description="Confianza del classifier en 0-1."
-    )
-    reasoning: str = Field(
-        ...,
-        description="Razonamiento corto del classifier (1-2 oraciones)."
-    )
+    tags: list[str] = Field(..., description="Subcapacidades de razonamiento del vocabulario de 13.")
+    primary_strength: str = Field(..., description="Fortaleza principal del modelo en razonamiento estructurado.")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Confianza del classifier en 0-1.")
+    reasoning: str = Field(..., description="Razonamiento corto del classifier (1-2 oraciones).")
 
 
 # ============================================================================
 # REASONING CLASSIFIER
 # ============================================================================
+
 
 class ReasoningClassifier:
     """
@@ -116,10 +106,7 @@ class ReasoningClassifier:
             try:
                 return self._classify_with_llm(modelo_id, scores, gaming_detected)
             except Exception as e:  # noqa: BLE001
-                logger.warning(
-                    f"[reasoning_classifier] LLM falló para {modelo_id}, "
-                    f"fallback heuristic: {e}"
-                )
+                logger.warning(f"[reasoning_classifier] LLM falló para {modelo_id}, fallback heuristic: {e}")
                 return self._classify_heuristic(modelo_id, scores, gaming_detected)
         else:
             return self._classify_heuristic(modelo_id, scores, gaming_detected)
@@ -167,10 +154,7 @@ class ReasoningClassifier:
         valid_tags = [t for t in parsed.tags if t in REASONING_TAGS_VOCABULARY]
         if len(valid_tags) != len(parsed.tags):
             invalid = set(parsed.tags) - set(REASONING_TAGS_VOCABULARY)
-            logger.warning(
-                f"[reasoning_classifier] Tags inválidos descartados para "
-                f"{modelo_id}: {invalid}"
-            )
+            logger.warning(f"[reasoning_classifier] Tags inválidos descartados para {modelo_id}: {invalid}")
             parsed.tags = valid_tags
 
         return parsed
@@ -230,8 +214,7 @@ class ReasoningClassifier:
 
         confidence = 0.5  # heuristic = confianza baja
         reasoning_text = (
-            f"Heuristic: AIME={aime:.1f}, GPQA={gpqa:.1f}, MMLU-Pro={mmlu_pro:.1f}. "
-            f"Gaming={gaming_detected}."
+            f"Heuristic: AIME={aime:.1f}, GPQA={gpqa:.1f}, MMLU-Pro={mmlu_pro:.1f}. Gaming={gaming_detected}."
         )
 
         return ReasoningClassification(

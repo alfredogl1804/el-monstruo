@@ -10,6 +10,7 @@ Si la respuesta no está en este output, no la afirmo.
 Uso:
     python3 tools/audit_embrion_loop.py
 """
+
 from __future__ import annotations
 
 import ast
@@ -17,7 +18,6 @@ import re
 import sys
 from pathlib import Path
 from typing import Any
-
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 KERNEL_DIR = REPO_ROOT / "kernel"
@@ -47,6 +47,7 @@ def subsec(title: str) -> None:
 
 # ── 1. ESTRUCTURA DE ARCHIVOS ───────────────────────────────────────
 
+
 def audit_files() -> dict[str, Any]:
     section("1. ESTRUCTURA DE ARCHIVOS DEL EMBRIÓN")
     result = {}
@@ -64,6 +65,7 @@ def audit_files() -> dict[str, Any]:
 
 
 # ── 2. ANÁLISIS ESTÁTICO DEL LOOP ───────────────────────────────────
+
 
 def parse_python(path: Path) -> ast.Module | None:
     try:
@@ -90,11 +92,13 @@ def audit_loop_structure() -> dict[str, Any]:
             for child in ast.iter_child_nodes(node):
                 if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
                     is_async = isinstance(child, ast.AsyncFunctionDef)
-                    methods.append({
-                        "name": child.name,
-                        "async": is_async,
-                        "line": child.lineno,
-                    })
+                    methods.append(
+                        {
+                            "name": child.name,
+                            "async": is_async,
+                            "line": child.lineno,
+                        }
+                    )
             classes.append({"name": node.name, "line": node.lineno, "methods": methods})
         elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             is_async = isinstance(node, ast.AsyncFunctionDef)
@@ -125,6 +129,7 @@ def audit_loop_structure() -> dict[str, Any]:
 
 # ── 3. TRIGGERS DETECTADOS POR EL LOOP ──────────────────────────────
 
+
 def audit_triggers() -> list[dict[str, str]]:
     section("3. TRIGGERS QUE EL LOOP RECONOCE")
     path = KERNEL_DIR / "embrion_loop.py"
@@ -145,6 +150,7 @@ def audit_triggers() -> list[dict[str, str]]:
 
 
 # ── 4. TABLAS SUPABASE QUE EL LOOP CONSULTA ─────────────────────────
+
 
 def audit_db_access() -> dict[str, Any]:
     section("4. ACCESO A SUPABASE DESDE EL LOOP")
@@ -170,6 +176,7 @@ def audit_db_access() -> dict[str, Any]:
 
 
 # ── 5. COMPARAR CON SCHEMA: ¿QUÉ tipos EXISTEN EN EMBRION_MEMORIA? ──
+
 
 def report_expected_sql_check() -> None:
     section("5. QUERIES SQL QUE COWORK DEBE EJECUTAR APARTE")
@@ -200,6 +207,7 @@ def report_expected_sql_check() -> None:
 
 # ── 6. COSTO DEL LOOP — análisis del código ─────────────────────────
 
+
 def audit_cost_model() -> dict[str, Any]:
     section("6. MODELO DE COSTO DEL LOOP (del código)")
     path = KERNEL_DIR / "embrion_loop.py"
@@ -227,7 +235,7 @@ def audit_cost_model() -> dict[str, Any]:
             config_values[key] = f"env:{m.group(1)} default={m.group(2)}"
         else:
             # Fallback: buscar asignación literal
-            pattern2 = re.compile(rf'{key}\s*=\s*(.+)')
+            pattern2 = re.compile(rf"{key}\s*=\s*(.+)")
             m2 = pattern2.search(text)
             if m2:
                 config_values[key] = m2.group(1).strip().split("#")[0].strip()
@@ -239,6 +247,7 @@ def audit_cost_model() -> dict[str, Any]:
 
 
 # ── 7. VEREDICTO BINARIO ────────────────────────────────────────────
+
 
 def veredicto_binario(files: dict, triggers: list, db: dict, cost: dict) -> None:
     section("7. VEREDICTO BINARIO (basado en código auditado, no en narrativa)")

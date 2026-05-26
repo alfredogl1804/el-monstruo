@@ -12,10 +12,14 @@ import sys
 
 import psycopg2
 
-
 CATASTROS = [
     ("catastro_modelos_llm", "vista", 41, ["key", "name", "provider", "max_tokens", "cost_per_1k_input", "active"]),
-    ("catastro_agentes_2026", "vista", 98, ["key", "name", "version", "owner_org", "biblia_path", "capability_tags", "active"]),
+    (
+        "catastro_agentes_2026",
+        "vista",
+        98,
+        ["key", "name", "version", "owner_org", "biblia_path", "capability_tags", "active"],
+    ),
     ("catastro_herramientas_ai", "vista", 58, ["key", "name", "category", "auth_type", "cost_per_call", "active"]),
     ("catastro_suppliers_humanos", "tabla", 0, ["key", "name", "role", "skills", "contact", "active", "last_active"]),
 ]
@@ -70,29 +74,38 @@ def main() -> int:
 
         if name == "catastro_suppliers_humanos":
             try:
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT relrowsecurity, relforcerowsecurity
                     FROM pg_class WHERE relname=%s
-                """, (name,))
+                """,
+                    (name,),
+                )
                 rls, force = cur.fetchone()
                 item["rls_enabled"] = rls
                 item["rls_forced"] = force
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT polname FROM pg_policy
                     JOIN pg_class ON pg_class.oid = pg_policy.polrelid
                     WHERE relname=%s
-                """, (name,))
+                """,
+                    (name,),
+                )
                 item["policies"] = [r[0] for r in cur.fetchall()]
             except Exception as exc:
                 item["rls_error"] = str(exc)
                 fail = True
         else:
             try:
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT array_agg(DISTINCT a.privilege_type)
                     FROM information_schema.role_table_grants a
                     WHERE a.table_schema='public' AND a.table_name=%s
-                """, (name,))
+                """,
+                    (name,),
+                )
                 grants = cur.fetchone()
                 item["grants"] = grants[0] if grants else None
             except Exception as exc:

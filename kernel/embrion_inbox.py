@@ -40,40 +40,59 @@ from typing import Any, List, Optional
 
 try:
     import structlog
+
     logger = structlog.get_logger("embrion.inbox")
 except ImportError:  # pragma: no cover
     import logging
+
     logger = logging.getLogger("embrion.inbox")
 
-from kernel.embrion_inbox_parser import parse_command, ParsedCommand
-from kernel.embrion_inbox_sanitizer import sanitize_daddy_payload, SanitizedPayload
-
+from kernel.embrion_inbox_parser import parse_command
+from kernel.embrion_inbox_sanitizer import sanitize_daddy_payload
 
 # ── Constantes y configuración
 
 TABLE_INBOX = "embrion_inbox"
 TABLE_AUDIT = "embrion_audit_log"
 
-INBOX_STATUSES = frozenset({
-    "pending", "processing", "processed", "rejected", "expired", "requires_mfa",
-})
+INBOX_STATUSES = frozenset(
+    {
+        "pending",
+        "processing",
+        "processed",
+        "rejected",
+        "expired",
+        "requires_mfa",
+    }
+)
 
-INBOX_COMMANDS = frozenset({
-    "/context", "/override", "/help", "/status", "/answer", "/feedback",
-    "unauthorized_origin", "unknown",
-})
+INBOX_COMMANDS = frozenset(
+    {
+        "/context",
+        "/override",
+        "/help",
+        "/status",
+        "/answer",
+        "/feedback",
+        "unauthorized_origin",
+        "unknown",
+    }
+)
 
 DEFAULT_TTL_MINUTES = int(os.environ.get("EMBRION_INBOX_TTL_MINUTES", "30"))
 RATE_LIMIT_MAX_PER_MIN = int(os.environ.get("EMBRION_INBOX_RATE_LIMIT_MAX", "5"))
 
 
 # Comandos alto-riesgo: requieren MFA stub (CA7)
-HIGH_RISK_COMMANDS = frozenset({
-    "/override",   # modificar parámetros de un proposal existente
-})
+HIGH_RISK_COMMANDS = frozenset(
+    {
+        "/override",  # modificar parámetros de un proposal existente
+    }
+)
 
 
 # ── Cliente REST (mismo patrón que embrion_write_policy._SupabaseRest)
+
 
 class _SupabaseRest:
     """Cliente REST mínimo, testeable, inyectable vía monkeypatch."""
@@ -94,6 +113,7 @@ class _SupabaseRest:
 
     def select(self, table: str, params: dict, prefer: Optional[str] = None):
         import requests
+
         r = requests.get(
             f"{self.url}/rest/v1/{table}",
             headers=self._headers(prefer=prefer),
@@ -105,6 +125,7 @@ class _SupabaseRest:
 
     def insert(self, table: str, payload: dict | list[dict]):
         import requests
+
         r = requests.post(
             f"{self.url}/rest/v1/{table}",
             headers=self._headers(prefer="return=representation"),
@@ -116,6 +137,7 @@ class _SupabaseRest:
 
     def update(self, table: str, params: dict, payload: dict):
         import requests
+
         r = requests.patch(
             f"{self.url}/rest/v1/{table}",
             headers=self._headers(prefer="return=representation"),
@@ -129,11 +151,7 @@ class _SupabaseRest:
 
 def _get_supabase_client() -> _SupabaseRest:
     url = os.environ.get("SUPABASE_URL", "https://xsumzuhwmivjgftsneov.supabase.co")
-    key = (
-        os.environ.get("SUPABASE_SERVICE_KEY")
-        or os.environ.get("SUPABASE_KEY")
-        or os.environ.get("SUPA_KEY")
-    )
+    key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_KEY") or os.environ.get("SUPA_KEY")
     if not key:
         raise RuntimeError(
             "embrion_inbox: ninguna env var Supabase encontrada "
@@ -144,11 +162,13 @@ def _get_supabase_client() -> _SupabaseRest:
 
 # ── Dataclasses
 
+
 @dataclass
 class InboxEnqueued:
     """Resultado de enqueue()."""
+
     inbox_id: str
-    created: bool                  # True si insertado, False si rate-limited/rechazado
+    created: bool  # True si insertado, False si rate-limited/rechazado
     estado: str
     tipo_comando: str
     intent_class: str
@@ -156,6 +176,7 @@ class InboxEnqueued:
 
 
 # ── Helpers internos
+
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -185,6 +206,7 @@ def _redact_payload(payload: dict) -> dict:
 
 
 # ── Audit (CA6)
+
 
 def audit(
     client: Any,
@@ -236,6 +258,7 @@ def audit(
 
 # ── Rate limit (CA5 también lo usa pero la implementación vive aquí)
 
+
 def _count_recent_in_bucket(
     client: Any,
     bucket: str,
@@ -260,6 +283,7 @@ def _count_recent_in_bucket(
 
 
 # ── API pública
+
 
 def enqueue(
     client: Any,
@@ -394,8 +418,11 @@ def enqueue(
     decision = (
         "enqueued"
         if estado_inicial == "pending"
-        else ("sanitize_rejected" if sanitized.rejected else
-              ("requires_mfa" if estado_inicial == "requires_mfa" else "parse_failed"))
+        else (
+            "sanitize_rejected"
+            if sanitized.rejected
+            else ("requires_mfa" if estado_inicial == "requires_mfa" else "parse_failed")
+        )
     )
     audit(
         client,
@@ -641,7 +668,7 @@ def expire_old(client: Any) -> int:
     count = len(result) if isinstance(result, list) else (1 if result else 0)
 
     if count > 0:
-        for row in (result if isinstance(result, list) else [result]):
+        for row in result if isinstance(result, list) else [result]:
             audit(
                 client,
                 inbox_id=str(row.get("id", "")),

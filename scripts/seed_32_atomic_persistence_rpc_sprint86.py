@@ -34,6 +34,7 @@ Uso:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 3 · 2026-05-04
 """
+
 from __future__ import annotations
 
 SEED_PAYLOAD = {
@@ -76,6 +77,7 @@ SEED_PAYLOAD = {
 
 def main() -> None:
     import json
+
     print(json.dumps(SEED_PAYLOAD, indent=2, ensure_ascii=False))
 
 

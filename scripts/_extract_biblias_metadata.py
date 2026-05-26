@@ -16,7 +16,6 @@ Uso:
 import json
 import os
 import re
-import sys
 
 BIBLIA_DIR = os.path.expanduser("~/el-monstruo/docs/biblias_agentes_2026")
 
@@ -29,16 +28,11 @@ def extract(path: str) -> dict:
     h1 = [l for l in head_lines if l.startswith("# ")][:1]
     h2 = [l for l in head_lines if l.startswith("## ")][:8]
     prov = [
-        l for l in head_lines
-        if re.search(r"(Proveedor|Provider|Empresa|Company|Creator|Maker|Por\b)\s*[:\-]", l, re.I)
+        l for l in head_lines if re.search(r"(Proveedor|Provider|Empresa|Company|Creator|Maker|Por\b)\s*[:\-]", l, re.I)
     ][:2]
-    cap = [
-        l for l in head_lines
-        if re.search(r"(Capabilit|Capacidad|Función|Use Cases?|Casos de Uso)", l, re.I)
-    ][:5]
+    cap = [l for l in head_lines if re.search(r"(Capabilit|Capacidad|Función|Use Cases?|Casos de Uso)", l, re.I)][:5]
     auth = [
-        l for l in head_lines
-        if re.search(r"(API[\s-]?[Kk]ey|OAuth|Auth\w*|Suscripci|Subscription|Free Tier)", l, re.I)
+        l for l in head_lines if re.search(r"(API[\s-]?[Kk]ey|OAuth|Auth\w*|Suscripci|Subscription|Free Tier)", l, re.I)
     ][:3]
     return {
         "file": os.path.basename(path),

@@ -16,6 +16,7 @@ Run:
 
 NO requiere: Supabase, Anthropic API, Replicate, Browserless.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -100,20 +101,24 @@ class TestBloque1ProductArchitect:
         except ImportError:
             sys.modules["structlog"] = type(sys)("structlog")
             sys.modules["structlog"].get_logger = lambda *a, **k: type(
-                "L", (), {
+                "L",
+                (),
+                {
                     "info": lambda s, *a, **k: None,
                     "warning": lambda s, *a, **k: None,
                     "error": lambda s, *a, **k: None,
-                }
+                },
             )()
 
     def test_import_and_instantiate(self):
         from kernel.embriones.product_architect import ProductArchitect
+
         pa = ProductArchitect(_sabios=None, _db=None)
         assert pa.EMBRION_ID == "product-architect"
 
     def test_estado(self):
         from kernel.embriones.product_architect import ProductArchitect
+
         pa = ProductArchitect(_sabios=None, _db=None)
         e = pa.estado()
         assert e["embrion_id"] == "product-architect"
@@ -129,6 +134,7 @@ class TestBloque2PlannerBrief:
     def test_keywords_constant_loaded(self):
         # Cargar solo la constante via AST sin instanciar
         import ast
+
         src = (REPO / "kernel" / "task_planner.py").read_text()
         tree = ast.parse(src)
         found_constant = False
@@ -154,15 +160,18 @@ class TestBloque2PlannerBrief:
         assert "REGLAS DE CONTRATO" in src
         assert 'plan_context["brief"]' in src
 
-    @pytest.mark.parametrize("text,expected", [
-        ("hazme una landing del taller de Yuna", True),
-        ("dame un curso de pintura al óleo", True),
-        ("monta un restaurante online con menú y reserva", True),
-        ("construye un dashboard SaaS para mi startup", True),
-        ("calcula 2+2", False),
-        ("manda un mensaje al usuario", False),
-        ("redeploy del kernel", False),
-    ])
+    @pytest.mark.parametrize(
+        "text,expected",
+        [
+            ("hazme una landing del taller de Yuna", True),
+            ("dame un curso de pintura al óleo", True),
+            ("monta un restaurante online con menú y reserva", True),
+            ("construye un dashboard SaaS para mi startup", True),
+            ("calcula 2+2", False),
+            ("manda un mensaje al usuario", False),
+            ("redeploy del kernel", False),
+        ],
+    )
     def test_es_proyecto_web_logic(self, text, expected):
         # Replicar lógica leyendo la constante del archivo
         src = (REPO / "kernel" / "task_planner.py").read_text()
@@ -191,33 +200,41 @@ class TestBloque2PlannerBrief:
 
 # ── Bloque 3: CriticVisual rúbrica ───────────────────────────────────────────
 class TestBloque3CriticVisual:
-
     def setup_method(self):
         try:
             import structlog  # noqa
         except ImportError:
             sys.modules["structlog"] = type(sys)("structlog")
             sys.modules["structlog"].get_logger = lambda *a, **k: type(
-                "L", (), {
+                "L",
+                (),
+                {
                     "info": lambda s, *a, **k: None,
                     "warning": lambda s, *a, **k: None,
                     "error": lambda s, *a, **k: None,
-                }
+                },
             )()
 
     def test_rubric_sums_100(self):
         from kernel.embriones.critic_visual import RUBRICA_PESOS
+
         assert sum(RUBRICA_PESOS.values()) == 100
 
     def test_perfect_synthetic_site_passes(self):
         from kernel.embriones.critic_visual import CriticVisual
+
         critic = CriticVisual(_sabios=None, _db=None)
         brief_ok = {
             "brief_id": "test-001",
             "vertical": "education_arts",
             "structure": {
-                "sections": [{"id": "hero"}, {"id": "what_youll_learn"},
-                             {"id": "instructor"}, {"id": "pricing"}, {"id": "faq"}],
+                "sections": [
+                    {"id": "hero"},
+                    {"id": "what_youll_learn"},
+                    {"id": "instructor"},
+                    {"id": "pricing"},
+                    {"id": "faq"},
+                ],
                 "primary_cta": "Inscribirme ahora",
                 "secondary_cta": "Ver programa",
             },
@@ -243,6 +260,7 @@ class TestBloque3CriticVisual:
 
     def test_lorem_ipsum_blocks(self):
         from kernel.embriones.critic_visual import CriticVisual
+
         critic = CriticVisual(_sabios=None, _db=None)
         brief = {
             "brief_id": "t",
@@ -270,37 +288,43 @@ class TestBloque3CriticVisual:
 
 # ── Bloque 5: generate_hero_image placeholder ────────────────────────────────
 class TestBloque5HeroImage:
-
     def setup_method(self):
         try:
             import structlog  # noqa
         except ImportError:
             sys.modules["structlog"] = type(sys)("structlog")
             sys.modules["structlog"].get_logger = lambda *a, **k: type(
-                "L", (), {
+                "L",
+                (),
+                {
                     "info": lambda s, *a, **k: None,
                     "warning": lambda s, *a, **k: None,
                     "error": lambda s, *a, **k: None,
-                }
+                },
             )()
         os.environ.pop("MEDIA_GEN_LIVE", None)
 
     def test_placeholder_mode(self):
         from tools.generate_hero_image import generate_hero_image
-        result = asyncio.run(generate_hero_image(
-            prompt="A warm artisan studio with sunlight",
-            style="warm_artisan",
-        ))
+
+        result = asyncio.run(
+            generate_hero_image(
+                prompt="A warm artisan studio with sunlight",
+                style="warm_artisan",
+            )
+        )
         assert result["is_placeholder"] is True
         assert "placehold" in result["url"]
         assert result["cost_usd"] == 0.0
 
     def test_empty_prompt_raises(self):
-        from tools.generate_hero_image import generate_hero_image, HeroImageError
+        from tools.generate_hero_image import HeroImageError, generate_hero_image
+
         with pytest.raises(HeroImageError):
             asyncio.run(generate_hero_image(prompt="", style="warm_artisan"))
 
     def test_aspect_ratio(self):
         from tools.generate_hero_image import _aspect_ratio_string
+
         assert _aspect_ratio_string(1920, 1080) == "16:9"
         assert _aspect_ratio_string(1024, 1024) == "1:1"

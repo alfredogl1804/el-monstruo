@@ -1,7 +1,10 @@
 """Sembrar semilla embrion_memoria al cierre del Sprint MEGA-CIERRE-HOY (Hilo Catastro)."""
+
 from __future__ import annotations
+
 import os
 import sys
+
 import psycopg
 
 CONTENIDO = (

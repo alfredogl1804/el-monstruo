@@ -19,6 +19,7 @@ Storage de screenshots:
 Patron de credenciales: lectura via os.environ.get() en cada uso (NO cache al
 boot). Cumple disciplina del Hilo Catastro / Sprint 85 Bloque 4.
 """
+
 from __future__ import annotations
 
 import os
@@ -28,7 +29,7 @@ from typing import Any, Optional
 
 import structlog
 
-from kernel.browser_automation import BrowserAutomation, BrowserResult
+from kernel.browser_automation import BrowserAutomation
 
 logger = structlog.get_logger("kernel.browser.sovereign")
 
@@ -45,6 +46,7 @@ MOBILE_VIEWPORT = {"width": 375, "height": 812}  # iPhone 13 Pro
 @dataclass
 class RenderResult:
     """Resultado de render(): screenshot + HTML + metrics."""
+
     success: bool
     url: str
     screenshot_url: Optional[str] = None  # public URL si subio a Supabase
@@ -77,6 +79,7 @@ class RenderResult:
 @dataclass
 class MetricsResult:
     """Resultado de metrics(): solo Web Vitals."""
+
     success: bool
     url: str
     ttfb_ms: int = 0
@@ -102,6 +105,7 @@ class MetricsResult:
 @dataclass
 class CheckMobileResult:
     """Resultado de check_mobile(): screenshot mobile + chequeo overflow."""
+
     success: bool
     url: str
     screenshot_url: Optional[str] = None
@@ -363,11 +367,7 @@ async def _upload_to_supabase_storage(
         URL publica del objeto, o None si no se pudo subir.
     """
     supabase_url = os.environ.get("SUPABASE_URL", "").rstrip("/")
-    service_key = (
-        os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-        or os.environ.get("SUPABASE_SERVICE_KEY")
-        or ""
-    )
+    service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("SUPABASE_SERVICE_KEY") or ""
 
     if not supabase_url or not service_key:
         logger.debug("supabase_storage_skipped", reason="no_credentials")

@@ -13,6 +13,7 @@ Cuando el contexto se llena o una tarea es muy larga, el agente puede:
 
 Esto resuelve la brecha crítica #1 identificada en el Backlog Técnico.
 """
+
 from __future__ import annotations
 
 import json
@@ -125,14 +126,16 @@ def list_active_tasks() -> dict[str, Any]:
         try:
             with open(path, "r", encoding="utf-8") as f:
                 state = json.load(f)
-            tasks.append({
-                "task_id": state["task_id"],
-                "description": state["description"],
-                "progress_pct": state["progress_pct"],
-                "current_step": state["current_step"],
-                "total_steps": state["total_steps"],
-                "saved_at": state["saved_at"],
-            })
+            tasks.append(
+                {
+                    "task_id": state["task_id"],
+                    "description": state["description"],
+                    "progress_pct": state["progress_pct"],
+                    "current_step": state["current_step"],
+                    "total_steps": state["total_steps"],
+                    "saved_at": state["saved_at"],
+                }
+            )
         except (json.JSONDecodeError, KeyError):
             continue
 
@@ -185,10 +188,12 @@ def append_result(task_id: str, result: dict[str, Any]) -> dict[str, Any]:
     if state.get("status") == "not_found":
         return state
 
-    state["intermediate_results"].append({
-        **result,
-        "appended_at": datetime.now(timezone.utc).isoformat(),
-    })
+    state["intermediate_results"].append(
+        {
+            **result,
+            "appended_at": datetime.now(timezone.utc).isoformat(),
+        }
+    )
     state["saved_at"] = datetime.now(timezone.utc).isoformat()
     state["saved_at_ts"] = time.time()
 

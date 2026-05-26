@@ -9,6 +9,7 @@ Nivel de calidad: Apple Human Interface Guidelines + Tesla UI patterns.
 Soberanía: Si el LLM no está disponible, usa templates JSX estáticos de alta calidad.
 Alternativa: Renderizado estático desde JSON sin LLM.
 """
+
 from __future__ import annotations
 
 import json
@@ -23,8 +24,10 @@ logger = structlog.get_logger("components.registry")
 
 # --- Excepciones con identidad ---
 
+
 class ComponenteNoEncontrado(Exception):
     """Componente no registrado en el ComponentRegistry."""
+
     def __init__(self, component_id: str):
         super().__init__(
             f"Componente '{component_id}' no encontrado en el catálogo. "
@@ -35,6 +38,7 @@ class ComponenteNoEncontrado(Exception):
 
 class ComponenteInvalido(Exception):
     """Definición de componente inválida."""
+
     def __init__(self, component_id: str, razon: str):
         super().__init__(
             f"Componente '{component_id}' inválido: {razon}. "
@@ -46,9 +50,11 @@ class ComponenteInvalido(Exception):
 
 # --- Dataclasses ---
 
+
 @dataclass
 class ComponentVariant:
     """Variante visual de un componente."""
+
     name: str
     description: str
     tailwind_classes: dict[str, str] = field(default_factory=dict)
@@ -59,6 +65,7 @@ class ComponentVariant:
 @dataclass
 class ComponentDefinition:
     """Definición completa de un componente de la librería."""
+
     id: str
     category: str
     name: str
@@ -86,158 +93,637 @@ class ComponentDefinition:
 
 BUILTIN_COMPONENTS: list[dict] = [
     # Navigation (4)
-    {"id": "navbar", "category": "navigation", "name": "Navigation Bar",
-     "description": "Barra de navegación responsive con logo, links y CTA",
-     "variants": [{"name": "minimal", "description": "Limpio y minimalista", "tailwind_classes": {}, "animations": [], "dark_mode": True},
-                  {"name": "bold", "description": "Con fondo sólido y tipografía fuerte", "tailwind_classes": {}, "animations": [], "dark_mode": True},
-                  {"name": "glass", "description": "Glassmorphism con blur", "tailwind_classes": {}, "animations": [], "dark_mode": True},
-                  {"name": "floating", "description": "Flotante sobre el hero", "tailwind_classes": {}, "animations": [], "dark_mode": True}],
-     "props": {"logo": {"type": "string", "required": True}, "links": {"type": "array", "required": True}},
-     "dependencies": ["framer-motion"], "accessibility": {"role": "navigation", "aria-label": "Main navigation"},
-     "responsive_breakpoints": {"sm": {"mobile_menu": True}}, "quality_score": 0.95},
-    {"id": "sidebar", "category": "navigation", "name": "Sidebar Navigation",
-     "description": "Navegación lateral colapsable con iconos y labels",
-     "variants": [{"name": "minimal", "description": "Solo iconos", "tailwind_classes": {}, "animations": [], "dark_mode": True},
-                  {"name": "expanded", "description": "Iconos + labels", "tailwind_classes": {}, "animations": [], "dark_mode": True}],
-     "props": {"items": {"type": "array", "required": True}},
-     "dependencies": ["framer-motion"], "accessibility": {"role": "navigation"}, "responsive_breakpoints": {}, "quality_score": 0.90},
-    {"id": "breadcrumb", "category": "navigation", "name": "Breadcrumb",
-     "description": "Migas de pan para navegación jerárquica",
-     "variants": [{"name": "minimal", "description": "Texto simple con separadores", "tailwind_classes": {}, "animations": [], "dark_mode": True}],
-     "props": {"items": {"type": "array", "required": True}},
-     "dependencies": [], "accessibility": {"aria-label": "Breadcrumb"}, "responsive_breakpoints": {}, "quality_score": 0.88},
-    {"id": "tabs", "category": "navigation", "name": "Tab Navigation",
-     "description": "Pestañas de navegación con indicador animado",
-     "variants": [{"name": "underline", "description": "Línea inferior animada", "tailwind_classes": {}, "animations": ["underline_slide"], "dark_mode": True},
-                  {"name": "pills", "description": "Pastillas redondeadas", "tailwind_classes": {}, "animations": [], "dark_mode": True}],
-     "props": {"tabs": {"type": "array", "required": True}},
-     "dependencies": ["framer-motion"], "accessibility": {"role": "tablist"}, "responsive_breakpoints": {}, "quality_score": 0.92},
+    {
+        "id": "navbar",
+        "category": "navigation",
+        "name": "Navigation Bar",
+        "description": "Barra de navegación responsive con logo, links y CTA",
+        "variants": [
+            {
+                "name": "minimal",
+                "description": "Limpio y minimalista",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+            {
+                "name": "bold",
+                "description": "Con fondo sólido y tipografía fuerte",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+            {
+                "name": "glass",
+                "description": "Glassmorphism con blur",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+            {
+                "name": "floating",
+                "description": "Flotante sobre el hero",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+        ],
+        "props": {"logo": {"type": "string", "required": True}, "links": {"type": "array", "required": True}},
+        "dependencies": ["framer-motion"],
+        "accessibility": {"role": "navigation", "aria-label": "Main navigation"},
+        "responsive_breakpoints": {"sm": {"mobile_menu": True}},
+        "quality_score": 0.95,
+    },
+    {
+        "id": "sidebar",
+        "category": "navigation",
+        "name": "Sidebar Navigation",
+        "description": "Navegación lateral colapsable con iconos y labels",
+        "variants": [
+            {
+                "name": "minimal",
+                "description": "Solo iconos",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+            {
+                "name": "expanded",
+                "description": "Iconos + labels",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+        ],
+        "props": {"items": {"type": "array", "required": True}},
+        "dependencies": ["framer-motion"],
+        "accessibility": {"role": "navigation"},
+        "responsive_breakpoints": {},
+        "quality_score": 0.90,
+    },
+    {
+        "id": "breadcrumb",
+        "category": "navigation",
+        "name": "Breadcrumb",
+        "description": "Migas de pan para navegación jerárquica",
+        "variants": [
+            {
+                "name": "minimal",
+                "description": "Texto simple con separadores",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            }
+        ],
+        "props": {"items": {"type": "array", "required": True}},
+        "dependencies": [],
+        "accessibility": {"aria-label": "Breadcrumb"},
+        "responsive_breakpoints": {},
+        "quality_score": 0.88,
+    },
+    {
+        "id": "tabs",
+        "category": "navigation",
+        "name": "Tab Navigation",
+        "description": "Pestañas de navegación con indicador animado",
+        "variants": [
+            {
+                "name": "underline",
+                "description": "Línea inferior animada",
+                "tailwind_classes": {},
+                "animations": ["underline_slide"],
+                "dark_mode": True,
+            },
+            {
+                "name": "pills",
+                "description": "Pastillas redondeadas",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+        ],
+        "props": {"tabs": {"type": "array", "required": True}},
+        "dependencies": ["framer-motion"],
+        "accessibility": {"role": "tablist"},
+        "responsive_breakpoints": {},
+        "quality_score": 0.92,
+    },
     # Hero (4)
-    {"id": "hero_split", "category": "hero", "name": "Split Hero",
-     "description": "Hero dividido: texto a la izquierda, imagen/video a la derecha",
-     "variants": [{"name": "light", "description": "Fondo claro", "tailwind_classes": {}, "animations": ["fade_in_left"], "dark_mode": False},
-                  {"name": "dark", "description": "Fondo oscuro premium", "tailwind_classes": {}, "animations": ["fade_in_left"], "dark_mode": True},
-                  {"name": "gradient", "description": "Gradiente de marca", "tailwind_classes": {}, "animations": ["fade_in_left"], "dark_mode": True}],
-     "props": {"headline": {"type": "string", "required": True}, "cta_text": {"type": "string", "required": True}},
-     "dependencies": ["framer-motion"], "accessibility": {"role": "banner"}, "responsive_breakpoints": {"sm": {"layout": "stacked"}}, "quality_score": 0.97},
-    {"id": "hero_centered", "category": "hero", "name": "Centered Hero",
-     "description": "Hero centrado con headline grande y dos CTAs",
-     "variants": [{"name": "dark", "description": "Fondo oscuro con partículas", "tailwind_classes": {}, "animations": ["fade_in_up"], "dark_mode": True},
-                  {"name": "gradient", "description": "Gradiente animado", "tailwind_classes": {}, "animations": ["gradient_shift"], "dark_mode": True}],
-     "props": {"headline": {"type": "string", "required": True}},
-     "dependencies": ["framer-motion"], "accessibility": {"role": "banner"}, "responsive_breakpoints": {}, "quality_score": 0.96},
-    {"id": "hero_video", "category": "hero", "name": "Video Hero",
-     "description": "Hero con video de fondo en loop, overlay y CTA",
-     "variants": [{"name": "dark", "description": "Overlay oscuro sobre video", "tailwind_classes": {}, "animations": [], "dark_mode": True}],
-     "props": {"video_url": {"type": "string", "required": True}, "headline": {"type": "string", "required": True}},
-     "dependencies": [], "accessibility": {"aria-label": "Hero video background"}, "responsive_breakpoints": {"sm": {"video": "hidden"}}, "quality_score": 0.94},
-    {"id": "hero_parallax", "category": "hero", "name": "Parallax Hero",
-     "description": "Hero con efecto parallax al hacer scroll",
-     "variants": [{"name": "dark", "description": "Fondo con parallax oscuro", "tailwind_classes": {}, "animations": ["parallax_scroll"], "dark_mode": True}],
-     "props": {"background_image": {"type": "string", "required": True}},
-     "dependencies": ["framer-motion"], "accessibility": {"role": "banner"}, "responsive_breakpoints": {"sm": {"parallax": "disabled"}}, "quality_score": 0.91},
+    {
+        "id": "hero_split",
+        "category": "hero",
+        "name": "Split Hero",
+        "description": "Hero dividido: texto a la izquierda, imagen/video a la derecha",
+        "variants": [
+            {
+                "name": "light",
+                "description": "Fondo claro",
+                "tailwind_classes": {},
+                "animations": ["fade_in_left"],
+                "dark_mode": False,
+            },
+            {
+                "name": "dark",
+                "description": "Fondo oscuro premium",
+                "tailwind_classes": {},
+                "animations": ["fade_in_left"],
+                "dark_mode": True,
+            },
+            {
+                "name": "gradient",
+                "description": "Gradiente de marca",
+                "tailwind_classes": {},
+                "animations": ["fade_in_left"],
+                "dark_mode": True,
+            },
+        ],
+        "props": {"headline": {"type": "string", "required": True}, "cta_text": {"type": "string", "required": True}},
+        "dependencies": ["framer-motion"],
+        "accessibility": {"role": "banner"},
+        "responsive_breakpoints": {"sm": {"layout": "stacked"}},
+        "quality_score": 0.97,
+    },
+    {
+        "id": "hero_centered",
+        "category": "hero",
+        "name": "Centered Hero",
+        "description": "Hero centrado con headline grande y dos CTAs",
+        "variants": [
+            {
+                "name": "dark",
+                "description": "Fondo oscuro con partículas",
+                "tailwind_classes": {},
+                "animations": ["fade_in_up"],
+                "dark_mode": True,
+            },
+            {
+                "name": "gradient",
+                "description": "Gradiente animado",
+                "tailwind_classes": {},
+                "animations": ["gradient_shift"],
+                "dark_mode": True,
+            },
+        ],
+        "props": {"headline": {"type": "string", "required": True}},
+        "dependencies": ["framer-motion"],
+        "accessibility": {"role": "banner"},
+        "responsive_breakpoints": {},
+        "quality_score": 0.96,
+    },
+    {
+        "id": "hero_video",
+        "category": "hero",
+        "name": "Video Hero",
+        "description": "Hero con video de fondo en loop, overlay y CTA",
+        "variants": [
+            {
+                "name": "dark",
+                "description": "Overlay oscuro sobre video",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            }
+        ],
+        "props": {"video_url": {"type": "string", "required": True}, "headline": {"type": "string", "required": True}},
+        "dependencies": [],
+        "accessibility": {"aria-label": "Hero video background"},
+        "responsive_breakpoints": {"sm": {"video": "hidden"}},
+        "quality_score": 0.94,
+    },
+    {
+        "id": "hero_parallax",
+        "category": "hero",
+        "name": "Parallax Hero",
+        "description": "Hero con efecto parallax al hacer scroll",
+        "variants": [
+            {
+                "name": "dark",
+                "description": "Fondo con parallax oscuro",
+                "tailwind_classes": {},
+                "animations": ["parallax_scroll"],
+                "dark_mode": True,
+            }
+        ],
+        "props": {"background_image": {"type": "string", "required": True}},
+        "dependencies": ["framer-motion"],
+        "accessibility": {"role": "banner"},
+        "responsive_breakpoints": {"sm": {"parallax": "disabled"}},
+        "quality_score": 0.91,
+    },
     # Content (5)
-    {"id": "feature_grid", "category": "content", "name": "Feature Grid",
-     "description": "Grid de características con iconos, títulos y descripciones",
-     "variants": [{"name": "cards", "description": "Tarjetas con sombra", "tailwind_classes": {}, "animations": ["stagger_in"], "dark_mode": True},
-                  {"name": "minimal", "description": "Sin tarjetas, solo iconos", "tailwind_classes": {}, "animations": [], "dark_mode": True}],
-     "props": {"features": {"type": "array", "required": True}},
-     "dependencies": [], "accessibility": {}, "responsive_breakpoints": {"sm": {"cols": 1}, "md": {"cols": 2}}, "quality_score": 0.93},
-    {"id": "testimonial", "category": "content", "name": "Testimonial Section",
-     "description": "Testimonios de clientes con foto, nombre y empresa",
-     "variants": [{"name": "cards", "description": "Tarjetas individuales", "tailwind_classes": {}, "animations": [], "dark_mode": True},
-                  {"name": "carousel", "description": "Carrusel automático", "tailwind_classes": {}, "animations": ["slide"], "dark_mode": True}],
-     "props": {"testimonials": {"type": "array", "required": True}},
-     "dependencies": ["framer-motion"], "accessibility": {}, "responsive_breakpoints": {}, "quality_score": 0.90},
-    {"id": "pricing_table", "category": "content", "name": "Pricing Table",
-     "description": "Tabla de precios con planes, features y CTAs",
-     "variants": [{"name": "cards", "description": "Tarjetas por plan", "tailwind_classes": {}, "animations": [], "dark_mode": True}],
-     "props": {"plans": {"type": "array", "required": True}},
-     "dependencies": [], "accessibility": {}, "responsive_breakpoints": {"sm": {"layout": "stacked"}}, "quality_score": 0.95},
-    {"id": "timeline", "category": "content", "name": "Timeline",
-     "description": "Línea de tiempo vertical para mostrar historia o proceso",
-     "variants": [{"name": "minimal", "description": "Línea simple con puntos", "tailwind_classes": {}, "animations": ["fade_in_up"], "dark_mode": True}],
-     "props": {"events": {"type": "array", "required": True}},
-     "dependencies": ["framer-motion"], "accessibility": {}, "responsive_breakpoints": {}, "quality_score": 0.88},
-    {"id": "faq", "category": "content", "name": "FAQ Accordion",
-     "description": "Preguntas frecuentes con acordeón animado",
-     "variants": [{"name": "minimal", "description": "Acordeón simple", "tailwind_classes": {}, "animations": ["accordion"], "dark_mode": True}],
-     "props": {"questions": {"type": "array", "required": True}},
-     "dependencies": ["framer-motion"], "accessibility": {"role": "list"}, "responsive_breakpoints": {}, "quality_score": 0.89},
+    {
+        "id": "feature_grid",
+        "category": "content",
+        "name": "Feature Grid",
+        "description": "Grid de características con iconos, títulos y descripciones",
+        "variants": [
+            {
+                "name": "cards",
+                "description": "Tarjetas con sombra",
+                "tailwind_classes": {},
+                "animations": ["stagger_in"],
+                "dark_mode": True,
+            },
+            {
+                "name": "minimal",
+                "description": "Sin tarjetas, solo iconos",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+        ],
+        "props": {"features": {"type": "array", "required": True}},
+        "dependencies": [],
+        "accessibility": {},
+        "responsive_breakpoints": {"sm": {"cols": 1}, "md": {"cols": 2}},
+        "quality_score": 0.93,
+    },
+    {
+        "id": "testimonial",
+        "category": "content",
+        "name": "Testimonial Section",
+        "description": "Testimonios de clientes con foto, nombre y empresa",
+        "variants": [
+            {
+                "name": "cards",
+                "description": "Tarjetas individuales",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+            {
+                "name": "carousel",
+                "description": "Carrusel automático",
+                "tailwind_classes": {},
+                "animations": ["slide"],
+                "dark_mode": True,
+            },
+        ],
+        "props": {"testimonials": {"type": "array", "required": True}},
+        "dependencies": ["framer-motion"],
+        "accessibility": {},
+        "responsive_breakpoints": {},
+        "quality_score": 0.90,
+    },
+    {
+        "id": "pricing_table",
+        "category": "content",
+        "name": "Pricing Table",
+        "description": "Tabla de precios con planes, features y CTAs",
+        "variants": [
+            {
+                "name": "cards",
+                "description": "Tarjetas por plan",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            }
+        ],
+        "props": {"plans": {"type": "array", "required": True}},
+        "dependencies": [],
+        "accessibility": {},
+        "responsive_breakpoints": {"sm": {"layout": "stacked"}},
+        "quality_score": 0.95,
+    },
+    {
+        "id": "timeline",
+        "category": "content",
+        "name": "Timeline",
+        "description": "Línea de tiempo vertical para mostrar historia o proceso",
+        "variants": [
+            {
+                "name": "minimal",
+                "description": "Línea simple con puntos",
+                "tailwind_classes": {},
+                "animations": ["fade_in_up"],
+                "dark_mode": True,
+            }
+        ],
+        "props": {"events": {"type": "array", "required": True}},
+        "dependencies": ["framer-motion"],
+        "accessibility": {},
+        "responsive_breakpoints": {},
+        "quality_score": 0.88,
+    },
+    {
+        "id": "faq",
+        "category": "content",
+        "name": "FAQ Accordion",
+        "description": "Preguntas frecuentes con acordeón animado",
+        "variants": [
+            {
+                "name": "minimal",
+                "description": "Acordeón simple",
+                "tailwind_classes": {},
+                "animations": ["accordion"],
+                "dark_mode": True,
+            }
+        ],
+        "props": {"questions": {"type": "array", "required": True}},
+        "dependencies": ["framer-motion"],
+        "accessibility": {"role": "list"},
+        "responsive_breakpoints": {},
+        "quality_score": 0.89,
+    },
     # Forms (4)
-    {"id": "contact_form", "category": "forms", "name": "Contact Form",
-     "description": "Formulario de contacto con validación y feedback visual",
-     "variants": [{"name": "inline", "description": "Campos en línea", "tailwind_classes": {}, "animations": [], "dark_mode": True},
-                  {"name": "floating", "description": "Labels flotantes", "tailwind_classes": {}, "animations": [], "dark_mode": True}],
-     "props": {"fields": {"type": "array", "required": True}},
-     "dependencies": ["react-hook-form"], "accessibility": {"role": "form"}, "responsive_breakpoints": {}, "quality_score": 0.92},
-    {"id": "checkout_form", "category": "forms", "name": "Checkout Form",
-     "description": "Formulario de pago multi-step con Stripe Elements",
-     "variants": [{"name": "steps", "description": "Pasos numerados", "tailwind_classes": {}, "animations": ["step_transition"], "dark_mode": True}],
-     "props": {"steps": {"type": "array", "required": True}},
-     "dependencies": ["@stripe/react-stripe-js", "react-hook-form"], "accessibility": {"role": "form"}, "responsive_breakpoints": {}, "quality_score": 0.96},
-    {"id": "search_bar", "category": "forms", "name": "Search Bar",
-     "description": "Barra de búsqueda con autocompletado y resultados en tiempo real",
-     "variants": [{"name": "minimal", "description": "Input simple con icono", "tailwind_classes": {}, "animations": [], "dark_mode": True},
-                  {"name": "expanded", "description": "Con dropdown de resultados", "tailwind_classes": {}, "animations": ["dropdown_fade"], "dark_mode": True}],
-     "props": {"placeholder": {"type": "string", "required": False}},
-     "dependencies": [], "accessibility": {"role": "search"}, "responsive_breakpoints": {}, "quality_score": 0.90},
-    {"id": "newsletter", "category": "forms", "name": "Newsletter Signup",
-     "description": "Formulario de suscripción a newsletter con confirmación",
-     "variants": [{"name": "inline", "description": "Email + botón en línea", "tailwind_classes": {}, "animations": [], "dark_mode": True}],
-     "props": {"placeholder": {"type": "string", "required": False}},
-     "dependencies": [], "accessibility": {"role": "form"}, "responsive_breakpoints": {}, "quality_score": 0.88},
+    {
+        "id": "contact_form",
+        "category": "forms",
+        "name": "Contact Form",
+        "description": "Formulario de contacto con validación y feedback visual",
+        "variants": [
+            {
+                "name": "inline",
+                "description": "Campos en línea",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+            {
+                "name": "floating",
+                "description": "Labels flotantes",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+        ],
+        "props": {"fields": {"type": "array", "required": True}},
+        "dependencies": ["react-hook-form"],
+        "accessibility": {"role": "form"},
+        "responsive_breakpoints": {},
+        "quality_score": 0.92,
+    },
+    {
+        "id": "checkout_form",
+        "category": "forms",
+        "name": "Checkout Form",
+        "description": "Formulario de pago multi-step con Stripe Elements",
+        "variants": [
+            {
+                "name": "steps",
+                "description": "Pasos numerados",
+                "tailwind_classes": {},
+                "animations": ["step_transition"],
+                "dark_mode": True,
+            }
+        ],
+        "props": {"steps": {"type": "array", "required": True}},
+        "dependencies": ["@stripe/react-stripe-js", "react-hook-form"],
+        "accessibility": {"role": "form"},
+        "responsive_breakpoints": {},
+        "quality_score": 0.96,
+    },
+    {
+        "id": "search_bar",
+        "category": "forms",
+        "name": "Search Bar",
+        "description": "Barra de búsqueda con autocompletado y resultados en tiempo real",
+        "variants": [
+            {
+                "name": "minimal",
+                "description": "Input simple con icono",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+            {
+                "name": "expanded",
+                "description": "Con dropdown de resultados",
+                "tailwind_classes": {},
+                "animations": ["dropdown_fade"],
+                "dark_mode": True,
+            },
+        ],
+        "props": {"placeholder": {"type": "string", "required": False}},
+        "dependencies": [],
+        "accessibility": {"role": "search"},
+        "responsive_breakpoints": {},
+        "quality_score": 0.90,
+    },
+    {
+        "id": "newsletter",
+        "category": "forms",
+        "name": "Newsletter Signup",
+        "description": "Formulario de suscripción a newsletter con confirmación",
+        "variants": [
+            {
+                "name": "inline",
+                "description": "Email + botón en línea",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            }
+        ],
+        "props": {"placeholder": {"type": "string", "required": False}},
+        "dependencies": [],
+        "accessibility": {"role": "form"},
+        "responsive_breakpoints": {},
+        "quality_score": 0.88,
+    },
     # Commerce (4)
-    {"id": "product_card", "category": "commerce", "name": "Product Card",
-     "description": "Tarjeta de producto con imagen, precio, variantes y CTA",
-     "variants": [{"name": "grid", "description": "Para grids de productos", "tailwind_classes": {}, "animations": ["hover_lift"], "dark_mode": True},
-                  {"name": "compact", "description": "Versión compacta para listas", "tailwind_classes": {}, "animations": [], "dark_mode": True}],
-     "props": {"product": {"type": "object", "required": True}},
-     "dependencies": [], "accessibility": {}, "responsive_breakpoints": {}, "quality_score": 0.94},
-    {"id": "cart_drawer", "category": "commerce", "name": "Cart Drawer",
-     "description": "Carrito lateral deslizante con items y resumen",
-     "variants": [{"name": "minimal", "description": "Drawer limpio", "tailwind_classes": {}, "animations": ["slide_in_right"], "dark_mode": True}],
-     "props": {"items": {"type": "array", "required": True}},
-     "dependencies": ["framer-motion"], "accessibility": {"role": "dialog"}, "responsive_breakpoints": {}, "quality_score": 0.93},
-    {"id": "order_summary", "category": "commerce", "name": "Order Summary",
-     "description": "Resumen de orden con subtotal, impuestos y total",
-     "variants": [{"name": "minimal", "description": "Lista simple con totales", "tailwind_classes": {}, "animations": [], "dark_mode": True}],
-     "props": {"items": {"type": "array", "required": True}},
-     "dependencies": [], "accessibility": {}, "responsive_breakpoints": {}, "quality_score": 0.91},
-    {"id": "wishlist", "category": "commerce", "name": "Wishlist",
-     "description": "Lista de deseos con toggle de corazón animado",
-     "variants": [{"name": "grid", "description": "Grid de productos guardados", "tailwind_classes": {}, "animations": ["heart_pulse"], "dark_mode": True}],
-     "props": {"items": {"type": "array", "required": True}},
-     "dependencies": ["framer-motion"], "accessibility": {}, "responsive_breakpoints": {}, "quality_score": 0.87},
+    {
+        "id": "product_card",
+        "category": "commerce",
+        "name": "Product Card",
+        "description": "Tarjeta de producto con imagen, precio, variantes y CTA",
+        "variants": [
+            {
+                "name": "grid",
+                "description": "Para grids de productos",
+                "tailwind_classes": {},
+                "animations": ["hover_lift"],
+                "dark_mode": True,
+            },
+            {
+                "name": "compact",
+                "description": "Versión compacta para listas",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+        ],
+        "props": {"product": {"type": "object", "required": True}},
+        "dependencies": [],
+        "accessibility": {},
+        "responsive_breakpoints": {},
+        "quality_score": 0.94,
+    },
+    {
+        "id": "cart_drawer",
+        "category": "commerce",
+        "name": "Cart Drawer",
+        "description": "Carrito lateral deslizante con items y resumen",
+        "variants": [
+            {
+                "name": "minimal",
+                "description": "Drawer limpio",
+                "tailwind_classes": {},
+                "animations": ["slide_in_right"],
+                "dark_mode": True,
+            }
+        ],
+        "props": {"items": {"type": "array", "required": True}},
+        "dependencies": ["framer-motion"],
+        "accessibility": {"role": "dialog"},
+        "responsive_breakpoints": {},
+        "quality_score": 0.93,
+    },
+    {
+        "id": "order_summary",
+        "category": "commerce",
+        "name": "Order Summary",
+        "description": "Resumen de orden con subtotal, impuestos y total",
+        "variants": [
+            {
+                "name": "minimal",
+                "description": "Lista simple con totales",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            }
+        ],
+        "props": {"items": {"type": "array", "required": True}},
+        "dependencies": [],
+        "accessibility": {},
+        "responsive_breakpoints": {},
+        "quality_score": 0.91,
+    },
+    {
+        "id": "wishlist",
+        "category": "commerce",
+        "name": "Wishlist",
+        "description": "Lista de deseos con toggle de corazón animado",
+        "variants": [
+            {
+                "name": "grid",
+                "description": "Grid de productos guardados",
+                "tailwind_classes": {},
+                "animations": ["heart_pulse"],
+                "dark_mode": True,
+            }
+        ],
+        "props": {"items": {"type": "array", "required": True}},
+        "dependencies": ["framer-motion"],
+        "accessibility": {},
+        "responsive_breakpoints": {},
+        "quality_score": 0.87,
+    },
     # Layout (5)
-    {"id": "footer", "category": "layout", "name": "Footer",
-     "description": "Pie de página con links, redes sociales y copyright",
-     "variants": [{"name": "centered", "description": "Todo centrado", "tailwind_classes": {}, "animations": [], "dark_mode": True},
-                  {"name": "split", "description": "Columnas de links", "tailwind_classes": {}, "animations": [], "dark_mode": True}],
-     "props": {"links": {"type": "array", "required": True}},
-     "dependencies": [], "accessibility": {"role": "contentinfo"}, "responsive_breakpoints": {}, "quality_score": 0.92},
-    {"id": "cta_section", "category": "layout", "name": "CTA Section",
-     "description": "Sección de llamada a la acción con headline y botones",
-     "variants": [{"name": "centered", "description": "Centrado con fondo de color", "tailwind_classes": {}, "animations": [], "dark_mode": True},
-                  {"name": "split", "description": "Texto a la izquierda, botones a la derecha", "tailwind_classes": {}, "animations": [], "dark_mode": True}],
-     "props": {"headline": {"type": "string", "required": True}, "cta_text": {"type": "string", "required": True}},
-     "dependencies": [], "accessibility": {}, "responsive_breakpoints": {}, "quality_score": 0.93},
-    {"id": "stats_bar", "category": "layout", "name": "Stats Bar",
-     "description": "Barra de estadísticas con números animados y labels",
-     "variants": [{"name": "minimal", "description": "Números grandes con labels", "tailwind_classes": {}, "animations": ["count_up"], "dark_mode": True}],
-     "props": {"stats": {"type": "array", "required": True}},
-     "dependencies": ["framer-motion"], "accessibility": {}, "responsive_breakpoints": {}, "quality_score": 0.90},
-    {"id": "divider", "category": "layout", "name": "Section Divider",
-     "description": "Divisor visual entre secciones con variantes decorativas",
-     "variants": [{"name": "wave", "description": "Ola SVG", "tailwind_classes": {}, "animations": [], "dark_mode": True},
-                  {"name": "angle", "description": "Corte diagonal", "tailwind_classes": {}, "animations": [], "dark_mode": True}],
-     "props": {},
-     "dependencies": [], "accessibility": {"role": "separator"}, "responsive_breakpoints": {}, "quality_score": 0.85},
-    {"id": "banner", "category": "layout", "name": "Announcement Banner",
-     "description": "Banner de anuncio dismissable en la parte superior",
-     "variants": [{"name": "minimal", "description": "Texto + botón de cierre", "tailwind_classes": {}, "animations": ["slide_down"], "dark_mode": True}],
-     "props": {"message": {"type": "string", "required": True}},
-     "dependencies": ["framer-motion"], "accessibility": {"role": "alert"}, "responsive_breakpoints": {}, "quality_score": 0.87},
+    {
+        "id": "footer",
+        "category": "layout",
+        "name": "Footer",
+        "description": "Pie de página con links, redes sociales y copyright",
+        "variants": [
+            {
+                "name": "centered",
+                "description": "Todo centrado",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+            {
+                "name": "split",
+                "description": "Columnas de links",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+        ],
+        "props": {"links": {"type": "array", "required": True}},
+        "dependencies": [],
+        "accessibility": {"role": "contentinfo"},
+        "responsive_breakpoints": {},
+        "quality_score": 0.92,
+    },
+    {
+        "id": "cta_section",
+        "category": "layout",
+        "name": "CTA Section",
+        "description": "Sección de llamada a la acción con headline y botones",
+        "variants": [
+            {
+                "name": "centered",
+                "description": "Centrado con fondo de color",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+            {
+                "name": "split",
+                "description": "Texto a la izquierda, botones a la derecha",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+        ],
+        "props": {"headline": {"type": "string", "required": True}, "cta_text": {"type": "string", "required": True}},
+        "dependencies": [],
+        "accessibility": {},
+        "responsive_breakpoints": {},
+        "quality_score": 0.93,
+    },
+    {
+        "id": "stats_bar",
+        "category": "layout",
+        "name": "Stats Bar",
+        "description": "Barra de estadísticas con números animados y labels",
+        "variants": [
+            {
+                "name": "minimal",
+                "description": "Números grandes con labels",
+                "tailwind_classes": {},
+                "animations": ["count_up"],
+                "dark_mode": True,
+            }
+        ],
+        "props": {"stats": {"type": "array", "required": True}},
+        "dependencies": ["framer-motion"],
+        "accessibility": {},
+        "responsive_breakpoints": {},
+        "quality_score": 0.90,
+    },
+    {
+        "id": "divider",
+        "category": "layout",
+        "name": "Section Divider",
+        "description": "Divisor visual entre secciones con variantes decorativas",
+        "variants": [
+            {"name": "wave", "description": "Ola SVG", "tailwind_classes": {}, "animations": [], "dark_mode": True},
+            {
+                "name": "angle",
+                "description": "Corte diagonal",
+                "tailwind_classes": {},
+                "animations": [],
+                "dark_mode": True,
+            },
+        ],
+        "props": {},
+        "dependencies": [],
+        "accessibility": {"role": "separator"},
+        "responsive_breakpoints": {},
+        "quality_score": 0.85,
+    },
+    {
+        "id": "banner",
+        "category": "layout",
+        "name": "Announcement Banner",
+        "description": "Banner de anuncio dismissable en la parte superior",
+        "variants": [
+            {
+                "name": "minimal",
+                "description": "Texto + botón de cierre",
+                "tailwind_classes": {},
+                "animations": ["slide_down"],
+                "dark_mode": True,
+            }
+        ],
+        "props": {"message": {"type": "string", "required": True}},
+        "dependencies": ["framer-motion"],
+        "accessibility": {"role": "alert"},
+        "responsive_breakpoints": {},
+        "quality_score": 0.87,
+    },
 ]
 
 # Recomendaciones por tipo de proyecto
@@ -327,7 +813,8 @@ class ComponentRegistry:
         """Busca componentes por nombre o descripción."""
         query_lower = query.lower()
         return [
-            c for c in self._components.values()
+            c
+            for c in self._components.values()
             if query_lower in c.name.lower() or query_lower in c.description.lower()
         ]
 
@@ -372,13 +859,15 @@ class ComponentRegistry:
 
         variants = []
         for v in data.get("variants", []):
-            variants.append(ComponentVariant(
-                name=v.get("name", "default"),
-                description=v.get("description", ""),
-                tailwind_classes=v.get("tailwind_classes", {}),
-                animations=v.get("animations", []),
-                dark_mode=v.get("dark_mode", True),
-            ))
+            variants.append(
+                ComponentVariant(
+                    name=v.get("name", "default"),
+                    description=v.get("description", ""),
+                    tailwind_classes=v.get("tailwind_classes", {}),
+                    animations=v.get("animations", []),
+                    dark_mode=v.get("dark_mode", True),
+                )
+            )
 
         return ComponentDefinition(
             id=data["id"],

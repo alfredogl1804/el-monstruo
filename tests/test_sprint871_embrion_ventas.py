@@ -8,6 +8,7 @@ Tests Sprint 87.1 Bloque 2 — Embrión Ventas.
 
 Plus tests de schema validation, fallback heurístico y Brand DNA.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -21,10 +22,10 @@ from kernel.embriones.ventas import (
     PropuestaValor,
 )
 
-
 # ─────────────────────────────────────────────────────────────────────────
 # Fixtures
 # ─────────────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def embrion_no_llm() -> EmbrionVentas:
@@ -41,12 +42,10 @@ def embrion_no_key(monkeypatch) -> EmbrionVentas:
 # Caso 1: Landing premium artesanal (frase canónica de Alfredo)
 # ─────────────────────────────────────────────────────────────────────────
 
+
 def test_landing_premium_artesanal(embrion_no_llm: EmbrionVentas) -> None:
     """Frase canónica → ICP premium + pricing one-time alto + Instagram."""
-    frase = (
-        "Hacé una landing premium para vender pintura al óleo "
-        "artesanal hecha en Mérida"
-    )
+    frase = "Hacé una landing premium para vender pintura al óleo artesanal hecha en Mérida"
     report = embrion_no_llm.analizar(frase_input=frase)
 
     assert isinstance(report, EmbrionVentasReport)
@@ -72,6 +71,7 @@ def test_landing_premium_artesanal(embrion_no_llm: EmbrionVentas) -> None:
 # Caso 2: Tienda ecommerce
 # ─────────────────────────────────────────────────────────────────────────
 
+
 def test_tienda_ecommerce(embrion_no_llm: EmbrionVentas) -> None:
     """Frase tienda → canales ecommerce con Google/Meta Ads + email."""
     frase = "Quiero una tienda online de electrónica con envíos a todo Mexico"
@@ -81,9 +81,7 @@ def test_tienda_ecommerce(embrion_no_llm: EmbrionVentas) -> None:
     canales_str = " ".join(c.canal.lower() for c in report.canales_adquisicion)
     assert "google" in canales_str or "meta" in canales_str or "email" in canales_str
     # Email marketing tiene CAC bajo (<5)
-    email_canal = [
-        c for c in report.canales_adquisicion if "email" in c.canal.lower()
-    ]
+    email_canal = [c for c in report.canales_adquisicion if "email" in c.canal.lower()]
     if email_canal:
         assert email_canal[0].cac_usd_estimado < 10.0
 
@@ -91,6 +89,7 @@ def test_tienda_ecommerce(embrion_no_llm: EmbrionVentas) -> None:
 # ─────────────────────────────────────────────────────────────────────────
 # Caso 3: App móvil
 # ─────────────────────────────────────────────────────────────────────────
+
 
 def test_app_movil(embrion_no_llm: EmbrionVentas) -> None:
     """Frase app móvil → canales mobile (ASO, TikTok, influencers)."""
@@ -109,6 +108,7 @@ def test_app_movil(embrion_no_llm: EmbrionVentas) -> None:
 # Capa Memento: env var lookup en runtime + Brand DNA
 # ─────────────────────────────────────────────────────────────────────────
 
+
 def test_memento_runtime_env_lookup(embrion_no_key: EmbrionVentas) -> None:
     """Sin OPENAI_API_KEY → fallback heurístico."""
     report = embrion_no_key.analizar(frase_input="landing simple")
@@ -124,6 +124,7 @@ def test_brand_dna_error_class_naming() -> None:
 # ─────────────────────────────────────────────────────────────────────────
 # Schema validation
 # ─────────────────────────────────────────────────────────────────────────
+
 
 def test_report_schema_extra_forbid() -> None:
     with pytest.raises(Exception):

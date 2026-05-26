@@ -12,8 +12,8 @@ import os
 import re
 import sys
 import time
-import urllib.request
 import urllib.error
+import urllib.request
 from datetime import datetime, timezone
 
 # ─── Configuration ────────────────────────────────────────────────────────────
@@ -21,12 +21,7 @@ from datetime import datetime, timezone
 OUTPUT_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SPRINT_ID = "SPR-ORACLE-AI-M2-001"
 
-BUDGET = {
-    "max_total_cost_usd": 5.00,
-    "max_provider_cost_usd": 1.00,
-    "max_calls_per_provider": 3,
-    "max_total_calls": 18
-}
+BUDGET = {"max_total_cost_usd": 5.00, "max_provider_cost_usd": 1.00, "max_calls_per_provider": 3, "max_total_calls": 18}
 
 PROVIDERS = [
     {
@@ -34,7 +29,7 @@ PROVIDERS = [
         "env_var": "OPENAI_API_KEY",
         "models_endpoint": "https://api.openai.com/v1/models",
         "auth_header": "Authorization",
-        "auth_prefix": "Bearer "
+        "auth_prefix": "Bearer ",
     },
     {
         "provider_id": "anthropic",
@@ -42,49 +37,49 @@ PROVIDERS = [
         "models_endpoint": "https://api.anthropic.com/v1/models",
         "auth_header": "x-api-key",
         "auth_prefix": "",
-        "extra_headers": {"anthropic-version": "2023-06-01"}
+        "extra_headers": {"anthropic-version": "2023-06-01"},
     },
     {
         "provider_id": "google_gemini",
         "env_var": "GEMINI_API_KEY",
         "models_endpoint": "https://generativelanguage.googleapis.com/v1beta/models",
         "auth_method": "query_param",
-        "auth_param": "key"
+        "auth_param": "key",
     },
     {
         "provider_id": "xai_grok",
         "env_var": "XAI_API_KEY",
         "models_endpoint": "https://api.x.ai/v1/models",
         "auth_header": "Authorization",
-        "auth_prefix": "Bearer "
+        "auth_prefix": "Bearer ",
     },
     {
         "provider_id": "perplexity",
         "env_var": "SONAR_API_KEY",
         "models_endpoint": "https://api.perplexity.ai/models",
         "auth_header": "Authorization",
-        "auth_prefix": "Bearer "
+        "auth_prefix": "Bearer ",
     },
     {
         "provider_id": "deepseek",
         "env_var": "DEEPSEEK_API_KEY",
         "models_endpoint": "https://api.deepseek.com/models",
         "auth_header": "Authorization",
-        "auth_prefix": "Bearer "
-    }
+        "auth_prefix": "Bearer ",
+    },
 ]
 
 # ─── Secret Redaction ─────────────────────────────────────────────────────────
 
 SECRET_PATTERNS = [
-    (r'sk-proj-[A-Za-z0-9_\-]+', 'sk-***'),
-    (r'sk-ant-api[A-Za-z0-9_\-]+', 'anthropic-***'),
-    (r'xai-[A-Za-z0-9_\-]+', 'xai-***'),
-    (r'AIzaSy[A-Za-z0-9_\-]+', 'gemini-***'),
-    (r'pplx-[A-Za-z0-9_\-]+', 'pplx-***'),
-    (r'sk-or-v1-[A-Za-z0-9_\-]+', 'openrouter-***'),
-    (r'ghp_[A-Za-z0-9_\-]+', 'ghp-***'),
-    (r'sbp_[A-Za-z0-9_\-]+', 'sbp-***'),
+    (r"sk-proj-[A-Za-z0-9_\-]+", "sk-***"),
+    (r"sk-ant-api[A-Za-z0-9_\-]+", "anthropic-***"),
+    (r"xai-[A-Za-z0-9_\-]+", "xai-***"),
+    (r"AIzaSy[A-Za-z0-9_\-]+", "gemini-***"),
+    (r"pplx-[A-Za-z0-9_\-]+", "pplx-***"),
+    (r"sk-or-v1-[A-Za-z0-9_\-]+", "openrouter-***"),
+    (r"ghp_[A-Za-z0-9_\-]+", "ghp-***"),
+    (r"sbp_[A-Za-z0-9_\-]+", "sbp-***"),
 ]
 
 
@@ -102,6 +97,7 @@ def hash_response(data: bytes) -> str:
 
 # ─── Dispatcher Simulation (uses real preflight logic) ────────────────────────
 
+
 def dispatcher_allow(provider_id: str) -> tuple:
     """
     Simulate Dispatcher permission check for provider probe.
@@ -113,6 +109,7 @@ def dispatcher_allow(provider_id: str) -> tuple:
 
 
 # ─── Provider Probes ──────────────────────────────────────────────────────────
+
 
 def probe_provider(provider_config: dict) -> dict:
     """Execute a read-only probe against a single provider."""
@@ -139,7 +136,7 @@ def probe_provider(provider_config: dict) -> dict:
             "timestamp_utc": timestamp,
             "raw_response_hash": None,
             "redacted_sample": None,
-            "error_message": f"Environment variable {env_var} not found"
+            "error_message": f"Environment variable {env_var} not found",
         }
 
     # Check Dispatcher permission
@@ -161,7 +158,7 @@ def probe_provider(provider_config: dict) -> dict:
             "timestamp_utc": timestamp,
             "raw_response_hash": None,
             "redacted_sample": None,
-            "error_message": f"Dispatcher DENY: {reason}"
+            "error_message": f"Dispatcher DENY: {reason}",
         }
 
     # Build request
@@ -214,7 +211,7 @@ def probe_provider(provider_config: dict) -> dict:
                 "timestamp_utc": timestamp,
                 "raw_response_hash": response_hash,
                 "redacted_sample": sample,
-                "error_message": None
+                "error_message": None,
             }
 
     except urllib.error.HTTPError as e:
@@ -245,7 +242,7 @@ def probe_provider(provider_config: dict) -> dict:
             "timestamp_utc": timestamp,
             "raw_response_hash": None,
             "redacted_sample": error_body,
-            "error_message": f"HTTP {e.code}: {redact(str(e.reason))}"
+            "error_message": f"HTTP {e.code}: {redact(str(e.reason))}",
         }
 
     except Exception as e:
@@ -265,11 +262,12 @@ def probe_provider(provider_config: dict) -> dict:
             "timestamp_utc": timestamp,
             "raw_response_hash": None,
             "redacted_sample": None,
-            "error_message": redact(str(e)[:200])
+            "error_message": redact(str(e)[:200]),
         }
 
 
 # ─── Model Extraction Helpers ─────────────────────────────────────────────────
+
 
 def extract_model_ids(provider_id: str, raw_text: str) -> list:
     """Extract model IDs from the raw API response."""
@@ -424,6 +422,7 @@ def infer_web_search(provider_id: str, model_ids: list) -> bool:
 
 # ─── Main Execution ───────────────────────────────────────────────────────────
 
+
 def main():
     print("=" * 70)
     print("  SPR-ORACLE-AI-M2-001 — Real API Capability Verification")
@@ -458,7 +457,7 @@ def main():
             "action": "execute_api_probe",
             "access_status": result["access_status"],
             "models_count": len(result["model_ids_detected"]),
-            "error": result.get("error_message")
+            "error": result.get("error_message"),
         }
         probe_log_entries.append(log_entry)
 
@@ -481,7 +480,7 @@ def main():
         "total_calls_made": total_calls,
         "total_estimated_cost_usd": 0.001 * total_calls,  # /models endpoints are free/near-free
         "providers_verified": verified_count,
-        "providers_blocked": blocked_count
+        "providers_blocked": blocked_count,
     }
 
     # 2. Provider Access Status
@@ -495,10 +494,10 @@ def main():
                 "key_available": r["access_status"] != "ACCESS_BLOCKED_NO_KEY",
                 "models_count": len(r["model_ids_detected"]),
                 "probe_calls_made": 1 if r["access_status"] != "ACCESS_BLOCKED_NO_KEY" else 0,
-                "error_summary": r.get("error_message")
+                "error_summary": r.get("error_message"),
             }
             for r in results
-        ]
+        ],
     }
 
     # 3. Realtime Capability Catalog
@@ -506,16 +505,18 @@ def main():
     for r in results:
         if r["access_status"] == "REALTIME_VERIFIED":
             for cap_type in r["capability_types_detected"]:
-                realtime_capabilities.append({
-                    "capability_id": f"{r['provider_id']}_{cap_type}",
-                    "provider_id": r["provider_id"],
-                    "capability_type": cap_type,
-                    "evidence_status": "REALTIME_VERIFIED",
-                    "model_id": r["model_ids_detected"][0] if r["model_ids_detected"] else "unknown",
-                    "verified_at_utc": r["timestamp_utc"],
-                    "raw_response_hash": r["raw_response_hash"],
-                    "notes": None
-                })
+                realtime_capabilities.append(
+                    {
+                        "capability_id": f"{r['provider_id']}_{cap_type}",
+                        "provider_id": r["provider_id"],
+                        "capability_type": cap_type,
+                        "evidence_status": "REALTIME_VERIFIED",
+                        "model_id": r["model_ids_detected"][0] if r["model_ids_detected"] else "unknown",
+                        "verified_at_utc": r["timestamp_utc"],
+                        "raw_response_hash": r["raw_response_hash"],
+                        "notes": None,
+                    }
+                )
 
     realtime_catalog = {
         "catalog_id": "oracle-m2-realtime-catalog-001",
@@ -525,36 +526,38 @@ def main():
         "summary": {
             "total_capabilities": len(realtime_capabilities),
             "providers_verified": verified_count,
-            "providers_blocked": blocked_count
-        }
+            "providers_blocked": blocked_count,
+        },
     }
 
     # 4. M2 Overlay (maps to original M1 capabilities)
     overlay_capabilities = []
     original_cap_ids = [
-        "cap_gpt4o_vision", "cap_claude_opus_extended_thinking",
-        "cap_gemini_25pro_1m_context", "cap_grok3_deepsearch",
-        "cap_perplexity_sonar_pro", "cap_deepseek_r1"
+        "cap_gpt4o_vision",
+        "cap_claude_opus_extended_thinking",
+        "cap_gemini_25pro_1m_context",
+        "cap_grok3_deepsearch",
+        "cap_perplexity_sonar_pro",
+        "cap_deepseek_r1",
     ]
-    original_providers = [
-        "openai", "anthropic", "google_gemini",
-        "xai_grok", "perplexity", "deepseek"
-    ]
+    original_providers = ["openai", "anthropic", "google_gemini", "xai_grok", "perplexity", "deepseek"]
 
     for cap_id, prov_id in zip(original_cap_ids, original_providers):
         result = next((r for r in results if r["provider_id"] == prov_id), None)
         if result:
             new_status = result["access_status"] if result["access_status"] == "REALTIME_VERIFIED" else "ACCESS_BLOCKED"
-            overlay_capabilities.append({
-                "capability_id": cap_id,
-                "provider_id": prov_id,
-                "evidence_status_before": "STATIC_CATALOG",
-                "evidence_status_after": new_status,
-                "model_ids_confirmed": result["model_ids_detected"][:5],
-                "capability_types_confirmed": result["capability_types_detected"],
-                "raw_response_hash": result["raw_response_hash"],
-                "notes": result.get("error_message")
-            })
+            overlay_capabilities.append(
+                {
+                    "capability_id": cap_id,
+                    "provider_id": prov_id,
+                    "evidence_status_before": "STATIC_CATALOG",
+                    "evidence_status_after": new_status,
+                    "model_ids_confirmed": result["model_ids_detected"][:5],
+                    "capability_types_confirmed": result["capability_types_detected"],
+                    "raw_response_hash": result["raw_response_hash"],
+                    "notes": result.get("error_message"),
+                }
+            )
 
     overlay = {
         "overlay_id": "oracle-m2-overlay-001",
@@ -564,38 +567,42 @@ def main():
         "capabilities": overlay_capabilities,
         "summary": {
             "total_capabilities": len(overlay_capabilities),
-            "realtime_verified": sum(1 for c in overlay_capabilities if c["evidence_status_after"] == "REALTIME_VERIFIED"),
+            "realtime_verified": sum(
+                1 for c in overlay_capabilities if c["evidence_status_after"] == "REALTIME_VERIFIED"
+            ),
             "access_blocked": sum(1 for c in overlay_capabilities if c["evidence_status_after"] == "ACCESS_BLOCKED"),
-            "unchanged": 0
-        }
+            "unchanged": 0,
+        },
     }
 
     # 5. Cost Ledger
     cost_entries = []
     for r in results:
         calls = 1 if r["access_status"] != "ACCESS_BLOCKED_NO_KEY" else 0
-        cost_entries.append({
-            "provider_id": r["provider_id"],
-            "call_count": calls,
-            "estimated_cost_usd": 0.001 * calls,  # /models is free or near-free
-            "cost_source": "FREE_ENDPOINT" if calls > 0 else "NOT_APPLICABLE",
-            "confidence": "HIGH" if calls > 0 else "NA"
-        })
+        cost_entries.append(
+            {
+                "provider_id": r["provider_id"],
+                "call_count": calls,
+                "estimated_cost_usd": 0.001 * calls,  # /models is free or near-free
+                "cost_source": "FREE_ENDPOINT" if calls > 0 else "NOT_APPLICABLE",
+                "confidence": "HIGH" if calls > 0 else "NA",
+            }
+        )
 
     cost_ledger = {
         "sprint_id": SPRINT_ID,
         "timestamp_utc": timestamp,
         "budget_cap": {
             "max_total_cost_usd": BUDGET["max_total_cost_usd"],
-            "max_provider_cost_usd": BUDGET["max_provider_cost_usd"]
+            "max_provider_cost_usd": BUDGET["max_provider_cost_usd"],
         },
         "entries": cost_entries,
         "totals": {
             "total_calls": total_calls,
             "total_estimated_cost_usd": 0.001 * total_calls,
             "budget_remaining_usd": BUDGET["max_total_cost_usd"] - (0.001 * total_calls),
-            "within_budget": True
-        }
+            "within_budget": True,
+        },
     }
 
     # 6. Reclassification Inputs
@@ -609,11 +616,13 @@ def main():
                 "access_status": r["access_status"],
                 "models_detected": len(r["model_ids_detected"]),
                 "capabilities_detected": r["capability_types_detected"],
-                "suggested_risk_elevation": "R0_TO_R1_CANDIDATE" if r["access_status"] == "REALTIME_VERIFIED" else "REMAINS_R0"
+                "suggested_risk_elevation": "R0_TO_R1_CANDIDATE"
+                if r["access_status"] == "REALTIME_VERIFIED"
+                else "REMAINS_R0",
             }
             for r in results
         ],
-        "decision_required": "T1 must authorize risk reclassification sprint"
+        "decision_required": "T1 must authorize risk reclassification sprint",
     }
 
     # 7. Unified Face Summary
@@ -630,8 +639,8 @@ def main():
 
 El Oráculo M2 ejecutó sondas read-only contra 6 proveedores de IA. De los 6 proveedores objetivo:
 
-- **{verified_count} verificados en tiempo real** (REALTIME_VERIFIED): {', '.join(verified_providers) if verified_providers else 'ninguno'}
-- **{blocked_count} bloqueados** (ACCESS_BLOCKED): {', '.join(blocked_providers) if blocked_providers else 'ninguno'}
+- **{verified_count} verificados en tiempo real** (REALTIME_VERIFIED): {", ".join(verified_providers) if verified_providers else "ninguno"}
+- **{blocked_count} bloqueados** (ACCESS_BLOCKED): {", ".join(blocked_providers) if blocked_providers else "ninguno"}
 
 ### Modelos Detectados (Top por Proveedor)
 
@@ -696,7 +705,7 @@ SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001 — Reclasificar risk_class de R0 a
     print(f"  RESULTADO: {verified_count}/{len(PROVIDERS)} REALTIME_VERIFIED")
     print(f"  COSTO ESTIMADO: ${0.001 * total_calls:.4f} USD")
     print(f"  CALLS TOTALES: {total_calls}")
-    print(f"  BUDGET: WITHIN CAP")
+    print("  BUDGET: WITHIN CAP")
     print("=" * 70)
 
     return 0 if verified_count > 0 else 1

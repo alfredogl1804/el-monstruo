@@ -4,7 +4,6 @@ Execute from repo root: python3 scripts/run_migration_015.py
 """
 
 import os
-import sys
 
 import psycopg2
 
@@ -23,7 +22,7 @@ def main():
     with open(sql_path) as f:
         sql = f.read()
 
-    print(f"Connecting to Supabase...")
+    print("Connecting to Supabase...")
     conn = psycopg2.connect(db_url)
     conn.autocommit = True
 

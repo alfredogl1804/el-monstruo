@@ -21,6 +21,7 @@ Usage:
   # o
   python3 scripts/_apply_idempotent_patch.py --dry-run
 """
+
 import argparse
 import sys
 from pathlib import Path
@@ -28,50 +29,50 @@ from pathlib import Path
 TARGET = Path("kernel/embrion_scheduler.py")
 
 ANCHOR = (
-    '        Persiste en Supabase (fire-and-forget).\n'
+    "        Persiste en Supabase (fire-and-forget).\n"
     '        """\n'
-    '        task.next_run = self._calculate_next_run(task)\n'
-    '        self._tasks[task.task_id] = task\n'
+    "        task.next_run = self._calculate_next_run(task)\n"
+    "        self._tasks[task.task_id] = task\n"
 )
 
 REPLACEMENT = (
-    '        Persiste en Supabase (fire-and-forget).\n'
-    '\n'
-    '        Idempotencia (Sprint D-2, DSC-S-013):\n'
-    '        Si ya existe una tarea en memoria con la misma combinación\n'
-    '        ``(name, embrion_id)`` —típicamente porque ``_restore_from_supabase``\n'
-    '        la trajo de DB en el startup— se REUTILIZA el ``task_id`` existente\n'
-    '        en lugar de crear una nueva fila. Esto rompe el ciclo de duplicación\n'
-    '        permanente de ``scheduled_tasks`` (5 filas nuevas por arranque/redeploy).\n'
-    '        Solo se refresca la definición (schedule, governance, handler);\n'
-    '        el estado de ejecución (last_run, total_runs, consecutive_failures)\n'
-    '        se preserva del registro existente.\n'
+    "        Persiste en Supabase (fire-and-forget).\n"
+    "\n"
+    "        Idempotencia (Sprint D-2, DSC-S-013):\n"
+    "        Si ya existe una tarea en memoria con la misma combinación\n"
+    "        ``(name, embrion_id)`` —típicamente porque ``_restore_from_supabase``\n"
+    "        la trajo de DB en el startup— se REUTILIZA el ``task_id`` existente\n"
+    "        en lugar de crear una nueva fila. Esto rompe el ciclo de duplicación\n"
+    "        permanente de ``scheduled_tasks`` (5 filas nuevas por arranque/redeploy).\n"
+    "        Solo se refresca la definición (schedule, governance, handler);\n"
+    "        el estado de ejecución (last_run, total_runs, consecutive_failures)\n"
+    "        se preserva del registro existente.\n"
     '        """\n'
-    '        # Guard de idempotencia por (name, embrion_id) — Sprint D-2\n'
-    '        existing = next(\n'
-    '            (t for t in self._tasks.values()\n'
-    '             if t.name == task.name and t.embrion_id == task.embrion_id),\n'
-    '            None,\n'
-    '        )\n'
-    '        if existing is not None:\n'
-    '            # Reusar task_id existente; refrescar campos de definición\n'
-    '            task.task_id = existing.task_id\n'
-    '            # Preservar estado de ejecución del registro existente\n'
-    '            task.last_run = existing.last_run\n'
-    '            task.total_runs = existing.total_runs\n'
-    '            task.total_cost_usd = existing.total_cost_usd\n'
-    '            task.consecutive_failures = existing.consecutive_failures\n'
-    '            task.status = existing.status\n'
-    '            task.paused = existing.paused\n'
-    '            logger.info(\n'
+    "        # Guard de idempotencia por (name, embrion_id) — Sprint D-2\n"
+    "        existing = next(\n"
+    "            (t for t in self._tasks.values()\n"
+    "             if t.name == task.name and t.embrion_id == task.embrion_id),\n"
+    "            None,\n"
+    "        )\n"
+    "        if existing is not None:\n"
+    "            # Reusar task_id existente; refrescar campos de definición\n"
+    "            task.task_id = existing.task_id\n"
+    "            # Preservar estado de ejecución del registro existente\n"
+    "            task.last_run = existing.last_run\n"
+    "            task.total_runs = existing.total_runs\n"
+    "            task.total_cost_usd = existing.total_cost_usd\n"
+    "            task.consecutive_failures = existing.consecutive_failures\n"
+    "            task.status = existing.status\n"
+    "            task.paused = existing.paused\n"
+    "            logger.info(\n"
     '                "scheduler_task_idempotent_reuse",\n'
-    '                task_id=task.task_id,\n'
-    '                name=task.name,\n'
-    '                embrion=task.embrion_id,\n'
-    '            )\n'
-    '\n'
-    '        task.next_run = self._calculate_next_run(task)\n'
-    '        self._tasks[task.task_id] = task\n'
+    "                task_id=task.task_id,\n"
+    "                name=task.name,\n"
+    "                embrion=task.embrion_id,\n"
+    "            )\n"
+    "\n"
+    "        task.next_run = self._calculate_next_run(task)\n"
+    "        self._tasks[task.task_id] = task\n"
 )
 
 MARKER = "scheduler_task_idempotent_reuse"

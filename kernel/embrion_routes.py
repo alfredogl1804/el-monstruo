@@ -60,21 +60,26 @@ def set_dependencies(db=None, notifier=None):
 
 class MensajeRequest(BaseModel):
     """Alfredo envía un mensaje al Embrión."""
+
     contenido: str = Field(..., min_length=1, max_length=10000, description="Mensaje de Alfredo al Embrión")
     contexto: Optional[str] = Field(None, description="Contexto adicional (ej: desde qué canal)")
 
 
 class LatidoRequest(BaseModel):
     """El scheduled task registra un latido del Embrión."""
+
     tipo: str = Field(default="latido", description="Tipo de entrada: latido, reflexion, doctrina, pensamiento")
     contenido: str = Field(..., min_length=1, max_length=50000, description="Contenido del latido")
     hilo_origen: str = Field(default="kernel", description="Origen del registro")
     importancia: int = Field(default=5, ge=1, le=10, description="Importancia 1-10")
-    contexto: dict[str, Any] = Field(default_factory=dict, description="Metadata adicional como dict (se serializa a JSON)")
+    contexto: dict[str, Any] = Field(
+        default_factory=dict, description="Metadata adicional como dict (se serializa a JSON)"
+    )
 
 
 class NotificarRequest(BaseModel):
     """Enviar notificación al usuario via Telegram."""
+
     mensaje: str = Field(..., min_length=1, max_length=4000, description="Mensaje a enviar")
     chat_id: Optional[str] = Field(None, description="Override del chat_id (default: TELEGRAM_CHAT_ID)")
 
@@ -220,13 +225,13 @@ async def embrion_debug(request: Request):
     Returns loop stats, errors, and dependency status.
     """
     try:
-        loop = getattr(request.app.state, '_embrion_loop', None)
+        loop = getattr(request.app.state, "_embrion_loop", None)
 
         if loop:
             return {
                 "status": "loop_found",
-                "debug": loop.debug if hasattr(loop, 'debug') else "no debug property",
-                "stats": loop.stats if hasattr(loop, 'stats') else "no stats property",
+                "debug": loop.debug if hasattr(loop, "debug") else "no debug property",
+                "stats": loop.stats if hasattr(loop, "stats") else "no stats property",
             }
         else:
             return {
@@ -264,37 +269,35 @@ async def embrion_diagnostic(request: Request):
     }
 
     # 1. Loop health
-    loop = getattr(request.app.state, '_embrion_loop', None)
+    loop = getattr(request.app.state, "_embrion_loop", None)
     if loop:
-        stats = loop.stats if hasattr(loop, 'stats') else {}
-        cycle_count = stats.get('cycle_count', 0)
-        check_interval = stats.get('check_interval_s', 60)
-        last_thought = stats.get('last_thought_at')
+        stats = loop.stats if hasattr(loop, "stats") else {}
+        cycle_count = stats.get("cycle_count", 0)
+        check_interval = stats.get("check_interval_s", 60)
+        last_thought = stats.get("last_thought_at")
 
         # Calculate expected vs actual cycles
         # (uptime is not directly available, use cycle_count * interval as proxy)
         diagnostics["loop"] = {
-            "status": "running" if getattr(loop, '_running', False) else "stopped",
+            "status": "running" if getattr(loop, "_running", False) else "stopped",
             "cycle_count": cycle_count,
             "check_interval_s": check_interval,
             "expected_cycles_per_hour": 3600 // check_interval if check_interval > 0 else 0,
-            "thoughts_today": stats.get('thoughts_today', 0),
-            "max_thoughts_per_day": stats.get('max_thoughts_per_day', 0),
-            "cost_today_usd": stats.get('cost_today_usd', 0.0),
-            "daily_budget_usd": stats.get('daily_budget_usd', 0.0),
-            "budget_remaining_usd": round(
-                stats.get('daily_budget_usd', 0.0) - stats.get('cost_today_usd', 0.0), 4
-            ),
+            "thoughts_today": stats.get("thoughts_today", 0),
+            "max_thoughts_per_day": stats.get("max_thoughts_per_day", 0),
+            "cost_today_usd": stats.get("cost_today_usd", 0.0),
+            "daily_budget_usd": stats.get("daily_budget_usd", 0.0),
+            "budget_remaining_usd": round(stats.get("daily_budget_usd", 0.0) - stats.get("cost_today_usd", 0.0), 4),
             "last_thought_at": last_thought,
             "seconds_since_last_thought": round(_time.time() - last_thought, 1) if last_thought else None,
-            "last_trigger": stats.get('last_trigger'),
+            "last_trigger": stats.get("last_trigger"),
         }
 
         # 2. Error analysis
-        errors = stats.get('errors', [])
+        errors = stats.get("errors", [])
         error_types = {}
         for err in errors:
-            etype = err.get('type', 'Unknown')
+            etype = err.get("type", "Unknown")
             error_types[etype] = error_types.get(etype, 0) + 1
         diagnostics["errors"] = {
             "total_recent": len(errors),
@@ -303,28 +306,28 @@ async def embrion_diagnostic(request: Request):
         }
 
         # 3. Silence metrics
-        silence = stats.get('silence', {})
+        silence = stats.get("silence", {})
         diagnostics["silence"] = {
-            "threshold": silence.get('threshold', 0),
-            "last_score": silence.get('last_score'),
-            "silenced_today": silence.get('silenced_today', 0),
-            "messages_sent_today": silence.get('messages_sent_today', 0),
+            "threshold": silence.get("threshold", 0),
+            "last_score": silence.get("last_score"),
+            "silenced_today": silence.get("silenced_today", 0),
+            "messages_sent_today": silence.get("messages_sent_today", 0),
             "silence_ratio": round(
-                silence.get('silenced_today', 0) /
-                max(silence.get('silenced_today', 0) + silence.get('messages_sent_today', 0), 1),
-                2
+                silence.get("silenced_today", 0)
+                / max(silence.get("silenced_today", 0) + silence.get("messages_sent_today", 0), 1),
+                2,
             ),
         }
 
         # 4. FCS metrics
-        fcs = stats.get('fcs', {})
+        fcs = stats.get("fcs", {})
         diagnostics["fcs"] = fcs
 
         # 5. Sub-system intervals
         diagnostics["subsystems"] = {
-            "consolidation": stats.get('consolidation', {}),
-            "sabios": stats.get('sabios', {}),
-            "radar": stats.get('radar', {}),
+            "consolidation": stats.get("consolidation", {}),
+            "sabios": stats.get("sabios", {}),
+            "radar": stats.get("radar", {}),
         }
 
         # Sprint 84 — Acto de Orquestación visible en tiempo real.
@@ -336,9 +339,9 @@ async def embrion_diagnostic(request: Request):
         issues = []
         if cycle_count <= 1:
             issues.append("cycle_count_stalled: loop may be blocked")
-        if stats.get('cost_today_usd', 0) >= stats.get('daily_budget_usd', 30.0):
+        if stats.get("cost_today_usd", 0) >= stats.get("daily_budget_usd", 30.0):
             issues.append("budget_exhausted: daily budget reached")
-        if stats.get('thoughts_today', 0) >= stats.get('max_thoughts_per_day', 50):
+        if stats.get("thoughts_today", 0) >= stats.get("max_thoughts_per_day", 50):
             issues.append("thought_limit_reached: max thoughts per day")
         if len(errors) >= 10:
             issues.append(f"high_error_rate: {len(errors)} recent errors")
@@ -360,7 +363,7 @@ async def embrion_diagnostic(request: Request):
     if _db and _db.connected:
         db_start = _time.time()
         try:
-            test = await _db.select(
+            await _db.select(
                 table="embrion_memoria",
                 columns="id",
                 limit=1,
@@ -397,20 +400,25 @@ async def enviar_mensaje(req: MensajeRequest):
     try:
         now = datetime.now(timezone.utc).isoformat()
 
-        contexto_json = json.dumps({
-            "canal": req.contexto or "telegram",
-            "timestamp_envio": now,
-        })
+        contexto_json = json.dumps(
+            {
+                "canal": req.contexto or "telegram",
+                "timestamp_envio": now,
+            }
+        )
 
         # Guardar mensaje de Alfredo
-        row = await _db.insert(TABLE, {
-            "tipo": "mensaje_alfredo",
-            "contenido": req.contenido,
-            "contexto": contexto_json,
-            "hilo_origen": "telegram",
-            "importancia": 8,
-            "version": 1,
-        })
+        row = await _db.insert(
+            TABLE,
+            {
+                "tipo": "mensaje_alfredo",
+                "contenido": req.contenido,
+                "contexto": contexto_json,
+                "hilo_origen": "telegram",
+                "importancia": 8,
+                "version": 1,
+            },
+        )
 
         if not row:
             raise HTTPException(500, "No se pudo guardar el mensaje")
@@ -458,20 +466,25 @@ async def registrar_latido(req: LatidoRequest):
     try:
         now = datetime.now(timezone.utc).isoformat()
 
-        contexto_json = json.dumps({
-            **req.contexto,
-            "source": "scheduled_task",
-            "timestamp_latido": now,
-        })
+        contexto_json = json.dumps(
+            {
+                **req.contexto,
+                "source": "scheduled_task",
+                "timestamp_latido": now,
+            }
+        )
 
-        row = await _db.insert(TABLE, {
-            "tipo": req.tipo,
-            "contenido": req.contenido,
-            "contexto": contexto_json,
-            "hilo_origen": req.hilo_origen,
-            "importancia": req.importancia,
-            "version": 1,
-        })
+        row = await _db.insert(
+            TABLE,
+            {
+                "tipo": req.tipo,
+                "contenido": req.contenido,
+                "contexto": contexto_json,
+                "hilo_origen": req.hilo_origen,
+                "importancia": req.importancia,
+                "version": 1,
+            },
+        )
 
         if not row:
             raise HTTPException(500, "No se pudo registrar el latido")
@@ -508,8 +521,7 @@ async def notificar_alfredo(req: NotificarRequest):
     if not _notifier or not _notifier.enabled:
         raise HTTPException(
             503,
-            "TelegramNotifier no configurado. "
-            "Asegúrate de que TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID estén en env.",
+            "TelegramNotifier no configurado. Asegúrate de que TELEGRAM_BOT_TOKEN y TELEGRAM_CHAT_ID estén en env.",
         )
 
     try:
@@ -548,16 +560,26 @@ PATRON_TABLE = "embrion_patron_emergencia"
 
 class PatronRequest(BaseModel):
     """Guardar material en el patrón de emergencia."""
-    tipo: str = Field(..., description="patron_alfredo | patron_emergencia | contribucion_gpt | contribucion_sabio | momento_critico")
-    contenido: str = Field(..., min_length=1, max_length=50000, description="El contenido real — no resumen, la cosa en sí")
-    contexto: dict[str, Any] = Field(default_factory=dict, description="Metadata: hilo_origen, sesion, nivel_profundidad")
+
+    tipo: str = Field(
+        ..., description="patron_alfredo | patron_emergencia | contribucion_gpt | contribucion_sabio | momento_critico"
+    )
+    contenido: str = Field(
+        ..., min_length=1, max_length=50000, description="El contenido real — no resumen, la cosa en sí"
+    )
+    contexto: dict[str, Any] = Field(
+        default_factory=dict, description="Metadata: hilo_origen, sesion, nivel_profundidad"
+    )
     importancia: int = Field(default=5, ge=1, le=10, description="Importancia 1-10")
 
 
 class ContribucionRequest(BaseModel):
     """GPT o un Sabio contribuye al patrón de emergencia."""
+
     tipo: str = Field(..., description="contribucion_gpt | contribucion_sabio")
-    contenido: str = Field(..., min_length=1, max_length=50000, description="Lo que GPT/Sabio quiere que el Embrión sepa")
+    contenido: str = Field(
+        ..., min_length=1, max_length=50000, description="Lo que GPT/Sabio quiere que el Embrión sepa"
+    )
     autor: str = Field(..., description="Quién contribuye: gpt-5.4, claude-opus-4.7, gemini-3.1, grok-4, etc")
     contexto: dict[str, Any] = Field(default_factory=dict, description="Metadata adicional")
     importancia: int = Field(default=7, ge=1, le=10, description="Importancia 1-10")
@@ -635,18 +657,23 @@ async def guardar_patron(req: PatronRequest):
     try:
         now = datetime.now(timezone.utc).isoformat()
 
-        contexto_json = json.dumps({
-            **req.contexto,
-            "timestamp_guardado": now,
-        })
+        contexto_json = json.dumps(
+            {
+                **req.contexto,
+                "timestamp_guardado": now,
+            }
+        )
 
-        row = await _db.insert(PATRON_TABLE, {
-            "tipo": req.tipo,
-            "contenido": req.contenido,
-            "contexto": contexto_json,
-            "importancia": req.importancia,
-            "version": "0.23.0-sprint30",
-        })
+        row = await _db.insert(
+            PATRON_TABLE,
+            {
+                "tipo": req.tipo,
+                "contenido": req.contenido,
+                "contexto": contexto_json,
+                "importancia": req.importancia,
+                "version": "0.23.0-sprint30",
+            },
+        )
 
         if not row:
             raise HTTPException(500, "No se pudo guardar en el patrón")
@@ -693,20 +720,25 @@ async def contribuir_al_embrion(req: ContribucionRequest):
     try:
         now = datetime.now(timezone.utc).isoformat()
 
-        contexto_json = json.dumps({
-            **req.contexto,
-            "autor": req.autor,
-            "canal": "contribucion_directa",
-            "timestamp_contribucion": now,
-        })
+        contexto_json = json.dumps(
+            {
+                **req.contexto,
+                "autor": req.autor,
+                "canal": "contribucion_directa",
+                "timestamp_contribucion": now,
+            }
+        )
 
-        row = await _db.insert(PATRON_TABLE, {
-            "tipo": req.tipo,
-            "contenido": req.contenido,
-            "contexto": contexto_json,
-            "importancia": req.importancia,
-            "version": "0.23.0-sprint30",
-        })
+        row = await _db.insert(
+            PATRON_TABLE,
+            {
+                "tipo": req.tipo,
+                "contenido": req.contenido,
+                "contexto": contexto_json,
+                "importancia": req.importancia,
+                "version": "0.23.0-sprint30",
+            },
+        )
 
         if not row:
             raise HTTPException(500, "No se pudo guardar la contribución")
@@ -734,7 +766,6 @@ async def contribuir_al_embrion(req: ContribucionRequest):
         raise HTTPException(500, f"Error guardando contribución: {str(e)[:200]}")
 
 
-
 # ╔═══════════════════════════════════════════════════════════════════════╗
 # ║ Sprint EMBRION-NEEDS-001 — Tarea 3 — Write Policy con HITL real      ║
 # ║                                                                       ║
@@ -758,6 +789,7 @@ class _DbToWritePolicyAdapter:
     async directo y NO este adaptador; el adaptador queda disponible para
     invocaciones síncronas desde scripts auxiliares.
     """
+
     # Reservado para uso futuro (cron/script). Los handlers async usan _db
     # directamente vía las funciones helper más abajo.
 
@@ -768,7 +800,7 @@ def _parse_postgrest_filter(value: str):
         return ("eq", value)
     for op in ("gte.", "lte.", "gt.", "lt.", "eq.", "in."):
         if value.startswith(op):
-            return (op[:-1], value[len(op):])
+            return (op[:-1], value[len(op) :])
     return ("eq", value)
 
 
@@ -781,6 +813,7 @@ WRITE_PROPOSALS_TABLE = "embrion_write_proposals"
 async def _wp_select_pending(limit: int = 20) -> list[dict]:
     """Wrapper async sobre list_pending() usando el _db inyectado."""
     from datetime import datetime, timezone
+
     now_iso = datetime.now(timezone.utc).isoformat()
     rows = await _db.select(
         table=WRITE_PROPOSALS_TABLE,
@@ -824,6 +857,7 @@ async def _wp_update_proposal(proposal_id: str, expected_status: str, update: di
 
 # ── Pydantic models
 
+
 class ProposeRequest(BaseModel):
     proposal_type: str = Field(..., description="code_commit | db_write | external_api_call | other")
     summary: str = Field(..., min_length=1, max_length=500)
@@ -847,6 +881,7 @@ class RejectRequest(BaseModel):
 
 
 # ── Endpoints
+
 
 @router.post("/propose")
 async def crear_proposal(req: ProposeRequest):
@@ -872,9 +907,7 @@ async def crear_proposal(req: ProposeRequest):
         raise HTTPException(400, f"risk_level inválido: {req.risk_level}")
 
     try:
-        idempotency_key = req.idempotency_key or _wp.compute_idempotency_key(
-            req.proposal_type, req.payload
-        )
+        idempotency_key = req.idempotency_key or _wp.compute_idempotency_key(req.proposal_type, req.payload)
 
         # 1) Verificar idempotency
         existing_rows = await _db.select(
@@ -897,11 +930,8 @@ async def crear_proposal(req: ProposeRequest):
 
         # 2) Insert
         from datetime import datetime, timedelta, timezone
-        ttl_hours = (
-            req.expires_in_hours
-            if req.expires_in_hours is not None
-            else _wp.DEFAULT_EXPIRATION_HOURS
-        )
+
+        ttl_hours = req.expires_in_hours if req.expires_in_hours is not None else _wp.DEFAULT_EXPIRATION_HOURS
         expires_at = (datetime.now(timezone.utc) + timedelta(hours=ttl_hours)).isoformat()
 
         row_payload = {
@@ -937,18 +967,23 @@ async def crear_proposal(req: ProposeRequest):
 
         # Canal 1: cowork_bridge (insert a embrion_memoria)
         try:
-            await _db.insert(TABLE, {
-                "tipo": "respuesta_embrion",
-                "hilo_origen": "embrion_write_policy",
-                "contenido": notify_text,
-                "importancia": 10,
-                "contexto": json.dumps({
-                    "kind": "hitl_proposal_pending",
-                    "proposal_id": proposal_id,
-                    "proposal_type": req.proposal_type,
-                    "risk_level": req.risk_level,
-                }),
-            })
+            await _db.insert(
+                TABLE,
+                {
+                    "tipo": "respuesta_embrion",
+                    "hilo_origen": "embrion_write_policy",
+                    "contenido": notify_text,
+                    "importancia": 10,
+                    "contexto": json.dumps(
+                        {
+                            "kind": "hitl_proposal_pending",
+                            "proposal_id": proposal_id,
+                            "proposal_type": req.proposal_type,
+                            "risk_level": req.risk_level,
+                        }
+                    ),
+                },
+            )
             notified_channels.append("cowork_bridge")
         except Exception as exc:  # noqa: BLE001
             logger.warning(
@@ -963,6 +998,7 @@ async def crear_proposal(req: ProposeRequest):
         #    cost_estimate_usd=0.0, expires_at="", chat_id=None)
         try:
             from kernel.runner.telegram_notifier import TelegramNotifier  # noqa: PLC0415
+
             tg_notifier = TelegramNotifier()
             if tg_notifier.enabled:
                 # `target` y `cost_estimate_usd` se derivan del payload si los provee el embrión;
@@ -1069,14 +1105,13 @@ async def aprobar_proposal(proposal_id: str, req: ApproveRequest):
 
     try:
         from datetime import datetime, timezone
+
         current = await _wp_get_proposal(proposal_id)
         if not current:
             raise HTTPException(404, f"proposal {proposal_id} no encontrada")
         if current["approval_status"] != "pending":
             raise HTTPException(
-                409,
-                f"proposal {proposal_id} no está pending "
-                f"(status actual: {current['approval_status']})"
+                409, f"proposal {proposal_id} no está pending (status actual: {current['approval_status']})"
             )
 
         update = {
@@ -1089,10 +1124,7 @@ async def aprobar_proposal(proposal_id: str, req: ApproveRequest):
 
         updated = await _wp_update_proposal(proposal_id, "pending", update)
         if not updated:
-            raise HTTPException(
-                409,
-                "race condition: status cambió mientras aprobábamos"
-            )
+            raise HTTPException(409, "race condition: status cambió mientras aprobábamos")
 
         logger.info(
             "embrion_proposal_approved",
@@ -1120,14 +1152,13 @@ async def rechazar_proposal(proposal_id: str, req: RejectRequest):
 
     try:
         from datetime import datetime, timezone
+
         current = await _wp_get_proposal(proposal_id)
         if not current:
             raise HTTPException(404, f"proposal {proposal_id} no encontrada")
         if current["approval_status"] != "pending":
             raise HTTPException(
-                409,
-                f"proposal {proposal_id} no está pending "
-                f"(status actual: {current['approval_status']})"
+                409, f"proposal {proposal_id} no está pending (status actual: {current['approval_status']})"
             )
 
         update = {
@@ -1174,6 +1205,7 @@ async def listar_proposals(
 
     try:
         from datetime import datetime, timezone
+
         now_iso = datetime.now(timezone.utc).isoformat()
 
         if status == "all":
@@ -1217,7 +1249,6 @@ async def listar_proposals(
     except Exception as e:
         logger.error("embrion_list_proposals_failed", error=str(e))
         raise HTTPException(500, f"Error listando proposals: {str(e)[:200]}")
-
 
 
 # ════════════════════════════════════════════════════════════════════
@@ -1288,6 +1319,7 @@ async def telegram_webhook(request: Request):
         # Solo procesar mensajes que comienzan con un comando del inbox
         if msg_text.startswith("/"):
             import os as _os  # noqa: PLC0415
+
             # Validar autor (solo Alfredo / TELEGRAM_CHAT_ID puede enqueue)
             expected_chat_id = _os.environ.get("TELEGRAM_CHAT_ID", "").strip()
             if expected_chat_id and msg_from_id != expected_chat_id:
@@ -1300,8 +1332,11 @@ async def telegram_webhook(request: Request):
                 try:
                     from kernel.embrion_inbox import (  # noqa: PLC0415
                         _get_supabase_client as _inbox_client,
+                    )
+                    from kernel.embrion_inbox import (
                         audit as _inbox_audit,
                     )
+
                     _inbox_audit(
                         _inbox_client(),
                         inbox_id=None,
@@ -1316,10 +1351,13 @@ async def telegram_webhook(request: Request):
                 return {"ok": True, "denied": True, "reason": "unauthorized_inbox"}
 
             try:
-                from kernel.embrion_inbox import (  # noqa: PLC0415
-                    enqueue as _inbox_enqueue,
+                from kernel.embrion_inbox import (
                     _get_supabase_client as _inbox_client,
                 )
+                from kernel.embrion_inbox import (  # noqa: PLC0415
+                    enqueue as _inbox_enqueue,
+                )
+
                 client = _inbox_client()
                 result = _inbox_enqueue(client, msg_chat_id or msg_from_id, msg_text)
                 logger.info(
@@ -1382,8 +1420,11 @@ async def telegram_webhook(request: Request):
         )
         try:
             from kernel.runner.telegram_notifier import TelegramNotifier  # noqa: PLC0415
+
             await TelegramNotifier().answer_callback(
-                callback_id, text="No autorizado.", show_alert=True,
+                callback_id,
+                text="No autorizado.",
+                show_alert=True,
             )
         except Exception:  # noqa: BLE001
             pass
@@ -1419,8 +1460,7 @@ async def telegram_webhook(request: Request):
             result_summary = f"Proposal `{proposal_id[:8]}` no encontrada."
         elif current["approval_status"] != "pending":
             result_summary = (
-                f"Proposal `{proposal_id[:8]}` ya esta en estado "
-                f"*{current['approval_status']}* — no se puede {action}."
+                f"Proposal `{proposal_id[:8]}` ya esta en estado *{current['approval_status']}* — no se puede {action}."
             )
         elif action == "approve":
             update_payload = {
@@ -1431,9 +1471,7 @@ async def telegram_webhook(request: Request):
             updated = await _wp_update_proposal(proposal_id, "pending", update_payload)
             if updated:
                 success = True
-                result_summary = (
-                    f"Aprobada por Alfredo (via Telegram)\nID: `{proposal_id[:8]}`"
-                )
+                result_summary = f"Aprobada por Alfredo (via Telegram)\nID: `{proposal_id[:8]}`"
                 logger.info(
                     "embrion_proposal_approved_via_telegram",
                     proposal_id=proposal_id,
@@ -1451,9 +1489,7 @@ async def telegram_webhook(request: Request):
             updated = await _wp_update_proposal(proposal_id, "pending", update_payload)
             if updated:
                 success = True
-                result_summary = (
-                    f"Rechazada por Alfredo (via Telegram)\nID: `{proposal_id[:8]}`"
-                )
+                result_summary = f"Rechazada por Alfredo (via Telegram)\nID: `{proposal_id[:8]}`"
                 logger.info(
                     "embrion_proposal_rejected_via_telegram",
                     proposal_id=proposal_id,
@@ -1473,6 +1509,7 @@ async def telegram_webhook(request: Request):
     # 6) Answer callback + edit message (best-effort, non-fatal)
     try:
         from kernel.runner.telegram_notifier import TelegramNotifier  # noqa: PLC0415
+
         notifier = TelegramNotifier()
 
         if success and action == "approve":

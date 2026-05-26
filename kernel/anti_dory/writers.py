@@ -27,11 +27,12 @@ Todos los writers usan los RPCs canónicos de migration 0032:
 - rpc_write_thread_snapshot
 - rpc_accept_snapshot (solo en write_on_start y write_on_final por defecto)
 """
+
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from typing import Any, Optional, Protocol
+from dataclasses import dataclass
+from typing import Any, Optional
 from uuid import UUID
 
 from kernel.anti_dory.context_broker import SupabaseRPCClient, canonical_state_hash
@@ -42,6 +43,7 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 # Tipos compartidos
 # =============================================================================
+
 
 @dataclass(frozen=True)
 class WriteResult:
@@ -57,6 +59,7 @@ class WriteResult:
 # =============================================================================
 # 1. AgentExplicitWriter — 4 modos. SPEC §A.7 patch obligatorio.
 # =============================================================================
+
 
 class AgentExplicitWriter:
     """Writer invocado por el agente activo (Manus, Cowork, Embrion).
@@ -373,6 +376,7 @@ class AgentExplicitWriter:
 # 2. HeartbeatWriter — INDEPENDIENTE del agente.
 # =============================================================================
 
+
 class HeartbeatWriter:
     """Black-box recorder externo. Corre vía cron (Railway o similar).
 
@@ -477,6 +481,7 @@ class HeartbeatWriter:
 # 3. ExternalPollingWriter — eventos externos (CI, webhooks)
 # =============================================================================
 
+
 class ExternalPollingWriter:
     """Wrapper para sistemas externos que emiten eventos sin razonar como agente.
 
@@ -515,6 +520,7 @@ class ExternalPollingWriter:
 # =============================================================================
 # Utilidades privadas
 # =============================================================================
+
 
 def _coerce_uuid(val: Any) -> str:
     """Extrae UUID string de cualquier shape razonable de respuesta RPC."""

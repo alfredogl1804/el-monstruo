@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Siembra una semilla embrion_memoria para el cierre del sprint
 DSC-G-008-V4-INDEX-DRIFT-ENFORCEMENT-001."""
+
 from __future__ import annotations
 
 import json
@@ -12,9 +13,7 @@ import urllib.request
 
 def main() -> int:
     sb_url = os.environ.get("SUPABASE_URL")
-    sb_key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get(
-        "SUPABASE_SERVICE_ROLE"
-    )
+    sb_key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE")
     if not sb_url or not sb_key:
         print("[err] missing SUPABASE_URL or SUPABASE_SERVICE_KEY", file=sys.stderr)
         return 2

@@ -5,6 +5,7 @@ Tests del auditor visual (DSC-V-002).
 Verifican que el score discrimina template (cascaron) de paginas diferenciadas.
 NO requiere red — patcheamos `_fetch` para inyectar HTML sintetico.
 """
+
 from __future__ import annotations
 
 import json
@@ -17,7 +18,6 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 import scripts.audit_visual_diff as avd  # noqa: E402
-
 
 # ---- Fixtures: HTML sintetico ----
 
@@ -41,14 +41,16 @@ TEMPLATE_HTML = """
 # Tres paginas TEMPLATE (solo cambia {vertical})
 TEMPLATE_PAGES = [
     ("interiorismo", TEMPLATE_HTML.format(vertical="Interiorismo")),
-    ("bioguard",     TEMPLATE_HTML.format(vertical="BioGuard")),
-    ("cip",          TEMPLATE_HTML.format(vertical="CIP")),
+    ("bioguard", TEMPLATE_HTML.format(vertical="BioGuard")),
+    ("cip", TEMPLATE_HTML.format(vertical="CIP")),
 ]
 
 
 # Tres paginas DIFERENCIADAS (copy genuino per vertical)
 DIFFERENTIATED_PAGES = [
-    ("interiorismo", """
+    (
+        "interiorismo",
+        """
         <html><head><title>Disena tu hogar con interioristas verificados</title></head>
         <body>
           <h1>Encuentra interioristas en tu ciudad</h1>
@@ -62,8 +64,11 @@ DIFFERENTIATED_PAGES = [
           <button>Subir foto de mi espacio</button>
           <button>Explorar catalogo</button>
         </body></html>
-    """),
-    ("bioguard", """
+    """,
+    ),
+    (
+        "bioguard",
+        """
         <html><head><title>Defensa biologica adversarial - BioGuard</title></head>
         <body>
           <h1>Detecta amenazas biologicas en tiempo real</h1>
@@ -77,8 +82,11 @@ DIFFERENTIATED_PAGES = [
           <button>Solicitar demo BSL-2</button>
           <button>Especificaciones tecnicas</button>
         </body></html>
-    """),
-    ("cip", """
+    """,
+    ),
+    (
+        "cip",
+        """
         <html><head><title>CIP - Cumplimiento fiscal mexicano automatizado</title></head>
         <body>
           <h1>Factura emite y concilia en SAT sin intervencion</h1>
@@ -93,29 +101,26 @@ DIFFERENTIATED_PAGES = [
           <button>Conectar mi banco</button>
           <button>Ver casos de exito</button>
         </body></html>
-    """),
+    """,
+    ),
 ]
 
 
 def _make_fake_fetch(pages_dict):
     """Devuelve un _fetch que sirve HTML desde un dict {url: html_string}."""
+
     def _fake(url, timeout=30):
         if url in pages_dict:
             body = pages_dict[url].encode("utf-8")
             return True, 200, body, None
         return False, 404, b"", "url no fixture"
+
     return _fake
 
 
 def _run_with_fixtures(pages):
-    fixtures = {
-        f"https://example.com/{vertical}": html for vertical, html in pages
-    }
-    urls_payload = {
-        "verticals": [
-            {"vertical": v, "url": f"https://example.com/{v}"} for v, _ in pages
-        ]
-    }
+    fixtures = {f"https://example.com/{vertical}": html for vertical, html in pages}
+    urls_payload = {"verticals": [{"vertical": v, "url": f"https://example.com/{v}"} for v, _ in pages]}
     urls_path = ROOT / "reports" / "_test_urls.json"
     output_path = ROOT / "reports" / "_test_output.json"
     urls_path.parent.mkdir(parents=True, exist_ok=True)
@@ -136,9 +141,7 @@ def test_template_pages_score_low():
 
     assert not passed, f"Template paginas DEBEN fallar el audit. score={score}"
     assert score < 75.0, f"score debe ser <75 para template. score={score}"
-    assert template_ratio > 0.4, (
-        f"template_ratio debe ser >0.4 para template. ratio={template_ratio}"
-    )
+    assert template_ratio > 0.4, f"template_ratio debe ser >0.4 para template. ratio={template_ratio}"
 
 
 def test_differentiated_pages_score_high():
@@ -151,9 +154,7 @@ def test_differentiated_pages_score_high():
 
     assert passed, f"Paginas diferenciadas deben pasar el audit. score={score}"
     assert score >= 75.0, f"score debe ser >=75. score={score}"
-    assert template_ratio < 0.3, (
-        f"template_ratio debe ser <0.3 para paginas diferenciadas. ratio={template_ratio}"
-    )
+    assert template_ratio < 0.3, f"template_ratio debe ser <0.3 para paginas diferenciadas. ratio={template_ratio}"
 
 
 def test_pair_count_correct():

@@ -13,6 +13,7 @@ Uso desde repo root:
 
 Brand DNA en errores: catastro_migration_027_*_failed
 """
+
 from __future__ import annotations
 
 import argparse
@@ -30,6 +31,7 @@ except ImportError:
 # ---------------------------------------------------------------------------
 # Errores con identidad de marca
 # ---------------------------------------------------------------------------
+
 
 class CatastroMigration027Error(Exception):
     """Base error class. Brand DNA: catastro_migration_027_*."""
@@ -53,6 +55,7 @@ class CatastroMigration027AssignmentFailed(CatastroMigration027Error):
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _read_sql(path: str) -> str:
     full = os.path.join(os.path.dirname(__file__), path)
     with open(full, encoding="utf-8") as f:
@@ -73,14 +76,13 @@ def _connect() -> Any:
         conn.autocommit = True
         return conn
     except Exception as e:
-        raise CatastroMigration027ConnectionFailed(
-            f"No se pudo conectar a Supabase: {e!s}"
-        ) from e
+        raise CatastroMigration027ConnectionFailed(f"No se pudo conectar a Supabase: {e!s}") from e
 
 
 # ---------------------------------------------------------------------------
 # Pasos
 # ---------------------------------------------------------------------------
+
 
 def apply_schema(conn: Any) -> None:
     sql = _read_sql("027_sprint86_8_confidentiality_tier_schema.sql")
@@ -102,9 +104,7 @@ def apply_schema(conn: Any) -> None:
     except CatastroMigration027SchemaFailed:
         raise
     except Exception as e:
-        raise CatastroMigration027SchemaFailed(
-            f"Schema migration falló: {e!s}"
-        ) from e
+        raise CatastroMigration027SchemaFailed(f"Schema migration falló: {e!s}") from e
 
 
 def apply_assignment(conn: Any) -> None:
@@ -123,14 +123,13 @@ def apply_assignment(conn: Any) -> None:
             for tier, count in rows:
                 print(f"    {tier:24s} -> {count}")
     except Exception as e:
-        raise CatastroMigration027AssignmentFailed(
-            f"Assignment falló: {e!s}"
-        ) from e
+        raise CatastroMigration027AssignmentFailed(f"Assignment falló: {e!s}") from e
 
 
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Sprint 86.8 migration runner")

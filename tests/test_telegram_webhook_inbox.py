@@ -12,20 +12,19 @@ Verifica que el handler de /v1/embrion/telegram/webhook:
 
 from __future__ import annotations
 
-import os
-from typing import Any
 from unittest.mock import patch
 
 import pytest
 
-
 # ─── Setup mínimo de FastAPI app sólo con el router de embrion ──────────
+
 
 @pytest.fixture
 def app_client():
     """TestClient FastAPI con el router de embrion montado."""
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
+
     from kernel.embrion_routes import router as embrion_router
 
     app = FastAPI()
@@ -36,10 +35,17 @@ def app_client():
 
 # ─── Fake inbox para evitar tocar Supabase real en tests del webhook ────
 
+
 class FakeEnqueuedResult:
-    def __init__(self, inbox_id="fake-inbox-id", created=True,
-                 estado="pending", tipo_comando="/help", intent_class="safe",
-                 rejected_reason=None):
+    def __init__(
+        self,
+        inbox_id="fake-inbox-id",
+        created=True,
+        estado="pending",
+        tipo_comando="/help",
+        intent_class="safe",
+        rejected_reason=None,
+    ):
         self.inbox_id = inbox_id
         self.created = created
         self.estado = estado
@@ -62,12 +68,15 @@ def patch_inbox():
 
     fake_client = object()  # marker
 
-    with patch("kernel.embrion_inbox.enqueue", side_effect=fake_enqueue) as enq, \
-         patch("kernel.embrion_inbox._get_supabase_client", return_value=fake_client):
+    with (
+        patch("kernel.embrion_inbox.enqueue", side_effect=fake_enqueue) as enq,
+        patch("kernel.embrion_inbox._get_supabase_client", return_value=fake_client),
+    ):
         yield {"enqueue": enq, "calls": enqueue_calls}
 
 
 # ─── Fixture de env vars (secret + chat_id válidos) ──────────────────────
+
 
 @pytest.fixture(autouse=True)
 def env_setup(monkeypatch):
@@ -79,6 +88,7 @@ def env_setup(monkeypatch):
 # ═══════════════════════════════════════════════════════════════════════
 # Tests
 # ═══════════════════════════════════════════════════════════════════════
+
 
 # ─── 1) Webhook sin secret → 401 ────────────────────────────────────────
 def test_webhook_missing_secret_returns_401(app_client):

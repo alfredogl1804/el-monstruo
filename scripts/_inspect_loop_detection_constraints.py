@@ -1,4 +1,5 @@
 """Inspecciona check constraints de loop_detection_log para entender valores válidos."""
+
 from __future__ import annotations
 
 import os

@@ -6,10 +6,10 @@ Persistencia en Supabase (mismo cliente que e2e_runs).
 
 Brand DNA: traffic_ingest_*_failed.
 """
+
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Protocol
+from typing import Any, Dict, Optional, Protocol
 
 import structlog
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -117,9 +117,7 @@ class TrafficRepository:
     async def ingest_event(self, event: TrafficEvent) -> Dict[str, Any]:
         """Persiste un evento. Capa Memento: validación Pydantic ya hecha."""
         if not self.db.connected:
-            raise TrafficIngestPersistenceFailed(
-                "traffic_ingest_persistence_failed: DB cliente no conectado"
-            )
+            raise TrafficIngestPersistenceFailed("traffic_ingest_persistence_failed: DB cliente no conectado")
 
         row = {
             "run_id": event.run_id,
@@ -136,9 +134,7 @@ class TrafficRepository:
         try:
             result = await self.db.insert("e2e_traffic", row)
         except Exception as e:
-            raise TrafficIngestPersistenceFailed(
-                f"traffic_ingest_persistence_failed: {e!s}"
-            ) from e
+            raise TrafficIngestPersistenceFailed(f"traffic_ingest_persistence_failed: {e!s}") from e
 
         logger.info(
             "traffic_event_ingested",

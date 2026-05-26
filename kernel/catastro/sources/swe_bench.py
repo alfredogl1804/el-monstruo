@@ -1,17 +1,19 @@
 """
 El Catastro · Sources · SWE-bench Verified.
 
-Cliente para extraer datos de BenchLM para SWE-bench Verified, 
+Cliente para extraer datos de BenchLM para SWE-bench Verified,
 la métrica anti-gaming de UC Berkeley.
 Requiere que Lite >= Verified y Multilingual.python >= Verified - 10pp
 para detectar gaming (overfitting al test set).
 
 [Hilo Manus Catastro] · Sprint 86.5 · 2026-05-05
 """
+
 from __future__ import annotations
 
+from typing import Any
+
 import httpx
-from typing import Any, Optional
 
 from kernel.catastro.sources.base import (
     BaseFuente,
@@ -48,7 +50,7 @@ class SWEBenchFuente(BaseFuente):
                     raise FuenteRateLimitError(self.nombre, "Rate limit excedido en BenchLM")
                 if response.status_code >= 500:
                     raise FuenteUnavailableError(self.nombre, f"Error {response.status_code} en BenchLM")
-                
+
                 response.raise_for_status()
                 payload = response.json()
 
@@ -89,7 +91,7 @@ class SWEBenchFuente(BaseFuente):
 
         if lite is not None and verified > lite:
             return True
-        
+
         if multi_py is not None and verified > (multi_py + 10.0):
             return True
 
@@ -106,28 +108,28 @@ class SWEBenchFuente(BaseFuente):
                     "model_name": "GPT-5.5",
                     "verified_score": 65.2,
                     "lite_score": 68.1,
-                    "multilingual_python_score": 62.8
+                    "multilingual_python_score": 62.8,
                 },
                 {
                     "model_id": "claude-opus-4-7",
                     "model_name": "Claude Opus 4.7",
                     "verified_score": 58.4,
                     "lite_score": 61.2,
-                    "multilingual_python_score": 55.9
+                    "multilingual_python_score": 55.9,
                 },
                 {
                     "model_id": "claude-3-5-sonnet-20241022",
                     "model_name": "Claude 3.5 Sonnet (New)",
                     "verified_score": 50.8,
                     "lite_score": 53.0,
-                    "multilingual_python_score": 48.5
+                    "multilingual_python_score": 48.5,
                 },
                 {
                     "model_id": "overfit-coder-v1",
                     "model_name": "Overfit Coder",
                     "verified_score": 48.0,
                     "lite_score": 35.0,  # Gaming! Verified > Lite
-                    "multilingual_python_score": 30.0
-                }
+                    "multilingual_python_score": 30.0,
+                },
             ]
         }

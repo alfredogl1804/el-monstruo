@@ -25,11 +25,11 @@ Flujo:
   3. Imprimir contexto restaurado
   4. OMEGA checkpoint → guardar estado actual para próxima compactación
 """
-import json
-import os
-import sys
+
 import asyncio
 import hashlib
+import json
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -44,6 +44,7 @@ LOGS_DIR.mkdir(parents=True, exist_ok=True)
 KERNEL_URL = os.environ.get("KERNEL_BASE_URL", "")
 KERNEL_KEY = os.environ.get("MONSTRUO_API_KEY", "")
 
+
 def log(msg: str, level: str = "INFO"):
     ts = datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
     line = f"[{ts}] [{level}] {msg}"
@@ -51,6 +52,7 @@ def log(msg: str, level: str = "INFO"):
     log_file = LOGS_DIR / "guardian.log"
     with open(log_file, "a") as f:
         f.write(line + "\n")
+
 
 # ═══════════════════════════════════════════════════════════════
 # ANCLAJE 1: FILESYSTEM
@@ -68,6 +70,7 @@ def check_anchor_filesystem() -> dict:
     except Exception as e:
         return {"valid": False, "error": str(e), "data": None}
 
+
 # ═══════════════════════════════════════════════════════════════
 # ANCLAJE 2: KERNEL API
 # ═══════════════════════════════════════════════════════════════
@@ -76,24 +79,23 @@ def check_anchor_kernel() -> dict:
         return {"valid": False, "error": "KERNEL_BASE_URL o MONSTRUO_API_KEY no configuradas", "data": None}
     try:
         import urllib.request
+
         # Health
-        req = urllib.request.Request(
-            f"{KERNEL_URL}/health",
-            headers={"x-api-key": KERNEL_KEY}
-        )
+        req = urllib.request.Request(f"{KERNEL_URL}/health", headers={"x-api-key": KERNEL_KEY})
         with urllib.request.urlopen(req, timeout=10) as resp:
             health = json.loads(resp.read())
 
         # Tools
-        req2 = urllib.request.Request(
-            f"{KERNEL_URL}/v1/tools",
-            headers={"x-api-key": KERNEL_KEY}
-        )
+        req2 = urllib.request.Request(f"{KERNEL_URL}/v1/tools", headers={"x-api-key": KERNEL_KEY})
         with urllib.request.urlopen(req2, timeout=10) as resp2:
             tools_raw = json.loads(resp2.read())
 
         tools_list = tools_raw if isinstance(tools_raw, list) else tools_raw.get("tools", [])
-        active_tools = [t.get("name", t) if isinstance(t, dict) else str(t) for t in tools_list if (isinstance(t, dict) and t.get("status") == "active")]
+        active_tools = [
+            t.get("name", t) if isinstance(t, dict) else str(t)
+            for t in tools_list
+            if (isinstance(t, dict) and t.get("status") == "active")
+        ]
 
         embrion = health.get("embrion", {})
         data = {
@@ -109,6 +111,7 @@ def check_anchor_kernel() -> dict:
     except Exception as e:
         return {"valid": False, "error": str(e), "data": None}
 
+
 # ═══════════════════════════════════════════════════════════════
 # ANCLAJE 3: DATABASE (MySQL/TiDB)
 # ═══════════════════════════════════════════════════════════════
@@ -117,17 +120,23 @@ def _get_db_connection():
     if not db_url:
         return None
     try:
-        import pymysql
         from urllib.parse import urlparse
+
+        import pymysql
+
         parsed = urlparse(db_url)
         return pymysql.connect(
-            host=parsed.hostname, port=parsed.port or 4000,
-            user=parsed.username, password=parsed.password,
+            host=parsed.hostname,
+            port=parsed.port or 4000,
+            user=parsed.username,
+            password=parsed.password,
             database=parsed.path.lstrip("/"),
-            ssl={"ssl": True}, connect_timeout=10
+            ssl={"ssl": True},
+            connect_timeout=10,
         )
     except Exception:
         return None
+
 
 def check_anchor_database() -> dict:
     conn = _get_db_connection()
@@ -146,6 +155,7 @@ def check_anchor_database() -> dict:
     finally:
         conn.close()
 
+
 def save_state_to_database(state: dict):
     conn = _get_db_connection()
     if not conn:
@@ -155,15 +165,20 @@ def save_state_to_database(state: dict):
             cur.execute(
                 "INSERT INTO agent_context_state (id, hilo, state_json, state_hash, source, created_at) VALUES (%s, %s, %s, %s, %s, NOW()) "
                 "ON DUPLICATE KEY UPDATE state_json = VALUES(state_json), state_hash = VALUES(state_hash), created_at = NOW()",
-                ("current", state.get("hilo", "B"), json.dumps(state, default=str), 
-                 hashlib.sha256(json.dumps(state, sort_keys=True, default=str).encode()).hexdigest()[:64],
-                 "guardian_v3")
+                (
+                    "current",
+                    state.get("hilo", "B"),
+                    json.dumps(state, default=str),
+                    hashlib.sha256(json.dumps(state, sort_keys=True, default=str).encode()).hexdigest()[:64],
+                    "guardian_v3",
+                ),
             )
             conn.commit()
     except Exception as e:
         log(f"Error guardando en DB: {e}", "WARN")
     finally:
         conn.close()
+
 
 # ═══════════════════════════════════════════════════════════════
 # OMEGA MEMORY — Checkpoint/Resume + Semantic Memory
@@ -172,26 +187,27 @@ OMEGA_AVAILABLE = False
 try:
     from omega.server.handlers import (
         handle_omega_checkpoint,
+        handle_omega_lessons,
+        handle_omega_query,
         handle_omega_resume_task,
         handle_omega_store,
-        handle_omega_query,
-        handle_omega_lessons,
         handle_omega_timeline,
+    )
+    from omega.server.handlers import (
         handle_omega_health as omega_health_check,
     )
+
     OMEGA_AVAILABLE = True
 except ImportError:
     pass
+
 
 async def omega_resume() -> str:
     """Intenta resumir la última tarea checkpointeada en OMEGA."""
     if not OMEGA_AVAILABLE:
         return ""
     try:
-        result = await handle_omega_resume_task(arguments={
-            "task_title": "Hilo B",
-            "verbosity": "full"
-        })
+        result = await handle_omega_resume_task(arguments={"task_title": "Hilo B", "verbosity": "full"})
         text = result.get("content", [{}])[0].get("text", "")
         if "no checkpoint" in text.lower() or "0 checkpoint" in text.lower():
             return ""
@@ -199,6 +215,7 @@ async def omega_resume() -> str:
     except Exception as e:
         log(f"OMEGA resume falló: {e}", "WARN")
         return ""
+
 
 async def omega_get_lessons() -> str:
     """Obtiene lessons learned de OMEGA."""
@@ -213,6 +230,7 @@ async def omega_get_lessons() -> str:
     except Exception:
         return ""
 
+
 async def omega_save_checkpoint(identity: dict, kernel: dict):
     """Guarda checkpoint completo del estado actual en OMEGA."""
     if not OMEGA_AVAILABLE:
@@ -222,50 +240,52 @@ async def omega_save_checkpoint(identity: dict, kernel: dict):
         errores = identity.get("errores_criticos_no_repetir", [])
         pendientes = identity.get("pendientes_criticos", [])
 
-        await handle_omega_checkpoint(arguments={
-            "task_title": "Hilo B - Command Center + Infraestructura",
-            "plan": "Construir Command Center, mantener kernel, integrar memoria persistente",
-            "progress": f"Kernel: {'ONLINE' if kernel.get('kernel_online') else 'OFFLINE'} v{kernel.get('version', '?')}. "
-                       f"Tools activas: {len(tools_activas)} ({', '.join(tools_activas)}). "
-                       f"Embrión: {'running' if kernel.get('embrion_running') else 'stopped'} ({kernel.get('embrion_ciclos', 0)} ciclos). "
-                       f"FCS: {kernel.get('fcs_score', 0)}. "
-                       f"Checkpoint WebDev: {identity.get('ultimo_checkpoint', '?')}.",
-            "files_touched": {
-                "IDENTIDAD_HILO.md": "Identidad del hilo B",
-                "EMERGENCIAS_DIGEST.md": "11 emergencias conversacionales",
-                "~/.monstruo/guardian.py": "Guardian V3 con OMEGA",
-                "~/.monstruo/state/identity.json": "Filesystem anchor",
-                "monstruo-command-center/": "WebDev project - Command Center",
-            },
-            "decisions": [
-                f"Tools activas en prod: SOLO {len(tools_activas)} — {tools_activas}",
-                "OMEGA integrado como librería Python (50 handlers > 15 MCP tools)",
-                "Guardian V3 = tri-anchor + OMEGA checkpoint/resume",
-            ] + [f"ERROR NO REPETIR: {e}" for e in errores[:5]],
-            "key_context": (
-                f"Soy Hilo B. Proyecto: {identity.get('proyecto_activo', '?')}. "
-                f"Path: {identity.get('proyecto_path', '?')}. "
-                f"App Flutter en Mac: /Users/alfredogongora/el-monstruo/apps/mobile/. "
-                f"Kernel Railway: {KERNEL_URL}. "
-                f"REGLA DE ORO: No inventar contexto. Verificar con código. Alfredo es el ancla de la verdad."
-            ),
-            "next_steps": ". ".join(pendientes[:5]) if pendientes else "Consultar con Alfredo sobre prioridades."
-        })
+        await handle_omega_checkpoint(
+            arguments={
+                "task_title": "Hilo B - Command Center + Infraestructura",
+                "plan": "Construir Command Center, mantener kernel, integrar memoria persistente",
+                "progress": f"Kernel: {'ONLINE' if kernel.get('kernel_online') else 'OFFLINE'} v{kernel.get('version', '?')}. "
+                f"Tools activas: {len(tools_activas)} ({', '.join(tools_activas)}). "
+                f"Embrión: {'running' if kernel.get('embrion_running') else 'stopped'} ({kernel.get('embrion_ciclos', 0)} ciclos). "
+                f"FCS: {kernel.get('fcs_score', 0)}. "
+                f"Checkpoint WebDev: {identity.get('ultimo_checkpoint', '?')}.",
+                "files_touched": {
+                    "IDENTIDAD_HILO.md": "Identidad del hilo B",
+                    "EMERGENCIAS_DIGEST.md": "11 emergencias conversacionales",
+                    "~/.monstruo/guardian.py": "Guardian V3 con OMEGA",
+                    "~/.monstruo/state/identity.json": "Filesystem anchor",
+                    "monstruo-command-center/": "WebDev project - Command Center",
+                },
+                "decisions": [
+                    f"Tools activas en prod: SOLO {len(tools_activas)} — {tools_activas}",
+                    "OMEGA integrado como librería Python (50 handlers > 15 MCP tools)",
+                    "Guardian V3 = tri-anchor + OMEGA checkpoint/resume",
+                ]
+                + [f"ERROR NO REPETIR: {e}" for e in errores[:5]],
+                "key_context": (
+                    f"Soy Hilo B. Proyecto: {identity.get('proyecto_activo', '?')}. "
+                    f"Path: {identity.get('proyecto_path', '?')}. "
+                    f"App Flutter en Mac: /Users/alfredogongora/el-monstruo/apps/mobile/. "
+                    f"Kernel Railway: {KERNEL_URL}. "
+                    f"REGLA DE ORO: No inventar contexto. Verificar con código. Alfredo es el ancla de la verdad."
+                ),
+                "next_steps": ". ".join(pendientes[:5]) if pendientes else "Consultar con Alfredo sobre prioridades.",
+            }
+        )
         log("OMEGA checkpoint guardado ✓")
     except Exception as e:
         log(f"OMEGA checkpoint falló: {e}", "WARN")
+
 
 async def omega_store_lesson(lesson: str):
     """Guarda una lesson learned en OMEGA."""
     if not OMEGA_AVAILABLE:
         return
     try:
-        await handle_omega_store(arguments={
-            "content": lesson,
-            "type": "lesson_learned"
-        })
+        await handle_omega_store(arguments={"content": lesson, "type": "lesson_learned"})
     except Exception:
         pass
+
 
 # ═══════════════════════════════════════════════════════════════
 # EJECUCIÓN PRINCIPAL
@@ -353,16 +373,18 @@ async def run_recovery_async():
         print(f"║  Path: {identity.get('proyecto_path', '?')}")
 
     if kernel:
-        print(f"║")
+        print("║")
         print(f"║  Kernel: {'ONLINE' if kernel.get('kernel_online') else 'OFFLINE'} (v{kernel.get('version', '?')})")
         print(f"║  Tools activas: {kernel.get('tools_activas', [])}")
-        print(f"║  Embrión: {'running' if kernel.get('embrion_running') else 'stopped'} ({kernel.get('embrion_ciclos', 0)} ciclos)")
+        print(
+            f"║  Embrión: {'running' if kernel.get('embrion_running') else 'stopped'} ({kernel.get('embrion_ciclos', 0)} ciclos)"
+        )
         print(f"║  FCS: {kernel.get('fcs_score', 0)}")
 
-    print(f"║")
-    print(f"╠══════════════════════════════════════════════════════════════════╣")
-    print(f"║              ERRORES CRÍTICOS — NO REPETIR                      ║")
-    print(f"╠══════════════════════════════════════════════════════════════════╣")
+    print("║")
+    print("╠══════════════════════════════════════════════════════════════════╣")
+    print("║              ERRORES CRÍTICOS — NO REPETIR                      ║")
+    print("╠══════════════════════════════════════════════════════════════════╣")
 
     errors = identity.get("errores_criticos_no_repetir", [])
     for i, err in enumerate(errors, 1):
@@ -372,16 +394,16 @@ async def run_recovery_async():
         else:
             print(f"║  {i}. {err}")
 
-    print(f"╠══════════════════════════════════════════════════════════════════╣")
-    print(f"║              CAPACIDADES REALES (VERIFICADAS)                   ║")
-    print(f"╠══════════════════════════════════════════════════════════════════╣")
+    print("╠══════════════════════════════════════════════════════════════════╣")
+    print("║              CAPACIDADES REALES (VERIFICADAS)                   ║")
+    print("╠══════════════════════════════════════════════════════════════════╣")
 
     if kernel:
         tools = kernel.get("tools_activas", [])
         print(f"║  Tools ACTIVAS en producción: {tools}")
         inactivas = identity.get("tools_inactivas_produccion", [])
         if inactivas:
-            print(f"║  Tools INACTIVAS (en código pero NO en prod):")
+            print("║  Tools INACTIVAS (en código pero NO en prod):")
             for t in inactivas[:5]:
                 print(f"║    - {t}")
             if len(inactivas) > 5:
@@ -389,10 +411,10 @@ async def run_recovery_async():
 
     # === OMEGA Context (si hay checkpoint previo) ===
     if omega_context:
-        print(f"║")
-        print(f"╠══════════════════════════════════════════════════════════════════╣")
-        print(f"║              OMEGA — ÚLTIMO CHECKPOINT                          ║")
-        print(f"╠══════════════════════════════════════════════════════════════════╣")
+        print("║")
+        print("╠══════════════════════════════════════════════════════════════════╣")
+        print("║              OMEGA — ÚLTIMO CHECKPOINT                          ║")
+        print("╠══════════════════════════════════════════════════════════════════╣")
         for line in omega_context.split("\n"):
             if line.strip():
                 truncated = line[:64]
@@ -400,16 +422,16 @@ async def run_recovery_async():
 
     # === OMEGA Lessons ===
     if omega_lessons_text:
-        print(f"║")
-        print(f"╠══════════════════════════════════════════════════════════════════╣")
-        print(f"║              OMEGA — LESSONS LEARNED                            ║")
-        print(f"╠══════════════════════════════════════════════════════════════════╣")
+        print("║")
+        print("╠══════════════════════════════════════════════════════════════════╣")
+        print("║              OMEGA — LESSONS LEARNED                            ║")
+        print("╠══════════════════════════════════════════════════════════════════╣")
         for line in omega_lessons_text.split("\n")[:10]:
             if line.strip():
                 print(f"║  {line[:64]}")
 
-    print(f"║")
-    print(f"╚══════════════════════════════════════════════════════════════════╝")
+    print("║")
+    print("╚══════════════════════════════════════════════════════════════════╝")
     print()
 
     # === Guardar en Database ===
@@ -436,14 +458,16 @@ async def run_recovery_async():
         },
         "consensus": valid_count,
         "omega_checkpoint_saved": OMEGA_AVAILABLE and bool(identity),
-        "action": "restored" if valid_count >= 1 else "halted"
+        "action": "restored" if valid_count >= 1 else "halted",
     }
     audit_file = LOGS_DIR / "audit.jsonl"
     with open(audit_file, "a") as f:
         f.write(json.dumps(audit) + "\n")
 
+
 def run_recovery():
     asyncio.run(run_recovery_async())
+
 
 # ═══════════════════════════════════════════════════════════════
 # PUNTO DE ENTRADA

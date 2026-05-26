@@ -36,14 +36,11 @@ NAMESPACES = ("agentes", "tools", "suppliers")
 def _load_namespace(ns: str) -> dict[str, Any]:
     """Carga un namespace JSON desde data/. Fail-loud si no existe."""
     if ns not in NAMESPACES:
-        raise ValueError(
-            f"Namespace '{ns}' invalido. Validos: {NAMESPACES}"
-        )
+        raise ValueError(f"Namespace '{ns}' invalido. Validos: {NAMESPACES}")
     path = DATA_DIR / f"catastro_{ns}.json"
     if not path.exists():
         raise FileNotFoundError(
-            f"Catastro '{ns}' no encontrado en {path}. "
-            "Poblar via spec sprint_catastro_A_investigacion_poblamiento.md"
+            f"Catastro '{ns}' no encontrado en {path}. Poblar via spec sprint_catastro_A_investigacion_poblamiento.md"
         )
     with path.open(encoding="utf-8") as fh:
         return json.load(fh)
@@ -129,19 +126,13 @@ def peers_of(
 
     target = next((e for e in entries if e.get("id") == entry_id), None)
     if target is None:
-        raise KeyError(
-            f"entry_id '{entry_id}' no existe en namespace '{namespace}'"
-        )
+        raise KeyError(f"entry_id '{entry_id}' no existe en namespace '{namespace}'")
 
     if not same_category:
         return [e for e in entries if e.get("id") != entry_id]
 
     target_cat = target.get("categoria")
-    return [
-        e
-        for e in entries
-        if e.get("categoria") == target_cat and e.get("id") != entry_id
-    ]
+    return [e for e in entries if e.get("categoria") == target_cat and e.get("id") != entry_id]
 
 
 # -------------------------------------------------------------------
@@ -191,10 +182,7 @@ def validate_against_spec() -> dict[str, Any]:
 
         if len(entries) < req["min_entries"]:
             ns_result["ok"] = False
-            ns_result["error"] = (
-                f"min_entries={req['min_entries']} requerido, "
-                f"actual={len(entries)}"
-            )
+            ns_result["error"] = f"min_entries={req['min_entries']} requerido, actual={len(entries)}"
             result["ok"] = False
 
         # Check required fields

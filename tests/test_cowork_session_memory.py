@@ -10,9 +10,9 @@ Estos tests usan el fallback local JSON para no depender de Supabase real.
 La validacion de la tabla en Supabase se hace en CI separado (T5) o via
 smoke E2E manual.
 """
+
 from __future__ import annotations
 
-import json
 import re
 import sys
 from pathlib import Path
@@ -50,7 +50,6 @@ def tmp_store(tmp_path, monkeypatch):
 
 
 class TestCRUD:
-
     def test_start_session_crea_fila(self, tmp_store):
         sesion = start_session(
             sprint_activo="COWORK-RUNTIME-001",
@@ -93,9 +92,10 @@ class TestCRUD:
         assert "T4 Companion Agent" in closed.deudas_pendientes_proxima_sesion
 
     def test_get_last_devuelve_ultima_por_fecha_inicio(self, tmp_store):
-        s1 = start_session(sprint_activo="A", store=tmp_store)
+        start_session(sprint_activo="A", store=tmp_store)
         # forzar timestamps distintos
         import time
+
         time.sleep(0.01)
         s2 = start_session(sprint_activo="B", store=tmp_store)
         last = read_last_session(store=tmp_store)
@@ -114,7 +114,6 @@ class TestCRUD:
 
 
 class TestPreFlightMemento:
-
     def test_block_sin_sesion_previa(self, tmp_store):
         block = build_pre_flight_block(store=tmp_store)
         assert "primera sesion" in block
@@ -172,7 +171,6 @@ class TestPreFlightMemento:
 
 
 class TestModelo:
-
     def test_to_dict_omite_none(self):
         s = CoworkSesion(turnos_totales=3, commits_productivos=1)
         d = s.to_dict()
@@ -193,7 +191,6 @@ class TestModelo:
 
 
 class TestSupabaseConfig:
-
     def test_from_env_devuelve_none_si_falta(self, monkeypatch):
         monkeypatch.delenv("SUPABASE_URL", raising=False)
         monkeypatch.delenv("SUPABASE_SERVICE_KEY", raising=False)
@@ -226,7 +223,6 @@ class TestSupabaseConfig:
 
 
 class TestMigracionSQL:
-
     def test_migracion_009_existe(self):
         path = REPO_ROOT / "migrations" / "sql" / "0009_cowork_sesiones.sql"
         assert path.exists()

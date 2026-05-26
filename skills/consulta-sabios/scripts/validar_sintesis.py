@@ -99,8 +99,8 @@ async def extraer_afirmaciones_sintesis(sintesis: str, profundidad: str) -> dict
     limites = PROFUNDIDAD_LIMITES.get(profundidad, PROFUNDIDAD_LIMITES["normal"])
 
     prompt = f"""Analiza la siguiente SINTESIS FINAL generada por GPT-5.4 como orquestador.
-Fecha de hoy: {datetime.now().strftime('%d de %B de %Y')}
-Profundidad: {profundidad} (max {limites['afirmaciones']} afirmaciones, {limites['consensos']} consensos)
+Fecha de hoy: {datetime.now().strftime("%d de %B de %Y")}
+Profundidad: {profundidad} (max {limites["afirmaciones"]} afirmaciones, {limites["consensos"]} consensos)
 
 SINTESIS A ANALIZAR:
 ---
@@ -151,17 +151,18 @@ Extrae las afirmaciones mas criticas que podrian contener errores."""
 # CAPA 2: Verificación independiente (Gemini + Grok, NO Perplexity)
 # ═══════════════════════════════════════════════════════════════════
 
+
 async def verificar_con_gemini(afirmacion: dict) -> dict:
     """Verifica una afirmacion usando Gemini (con grounding/search capabilities).
     Gemini tiene acceso a Google Search integrado, lo que lo hace ideal
     para verificacion factual independiente de Perplexity."""
 
-    prompt = f"""Verifica si la siguiente afirmacion es correcta al dia de hoy ({datetime.now().strftime('%d de %B de %Y')}):
+    prompt = f"""Verifica si la siguiente afirmacion es correcta al dia de hoy ({datetime.now().strftime("%d de %B de %Y")}):
 
-AFIRMACION: "{afirmacion['texto']}"
-TIPO: {afirmacion['tipo']}
-SECCION: {afirmacion.get('seccion', 'N/A')}
-QUERY DE VERIFICACION: {afirmacion['query_verificacion']}
+AFIRMACION: "{afirmacion["texto"]}"
+TIPO: {afirmacion["tipo"]}
+SECCION: {afirmacion.get("seccion", "N/A")}
+QUERY DE VERIFICACION: {afirmacion["query_verificacion"]}
 
 Responde de forma estructurada:
 1. VEREDICTO: correcta | parcialmente_correcta | incorrecta | no_verificable
@@ -196,8 +197,8 @@ async def segunda_opinion_grok(afirmacion: dict, verificacion_gemini: str) -> di
     prompt = f"""Un verificador (Gemini) reviso la siguiente afirmacion y encontro posibles problemas.
 Dame tu opinion independiente.
 
-AFIRMACION ORIGINAL: "{afirmacion['texto']}"
-TIPO: {afirmacion['tipo']}
+AFIRMACION ORIGINAL: "{afirmacion["texto"]}"
+TIPO: {afirmacion["tipo"]}
 
 VERIFICACION DE GEMINI:
 {verificacion_gemini[:2000]}
@@ -233,8 +234,10 @@ async def verificar_afirmacion_completa(afirmacion: dict) -> dict:
     necesita_segunda = (
         afirmacion["riesgo"] == "alto"
         and resultado["exito_gemini"]
-        and any(kw in resultado["verificacion_gemini"].lower()
-                for kw in ["incorrecta", "parcialmente", "desactualizada", "no es correcta", "error"])
+        and any(
+            kw in resultado["verificacion_gemini"].lower()
+            for kw in ["incorrecta", "parcialmente", "desactualizada", "no es correcta", "error"]
+        )
     )
 
     if necesita_segunda:
@@ -364,6 +367,7 @@ Identifica que correcciones se incorporaron y cuales se ignoraron."""
 # COMPILADOR DE INFORME POST-SÍNTESIS
 # ═══════════════════════════════════════════════════════════════════
 
+
 def compilar_informe_post_sintesis(
     verificaciones: list,
     cross_result: dict,
@@ -397,9 +401,7 @@ def compilar_informe_post_sintesis(
 
     # Determinar si necesita correccion
     necesita_correccion = (
-        len(problemas) >= 3
-        or len(graves_ignoradas) >= 1
-        or (score_incorporacion >= 0 and score_incorporacion < 0.6)
+        len(problemas) >= 3 or len(graves_ignoradas) >= 1 or (score_incorporacion >= 0 and score_incorporacion < 0.6)
     )
 
     # Calcular score global
@@ -428,17 +430,17 @@ def compilar_informe_post_sintesis(
         lines.append("## Problemas Detectados en la Sintesis")
         lines.append("")
         for i, p in enumerate(problemas, 1):
-            riesgo_tag = f"[{p['riesgo'].upper()}]" if p.get('riesgo') else ""
+            riesgo_tag = f"[{p['riesgo'].upper()}]" if p.get("riesgo") else ""
             lines.append(f"### {i}. {riesgo_tag} {p['afirmacion'][:100]}")
             lines.append("")
             lines.append(f"**Seccion:** {p.get('seccion', 'N/A')}")
             lines.append(f"**Tipo:** {p.get('tipo', 'N/A')}")
             lines.append("")
-            lines.append(f"**Verificacion (Gemini):**")
+            lines.append("**Verificacion (Gemini):**")
             lines.append(p.get("verificacion_gemini", "N/A"))
             lines.append("")
             if p.get("tiene_segunda_opinion") and p.get("segunda_opinion_grok"):
-                lines.append(f"**Segunda opinion (Grok):**")
+                lines.append("**Segunda opinion (Grok):**")
                 lines.append(p["segunda_opinion_grok"])
                 lines.append("")
             lines.append("---")
@@ -470,9 +472,9 @@ def compilar_informe_post_sintesis(
                 impacto = c.get("impacto", "?")
                 lines.append(f"- **[{impacto.upper()}]** {c.get('correccion', 'N/A')}")
                 if c.get("texto_incorrecto_en_sintesis"):
-                    lines.append(f"  - Sintesis dice: \"{c['texto_incorrecto_en_sintesis'][:100]}\"")
+                    lines.append(f'  - Sintesis dice: "{c["texto_incorrecto_en_sintesis"][:100]}"')
                 if c.get("texto_correcto_segun_informe"):
-                    lines.append(f"  - Deberia decir: \"{c['texto_correcto_segun_informe'][:100]}\"")
+                    lines.append(f'  - Deberia decir: "{c["texto_correcto_segun_informe"][:100]}"')
             lines.append("")
 
         inc = cross_result.get("correcciones_incorporadas", [])
@@ -498,13 +500,17 @@ def compilar_informe_post_sintesis(
         if score_incorporacion >= 0 and score_incorporacion < 0.6:
             lines.append(f"- Score de incorporacion bajo: {score_incorporacion:.2f}")
     else:
-        lines.append("**SINTESIS APROBADA.** Los problemas detectados (si los hay) son menores y no comprometen la integridad del documento.")
+        lines.append(
+            "**SINTESIS APROBADA.** Los problemas detectados (si los hay) son menores y no comprometen la integridad del documento."
+        )
 
     lines.append("")
     lines.append("---")
     lines.append("")
-    lines.append(f"*Generado por validar_sintesis.py — Paso 7 del pipeline consulta-sabios*")
-    lines.append(f"*Verificadores: Gemini 3.1 Pro (primario), Grok 4.20 (segunda opinion), Claude Opus 4.7 (cross-validation)*")
+    lines.append("*Generado por validar_sintesis.py — Paso 7 del pipeline consulta-sabios*")
+    lines.append(
+        "*Verificadores: Gemini 3.1 Pro (primario), Grok 4.20 (segunda opinion), Claude Opus 4.7 (cross-validation)*"
+    )
 
     informe = "\n".join(lines)
     return informe, necesita_correccion, problemas
@@ -573,6 +579,7 @@ Aplica las correcciones necesarias siguiendo las reglas del system prompt."""
 # ORQUESTADOR PRINCIPAL DEL PASO 7
 # ═══════════════════════════════════════════════════════════════════
 
+
 async def ejecutar_paso_7(
     sintesis_path: str,
     informe_validacion_path: str,
@@ -628,9 +635,7 @@ async def ejecutar_paso_7(
 
     # COMPILAR INFORME
     print("\n--- Compilando informe post-sintesis ---")
-    informe, necesita_correccion, problemas = compilar_informe_post_sintesis(
-        verificaciones, cross_result, sintesis
-    )
+    informe, necesita_correccion, problemas = compilar_informe_post_sintesis(verificaciones, cross_result, sintesis)
 
     # Guardar informe
     with open(output_path, "w", encoding="utf-8") as f:
@@ -659,9 +664,14 @@ async def ejecutar_paso_7(
 
     # Calcular scores
     total_verif = len(verificaciones) if verificaciones else 1
-    confirmadas = sum(1 for v in verificaciones
-                      if not any(kw in v.get("verificacion_gemini", "").lower()
-                                 for kw in ["incorrecta", "parcialmente", "error", "no es correcta"]))
+    confirmadas = sum(
+        1
+        for v in verificaciones
+        if not any(
+            kw in v.get("verificacion_gemini", "").lower()
+            for kw in ["incorrecta", "parcialmente", "error", "no es correcta"]
+        )
+    )
     score_factual = confirmadas / total_verif
     score_cross = cross_result.get("score_incorporacion", 1.0)
     if score_cross < 0:
@@ -697,6 +707,7 @@ async def ejecutar_paso_7(
 # ═══════════════════════════════════════════════════════════════════
 # MAIN — CLI
 # ═══════════════════════════════════════════════════════════════════
+
 
 async def main():
     parser = argparse.ArgumentParser(

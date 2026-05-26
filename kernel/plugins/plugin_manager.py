@@ -8,6 +8,7 @@ Patrón Microkernel — el core no sabe nada de los plugins, solo de los hooks.
 Soberanía: Si pluggy no está disponible, opera en modo stub sin plugins externos.
 Alternativa: Sistema de hooks manual con dict[str, list[Callable]].
 """
+
 from __future__ import annotations
 
 import inspect
@@ -16,25 +17,25 @@ from typing import Any
 
 import structlog
 
-from kernel.plugins.plugin_spec import MonstruoPluginSpec, PLUGGY_DISPONIBLE
+from kernel.plugins.plugin_spec import PLUGGY_DISPONIBLE, MonstruoPluginSpec
 
 logger = structlog.get_logger("plugins.manager")
 
 
 # --- Excepciones con identidad ---
 
+
 class PluginNoEncontrado(Exception):
     """Plugin no registrado en el PluginManager."""
+
     def __init__(self, nombre: str):
-        super().__init__(
-            f"Plugin '{nombre}' no encontrado. "
-            f"Verifica que esté instalado con POST /api/plugins."
-        )
+        super().__init__(f"Plugin '{nombre}' no encontrado. Verifica que esté instalado con POST /api/plugins.")
         self.nombre = nombre
 
 
 class PluginSeguridad(Exception):
     """Plugin rechazado por el security check."""
+
     def __init__(self, nombre: str, razon: str):
         super().__init__(
             f"Plugin '{nombre}' rechazado por seguridad: {razon}. "
@@ -46,19 +47,19 @@ class PluginSeguridad(Exception):
 
 class PluginYaRegistrado(Exception):
     """Plugin con ese nombre ya existe en el registry."""
+
     def __init__(self, nombre: str):
-        super().__init__(
-            f"Plugin '{nombre}' ya está registrado. "
-            f"Usa PATCH /api/plugins/{nombre} para actualizarlo."
-        )
+        super().__init__(f"Plugin '{nombre}' ya está registrado. Usa PATCH /api/plugins/{nombre} para actualizarlo.")
         self.nombre = nombre
 
 
 # --- Dataclasses ---
 
+
 @dataclass
 class PluginMetadata:
     """Metadatos de un plugin registrado."""
+
     name: str
     version: str
     author: str
@@ -80,6 +81,7 @@ class PluginMetadata:
 
 # --- Plugin Manager ---
 
+
 class PluginManager:
     """
     Registry central y lifecycle manager para plugins de El Monstruo.
@@ -95,6 +97,7 @@ class PluginManager:
 
         if PLUGGY_DISPONIBLE:
             import pluggy
+
             self._pm = pluggy.PluginManager("monstruo")
             self._pm.add_hookspecs(MonstruoPluginSpec)
         else:

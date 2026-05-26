@@ -51,6 +51,7 @@ Doctrina:
 - Anti-Goodhart: NO marcar comunes como "main"/"DSC-G-008"/"PR #N" si N existe
   en history como número (solo el formato verbatim cuenta).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -59,7 +60,6 @@ import re
 import sys
 from pathlib import Path
 from typing import Any
-
 
 # ============================================================================
 # REGEXES — patterns que detectan citation candidates en outputs Cowork
@@ -160,6 +160,7 @@ def _is_allowlisted(citation: str) -> bool:
 # HISTORY FLATTENING — extrae texto verbatim de tool results
 # ============================================================================
 
+
 def _flatten_history_verbatim(history: list[dict[str, Any]]) -> str:
     """
     Aplana history extrayendo TODO el texto verbatim de tool results + user msgs.
@@ -195,6 +196,7 @@ def _flatten_history_verbatim(history: list[dict[str, Any]]) -> str:
 # ============================================================================
 # CORE CHECKER
 # ============================================================================
+
 
 def check_verbatim_citations(
     cowork_output: str,
@@ -249,15 +251,17 @@ def check_verbatim_citations(
                 continue
             seen_violations.add(dedup_key)
 
-            violations.append({
-                "citation": citation,
-                "type": pattern["type"],
-                "pattern_id": pattern["id"],
-                "description": pattern["description"],
-                "severity": severity,
-                "match_start": match.start(),
-                "match_end": match.end(),
-            })
+            violations.append(
+                {
+                    "citation": citation,
+                    "type": pattern["type"],
+                    "pattern_id": pattern["id"],
+                    "description": pattern["description"],
+                    "severity": severity,
+                    "match_start": match.start(),
+                    "match_end": match.end(),
+                }
+            )
 
     return violations
 
@@ -272,9 +276,7 @@ def format_violations_human(violations: list[dict[str, Any]]) -> str:
         "",
     ]
     for i, v in enumerate(violations, 1):
-        lines.append(
-            f"  [{i}] severity={v['severity']} type={v['type']} citation={v['citation']!r}"
-        )
+        lines.append(f"  [{i}] severity={v['severity']} type={v['type']} citation={v['citation']!r}")
         lines.append(f"      {v['description']}")
         lines.append("")
     lines.append("Reescribi: o cita exactamente lo que aparece en un tool result, o ejecuta el tool call.")
@@ -284,6 +286,7 @@ def format_violations_human(violations: list[dict[str, Any]]) -> str:
 # ============================================================================
 # CLI
 # ============================================================================
+
 
 def _load_history(path: Path | None) -> list[dict[str, Any]]:
     if path is None:
@@ -304,7 +307,8 @@ def main(argv: list[str] | None = None) -> int:
         description="Verbatim citation enforcement — bloquea citas fabricadas sin respaldo en history.",
     )
     parser.add_argument(
-        "--output", "-o",
+        "--output",
+        "-o",
         help="Output candidato (string). Si no, --output-file o stdin.",
     )
     parser.add_argument(
@@ -351,8 +355,7 @@ def main(argv: list[str] | None = None) -> int:
     )
 
     if args.json:
-        print(json.dumps({"passed": len(violations) == 0, "violations": violations},
-                         indent=2, ensure_ascii=False))
+        print(json.dumps({"passed": len(violations) == 0, "violations": violations}, indent=2, ensure_ascii=False))
     else:
         print(format_violations_human(violations))
 

@@ -68,6 +68,7 @@ falta uno más para promover de candidata a semilla canónica.
 
 [Hilo Manus Catastro] · Sprint 86.8 · 2026-05-05
 """
+
 from __future__ import annotations
 
 SEMILLA = {
@@ -81,8 +82,7 @@ SEMILLA = {
         "consecutivos (86.7 y 86.8)."
     ),
     "criterio_promocion": (
-        "Promover a semilla canónica tras 3+ sprints consecutivos "
-        "paralelos sin colisión de archivos."
+        "Promover a semilla canónica tras 3+ sprints consecutivos paralelos sin colisión de archivos."
     ),
     "evidencia_empirica": [
         {
@@ -123,4 +123,5 @@ SEMILLA = {
 
 if __name__ == "__main__":
     import json
+
     print(json.dumps(SEMILLA, indent=2, ensure_ascii=False))

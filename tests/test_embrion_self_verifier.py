@@ -16,7 +16,6 @@ Fixtures reales extraídas de producción en
 from __future__ import annotations
 
 import json
-import os
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
@@ -25,7 +24,6 @@ from uuid import uuid4
 import pytest
 
 from kernel import embrion_self_verifier as sv
-
 
 FIXTURE_PATH = Path(__file__).parent / "fixtures" / "embrion_loop_samples.json"
 
@@ -47,33 +45,34 @@ class FakeClient:
 
         ca = params.get("created_at", "")
         if ca.startswith("gte."):
-            cutoff = ca[len("gte."):]
+            cutoff = ca[len("gte.") :]
             rows = [r for r in rows if (r.get("created_at") or "") >= cutoff]
 
         # tipo=in.(a,b)
         tin = params.get("tipo", "")
         if tin.startswith("in."):
-            allowed = tin[len("in."):].strip("()").split(",")
+            allowed = tin[len("in.") :].strip("()").split(",")
             rows = [r for r in rows if r.get("tipo") in allowed]
 
         for k, v in params.items():
-            if k in ("created_at","select","limit","order","tipo"): continue
+            if k in ("created_at", "select", "limit", "order", "tipo"):
+                continue
             if isinstance(v, str) and v.startswith("eq."):
-                expected = v[len("eq."):]
+                expected = v[len("eq.") :]
                 rows = [r for r in rows if str(r.get(k)) == expected]
             if isinstance(v, str) and v.startswith("in."):
-                allowed = v[len("in."):].strip("()").split(",")
+                allowed = v[len("in.") :].strip("()").split(",")
                 rows = [r for r in rows if r.get(k) in allowed]
 
         order = params.get("order", "")
         if order:
             field, _, direction = order.partition(".")
-            rows.sort(key=lambda r: (r.get(field) or ""), reverse=(direction == "desc"))
+            rows.sort(key=lambda r: r.get(field) or "", reverse=(direction == "desc"))
 
         lim = params.get("limit")
         if lim:
             rows = rows[: int(lim)]
-        return rows, {"Content-Range": f"0-{max(0, len(rows)-1)}/{len(rows)}"}
+        return rows, {"Content-Range": f"0-{max(0, len(rows) - 1)}/{len(rows)}"}
 
     def insert(self, table: str, payload: Any):
         self.calls.append(("insert", table, payload))
@@ -88,6 +87,7 @@ class FakeClient:
 
 
 # ── Funciones puras
+
 
 def test_normalize_strips_accents_and_punct():
     norm = sv._normalize_thought("¡Hola, Alfredo! ¿Cómo estás?  ")
@@ -121,6 +121,7 @@ def test_jaccard_disjunto_es_0():
 
 # ── D1: PURPOSE
 
+
 def test_d1_purpose_detecta_match_por_keyword():
     ok, reason = sv.evaluate_purpose("Voy a escribir código del kernel del embrión")
     assert ok is True
@@ -153,6 +154,7 @@ def test_d1_purpose_rechaza_thought_vacio():
 
 # ── D3: VERIFIABLE
 
+
 def test_d3_detecta_voy_a_escribir():
     ok, _ = sv.evaluate_verifiable("Voy a escribir el módulo embrion_budget.py")
     assert ok is True
@@ -175,9 +177,7 @@ def test_d3_rechaza_eco_puro():
 
 def test_d3_rechaza_repeticion_de_parametros():
     # patrón observado en bucle real
-    ok, _ = sv.evaluate_verifiable(
-        "Recibido, parámetros confirmados:\n1. Cap por latido: $0.25\n2. Self-Verifier"
-    )
+    ok, _ = sv.evaluate_verifiable("Recibido, parámetros confirmados:\n1. Cap por latido: $0.25\n2. Self-Verifier")
     # "self-verifier" referencia a un módulo, podría matchear path. Test conservador:
     # si tiene un nombre de módulo (path-like), pasa. Si no, no.
     # Aquí no hay path explícito ni acción concreta, pero tiene "$0.25" → no es marker.
@@ -187,10 +187,12 @@ def test_d3_rechaza_repeticion_de_parametros():
 
 # ── D2: NOVELTY (con FakeClient)
 
+
 def test_d2_novelty_thought_unico_en_24h():
     fake = FakeClient(prefilled={"embrion_memoria": []})
     ok, reason, mid, score = sv.evaluate_novelty(
-        "Voy a implementar el Budget Tracker", supabase_client=fake,
+        "Voy a implementar el Budget Tracker",
+        supabase_client=fake,
     )
     assert ok is True
     assert score == 0.0
@@ -199,11 +201,13 @@ def test_d2_novelty_thought_unico_en_24h():
 def test_d2_novelty_match_exacto_es_repetido():
     today = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
     thought = "Voy a implementar el Budget Tracker para el embrión"
-    fake = FakeClient(prefilled={
-        "embrion_memoria": [
-            {"id": "abc-123", "tipo": "respuesta_embrion", "contenido": thought, "created_at": today},
-        ],
-    })
+    fake = FakeClient(
+        prefilled={
+            "embrion_memoria": [
+                {"id": "abc-123", "tipo": "respuesta_embrion", "contenido": thought, "created_at": today},
+            ],
+        }
+    )
     ok, reason, mid, score = sv.evaluate_novelty(thought, supabase_client=fake)
     assert ok is False
     assert reason == "exact_hash_match_24h"
@@ -213,15 +217,18 @@ def test_d2_novelty_match_exacto_es_repetido():
 
 def test_d2_novelty_jaccard_alto_es_repetido():
     today = (datetime.now(timezone.utc) - timedelta(hours=2)).isoformat()
-    fake = FakeClient(prefilled={
-        "embrion_memoria": [
-            {
-                "id": "abc-456", "tipo": "respuesta_embrion",
-                "contenido": "Voy a implementar el Budget Tracker para el embrion del Monstruo",
-                "created_at": today,
-            },
-        ],
-    })
+    fake = FakeClient(
+        prefilled={
+            "embrion_memoria": [
+                {
+                    "id": "abc-456",
+                    "tipo": "respuesta_embrion",
+                    "contenido": "Voy a implementar el Budget Tracker para el embrion del Monstruo",
+                    "created_at": today,
+                },
+            ],
+        }
+    )
     # Texto casi idéntico, debería matchear por jaccard
     ok, reason, mid, score = sv.evaluate_novelty(
         "Voy a implementar el Budget Tracker para el embrion del Monstruo y luego abrir PR",
@@ -243,6 +250,7 @@ def test_d2_novelty_fail_open_si_no_hay_cliente():
 
 
 # ── verify() integración
+
 
 def test_verify_aborts_when_2_of_3_fail():
     # Eco puro: NO purpose (anti-purpose), NO verifiable. Solo D2 podría pasar.
@@ -296,6 +304,7 @@ def test_verify_only_1_no_does_not_abort():
 
 # ── Fixture real: bucle 30 abr → 1 may (REQUERIDO POR SPEC)
 
+
 def test_bucle_30_abr_1_may_se_detecta(fixtures):
     """Spec: 'demuestre detección del bucle del 30 abril → 1 mayo (10 ciclos similares)'."""
     bucle = fixtures["bucle_30_abr_1_may"]
@@ -328,9 +337,7 @@ def test_bucle_30_abr_1_may_se_detecta(fixtures):
         persist=True,
     )
     # Debe detectarlo como repetición
-    assert decision.decision_novelty is False, (
-        f"Self-Verifier debería detectar repetición. Reasons: {decision.reasons}"
-    )
+    assert decision.decision_novelty is False, f"Self-Verifier debería detectar repetición. Reasons: {decision.reasons}"
 
 
 def test_bucle_activo_10_may_se_detectaria(fixtures):
@@ -373,22 +380,46 @@ def test_bucle_activo_10_may_se_detectaria(fixtures):
 
 # ── Métrica diaria (REQUERIDO POR SPEC)
 
+
 def test_daily_metrics_calcula_ratio_aborts(fixtures):
     """Spec: 'Métrica registrada: ratio de aborts por self-verifier vs cycles totales.'"""
     today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     today = (datetime.now(timezone.utc) - timedelta(hours=1)).isoformat()
 
-    fake = FakeClient(prefilled={
-        "loop_detection_log": [
-            {"detected_pattern": "self_verifier_abort", "aborted": True,  "decision_purpose": False, "decision_novelty": True,  "decision_verifiable": False, "created_at": today},
-            {"detected_pattern": "self_verifier_abort", "aborted": True,  "decision_purpose": True,  "decision_novelty": False, "decision_verifiable": False, "created_at": today},
-            {"detected_pattern": "self_verifier_pass",  "aborted": False, "decision_purpose": True,  "decision_novelty": True,  "decision_verifiable": True,  "created_at": today},
-        ],
-    })
+    fake = FakeClient(
+        prefilled={
+            "loop_detection_log": [
+                {
+                    "detected_pattern": "self_verifier_abort",
+                    "aborted": True,
+                    "decision_purpose": False,
+                    "decision_novelty": True,
+                    "decision_verifiable": False,
+                    "created_at": today,
+                },
+                {
+                    "detected_pattern": "self_verifier_abort",
+                    "aborted": True,
+                    "decision_purpose": True,
+                    "decision_novelty": False,
+                    "decision_verifiable": False,
+                    "created_at": today,
+                },
+                {
+                    "detected_pattern": "self_verifier_pass",
+                    "aborted": False,
+                    "decision_purpose": True,
+                    "decision_novelty": True,
+                    "decision_verifiable": True,
+                    "created_at": today,
+                },
+            ],
+        }
+    )
     m = sv.daily_metrics(supabase_client=fake)
     assert m["evaluated_total"] == 3
     assert m["aborts"] == 2
-    assert abs(m["abort_ratio"] - (2/3)) < 1e-6
+    assert abs(m["abort_ratio"] - (2 / 3)) < 1e-6
     assert m["failed_purpose"] == 1
     assert m["failed_novelty"] == 1
     assert m["failed_verifiable"] == 2

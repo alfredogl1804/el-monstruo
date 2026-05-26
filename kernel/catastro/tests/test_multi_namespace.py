@@ -26,7 +26,6 @@ from catastro.multi_namespace import (  # noqa: E402
     validate_against_spec,
 )
 
-
 # -------------------------------------------------------------------
 # Carga de datos
 # -------------------------------------------------------------------
@@ -63,10 +62,7 @@ def test_find_best_suppliers_arquitectura() -> None:
     results = find_best("arquitectura merida", "suppliers", top_k=5)
     assert len(results) > 0
     # Esperamos que al menos uno sea de la categoría arquitectura
-    assert any(
-        e.get("categoria") == "estudios_arquitectura_interiores"
-        for e in results
-    )
+    assert any(e.get("categoria") == "estudios_arquitectura_interiores" for e in results)
 
 
 def test_find_best_empty_query_returns_empty() -> None:
@@ -123,9 +119,7 @@ def test_validate_against_spec_passes() -> None:
         import json
 
         print(json.dumps(result, indent=2, ensure_ascii=False))
-    assert result["ok"], (
-        f"Validación falló: {result['namespaces']}"
-    )
+    assert result["ok"], f"Validación falló: {result['namespaces']}"
 
 
 def test_validate_min_entries() -> None:

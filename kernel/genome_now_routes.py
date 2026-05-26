@@ -26,6 +26,7 @@ Refs:
   - bridge/sprint_91_progress.md
   - scripts/genome_live/aggregator.py
 """
+
 from __future__ import annotations
 
 import json
@@ -35,7 +36,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Header, Query
+from fastapi import APIRouter, Header, HTTPException, Query
 from fastapi.responses import JSONResponse
 
 genome_now_router = APIRouter(tags=["genome"])
@@ -90,9 +91,7 @@ def _load_genome() -> dict[str, Any]:
     try:
         return json.loads(GENOME_OUT.read_text())
     except json.JSONDecodeError as e:
-        raise HTTPException(
-            status_code=500, detail=f"genome_now.json corrupto: {e}"
-        )
+        raise HTTPException(status_code=500, detail=f"genome_now.json corrupto: {e}")
 
 
 @genome_now_router.get("/now", summary="Genome Vivo del Monstruo (estado binario)")

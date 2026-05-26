@@ -1,4 +1,5 @@
 """tests/test_cowork_sessions_dashboard.py — T6 dashboard sesiones Cowork."""
+
 from __future__ import annotations
 
 import sys
@@ -8,14 +9,16 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from kernel.cowork_runtime.session_memory import SessionMemoryStore, CoworkSesion
+from kernel.cowork_runtime.session_memory import SessionMemoryStore
 from kernel.dashboards.cowork_sessions import CoworkSessionsDashboard
 
 
 def _make_store(tmp_path: Path, sesiones: list[dict], monkeypatch=None) -> SessionMemoryStore:
     """Crea store local con datos sembrados."""
     local_path = tmp_path / "sesiones.json"
-    import json, os
+    import json
+    import os
+
     local_path.write_text(json.dumps(sesiones, ensure_ascii=False))
     # Forzar fallback local: pasar config=None explicito y borrar env vars en proceso
     for key in ("SUPABASE_URL", "SUPABASE_SERVICE_KEY"):
@@ -39,6 +42,7 @@ def test_dashboard_genera_html_vacio_sin_sesiones(tmp_path):
 
 def test_dashboard_metricas_basicas(tmp_path):
     from datetime import datetime, timezone
+
     now_iso = datetime.now(timezone.utc).isoformat()
     sesiones = [
         {
@@ -72,15 +76,18 @@ def test_dashboard_metricas_basicas(tmp_path):
 
 def test_dashboard_renderiza_kpis_correctos(tmp_path):
     from datetime import datetime, timezone
-    sesiones = [{
-        "id": "s1",
-        "fecha_inicio": datetime.now(timezone.utc).isoformat(),
-        "sprint_activo": "TEST-001",
-        "pre_flight_ejecutado": True,
-        "commits_productivos": 5,
-        "violaciones_detectadas": [],
-        "palabras_clave_alfredo": [],
-    }]
+
+    sesiones = [
+        {
+            "id": "s1",
+            "fecha_inicio": datetime.now(timezone.utc).isoformat(),
+            "sprint_activo": "TEST-001",
+            "pre_flight_ejecutado": True,
+            "commits_productivos": 5,
+            "violaciones_detectadas": [],
+            "palabras_clave_alfredo": [],
+        }
+    ]
     store = _make_store(tmp_path, sesiones)
     dash = CoworkSessionsDashboard(store=store, output_path=tmp_path / "dash.html")
     path = dash.generate()
@@ -91,6 +98,7 @@ def test_dashboard_renderiza_kpis_correctos(tmp_path):
 
 def test_dashboard_cli(tmp_path, monkeypatch):
     import subprocess
+
     out = tmp_path / "dash.html"
     # Ejecutar CLI con use_supabase=False forzado por env (sin URL)
     monkeypatch.delenv("SUPABASE_URL", raising=False)
@@ -98,7 +106,9 @@ def test_dashboard_cli(tmp_path, monkeypatch):
     monkeypatch.setenv("COWORK_SESSIONS_LOCAL_PATH", str(tmp_path / "sesiones.json"))
     result = subprocess.run(
         [sys.executable, "-m", "kernel.dashboards.cowork_sessions", "--output", str(out)],
-        cwd=REPO_ROOT, capture_output=True, text=True,
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
     )
     assert result.returncode == 0
     assert "[COWORK_DASHBOARD]" in result.stdout
@@ -107,4 +117,5 @@ def test_dashboard_cli(tmp_path, monkeypatch):
 
 if __name__ == "__main__":
     import pytest
+
     pytest.main([__file__, "-v"])

@@ -11,9 +11,9 @@ Soberanía:
     - Alternativa: permitir al usuario sobrescribir cualquier default
 """
 
-import structlog
 from dataclasses import dataclass, field
-from typing import Optional
+
+import structlog
 
 logger = structlog.get_logger("zero_config.defaults")
 
@@ -26,6 +26,7 @@ DEFAULTS_COMBINACION_NO_ENCONTRADA = (
 
 
 # ── Modelo de datos ────────────────────────────────────────────────────────────
+
 
 @dataclass
 class ProjectDefaults:
@@ -47,6 +48,7 @@ class ProjectDefaults:
     Soberanía:
         Fuentes: Google Fonts → alternativa → system fonts stack
     """
+
     theme: str
     primary_color: str
     font_heading: str
@@ -74,74 +76,122 @@ class ProjectDefaults:
 
 SMART_DEFAULTS: dict = {
     "restaurant_elegant": ProjectDefaults(
-        theme="dark", primary_color="#C9A96E", font_heading="Playfair Display",
-        font_body="Lato", layout="full-width", animations="subtle",
+        theme="dark",
+        primary_color="#C9A96E",
+        font_heading="Playfair Display",
+        font_body="Lato",
+        layout="full-width",
+        animations="subtle",
         dark_mode=True,
         components=["hero_parallax", "feature_grid", "testimonial", "contact_form", "footer"],
     ),
     "fitness_bold": ProjectDefaults(
-        theme="dark", primary_color="#FF4500", font_heading="Oswald",
-        font_body="Open Sans", layout="full-width", animations="energetic",
+        theme="dark",
+        primary_color="#FF4500",
+        font_heading="Oswald",
+        font_body="Open Sans",
+        layout="full-width",
+        animations="energetic",
         dark_mode=True,
         components=["hero_video", "stats_bar", "pricing_table", "testimonial", "cta_section", "footer"],
     ),
     "tech_minimal": ProjectDefaults(
-        theme="light", primary_color="#2563EB", font_heading="Inter",
-        font_body="Inter", layout="contained", animations="subtle",
+        theme="light",
+        primary_color="#2563EB",
+        font_heading="Inter",
+        font_body="Inter",
+        layout="contained",
+        animations="subtle",
         dark_mode=False,
         components=["navbar", "hero_split", "feature_grid", "pricing_table", "faq", "footer"],
     ),
     "fashion_elegant": ProjectDefaults(
-        theme="light", primary_color="#1A1A1A", font_heading="Cormorant Garamond",
-        font_body="Montserrat", layout="editorial", animations="smooth",
+        theme="light",
+        primary_color="#1A1A1A",
+        font_heading="Cormorant Garamond",
+        font_body="Montserrat",
+        layout="editorial",
+        animations="smooth",
         dark_mode=False,
         components=["navbar", "hero_centered", "product_card", "testimonial", "newsletter", "footer"],
     ),
     "creative_playful": ProjectDefaults(
-        theme="light", primary_color="#7C3AED", font_heading="Space Grotesk",
-        font_body="DM Sans", layout="asymmetric", animations="playful",
+        theme="light",
+        primary_color="#7C3AED",
+        font_heading="Space Grotesk",
+        font_body="DM Sans",
+        layout="asymmetric",
+        animations="playful",
         dark_mode=False,
         components=["navbar", "hero_split", "timeline", "gallery", "contact_form", "footer"],
     ),
     "health_clean": ProjectDefaults(
-        theme="light", primary_color="#059669", font_heading="Nunito",
-        font_body="Nunito", layout="contained", animations="gentle",
+        theme="light",
+        primary_color="#059669",
+        font_heading="Nunito",
+        font_body="Nunito",
+        layout="contained",
+        animations="gentle",
         dark_mode=False,
         components=["navbar", "hero_centered", "feature_grid", "testimonial", "contact_form", "footer"],
     ),
     "ecommerce_clean": ProjectDefaults(
-        theme="light", primary_color="#F59E0B", font_heading="Poppins",
-        font_body="Inter", layout="contained", animations="subtle",
+        theme="light",
+        primary_color="#F59E0B",
+        font_heading="Poppins",
+        font_body="Inter",
+        layout="contained",
+        animations="subtle",
         dark_mode=False,
         components=["navbar", "hero_banner", "product_grid", "cart", "checkout", "footer"],
     ),
     "consulting_minimal": ProjectDefaults(
-        theme="light", primary_color="#1E40AF", font_heading="IBM Plex Sans",
-        font_body="IBM Plex Sans", layout="contained", animations="subtle",
+        theme="light",
+        primary_color="#1E40AF",
+        font_heading="IBM Plex Sans",
+        font_body="IBM Plex Sans",
+        layout="contained",
+        animations="subtle",
         dark_mode=False,
         components=["navbar", "hero_split", "services_grid", "team", "testimonial", "contact_form", "footer"],
     ),
     "education_friendly": ProjectDefaults(
-        theme="light", primary_color="#7C3AED", font_heading="Nunito",
-        font_body="Nunito", layout="contained", animations="gentle",
+        theme="light",
+        primary_color="#7C3AED",
+        font_heading="Nunito",
+        font_body="Nunito",
+        layout="contained",
+        animations="gentle",
         dark_mode=False,
         components=["navbar", "hero_centered", "course_grid", "instructor_profiles", "pricing_table", "footer"],
     ),
     "real_estate_minimal": ProjectDefaults(
-        theme="light", primary_color="#0F172A", font_heading="Raleway",
-        font_body="Open Sans", layout="full-width", animations="subtle",
+        theme="light",
+        primary_color="#0F172A",
+        font_heading="Raleway",
+        font_body="Open Sans",
+        layout="full-width",
+        animations="subtle",
         dark_mode=False,
         components=["navbar", "hero_search", "property_grid", "map", "contact_form", "footer"],
     ),
     "travel_vibrant": ProjectDefaults(
-        theme="light", primary_color="#0EA5E9", font_heading="Poppins",
-        font_body="Inter", layout="full-width", animations="smooth",
+        theme="light",
+        primary_color="#0EA5E9",
+        font_heading="Poppins",
+        font_body="Inter",
+        layout="full-width",
+        animations="smooth",
         dark_mode=False,
         components=["navbar", "hero_parallax", "destination_grid", "testimonial", "booking_form", "footer"],
     ),
     "food_delivery_bold": ProjectDefaults(
-        theme="light", primary_color="#EF4444", font_heading="Poppins",
-        font_body="Inter", layout="full-width", animations="energetic",
+        theme="light",
+        primary_color="#EF4444",
+        font_heading="Poppins",
+        font_body="Inter",
+        layout="full-width",
+        animations="energetic",
         dark_mode=False,
         components=["navbar", "hero_banner", "category_grid", "restaurant_cards", "cart", "footer"],
     ),

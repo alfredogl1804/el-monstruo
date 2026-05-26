@@ -27,8 +27,6 @@ Creado: 2026-04-08 (P0 auditoría sabios)
 """
 
 import re
-from typing import Optional
-
 
 # ═══════════════════════════════════════════════════════════════════
 # CONFIGURACIÓN
@@ -75,6 +73,7 @@ GRADE_THRESHOLDS = {
 # ═══════════════════════════════════════════════════════════════════
 # EVALUACIÓN INDIVIDUAL
 # ═══════════════════════════════════════════════════════════════════
+
 
 def evaluate_response(
     respuesta: str,
@@ -165,12 +164,8 @@ def evaluate_response(
 
     # 5. Alineación con la pregunta
     if pregunta:
-        pregunta_words = set(
-            w.lower() for w in re.findall(r"\b\w{4,}\b", pregunta)
-        )
-        respuesta_words = set(
-            w.lower() for w in re.findall(r"\b\w{4,}\b", respuesta)
-        )
+        pregunta_words = set(w.lower() for w in re.findall(r"\b\w{4,}\b", pregunta))
+        respuesta_words = set(w.lower() for w in re.findall(r"\b\w{4,}\b", respuesta))
         if pregunta_words:
             overlap = len(pregunta_words & respuesta_words) / len(pregunta_words)
             subscores["alignment"] = min(1.0, overlap * 2)  # 50% overlap = 1.0
@@ -187,7 +182,7 @@ def evaluate_response(
         unique_ratio = len(set(sentences)) / len(sentences)
         subscores["repetition"] = unique_ratio
         if unique_ratio < 0.7:
-            reasons.append(f"Repetición excesiva ({1-unique_ratio:.0%} duplicado)")
+            reasons.append(f"Repetición excesiva ({1 - unique_ratio:.0%} duplicado)")
     else:
         subscores["repetition"] = 0.5
 
@@ -242,6 +237,7 @@ def evaluate_response(
 # EVALUACIÓN BATCH
 # ═══════════════════════════════════════════════════════════════════
 
+
 def evaluate_all(resultados: list, pregunta: str = "") -> list:
     """
     Evalúa todas las respuestas de los sabios.
@@ -256,22 +252,26 @@ def evaluate_all(resultados: list, pregunta: str = "") -> list:
     evaluaciones = []
     for r in resultados:
         if not r.get("exito"):
-            evaluaciones.append({
-                "sabio_id": r.get("sabio_id", "unknown"),
-                "grade": "insufficient",
-                "score": 0.0,
-                "subscores": {},
-                "reasons": [f"No respondió: {r.get('error', 'Error desconocido')[:100]}"],
-                "recommendation": "exclude",
-                "chars": 0,
-                "words": 0,
-            })
+            evaluaciones.append(
+                {
+                    "sabio_id": r.get("sabio_id", "unknown"),
+                    "grade": "insufficient",
+                    "score": 0.0,
+                    "subscores": {},
+                    "reasons": [f"No respondió: {r.get('error', 'Error desconocido')[:100]}"],
+                    "recommendation": "exclude",
+                    "chars": 0,
+                    "words": 0,
+                }
+            )
         else:
-            evaluaciones.append(evaluate_response(
-                respuesta=r.get("respuesta", ""),
-                pregunta=pregunta,
-                sabio_id=r.get("sabio_id", "unknown"),
-            ))
+            evaluaciones.append(
+                evaluate_response(
+                    respuesta=r.get("respuesta", ""),
+                    pregunta=pregunta,
+                    sabio_id=r.get("sabio_id", "unknown"),
+                )
+            )
     return evaluaciones
 
 

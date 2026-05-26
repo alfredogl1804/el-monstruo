@@ -448,8 +448,13 @@ class TestDashboard:
 
         data = {
             "fetched_at": "now",
-            "summary_24h": {"total_rows": 1, "pending": 0, "consumed": 1,
-                            "total_positive_units": "0", "total_negative_units": "0"},
+            "summary_24h": {
+                "total_rows": 1,
+                "pending": 0,
+                "consumed": 1,
+                "total_positive_units": "0",
+                "total_negative_units": "0",
+            },
             "by_source_24h": [],
             "recharge_today": {"cycles": 0, "total_recharged_usd": "0"},
             "latest_activities": [

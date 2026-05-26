@@ -5,12 +5,11 @@ Ejecutar desde la raíz del repo: python kernel/catastro/tests/run_tests_standal
 
 from __future__ import annotations
 
-import sys
-from pathlib import Path
-
 # Bypass __init__.py del catastro (que importa pydantic/dashboard pesados)
 # cargando multi_namespace.py directamente con importlib.
 import importlib.util
+import sys
+from pathlib import Path
 
 MODULE_PATH = Path(__file__).resolve().parent.parent / "multi_namespace.py"
 spec = importlib.util.spec_from_file_location("multi_namespace", MODULE_PATH)
@@ -56,7 +55,7 @@ def run() -> int:
         assert len(results) > 0
         # Esperamos al menos un match con keyword 'merida' (id contiene merida)
         merida_matches = [e for e in results if "merida" in str(e.get("id", "")).lower()]
-        assert len(merida_matches) > 0, f"esperaba matches con 'merida' en id"
+        assert len(merida_matches) > 0, "esperaba matches con 'merida' en id"
         print(f"PASS test_find_best_suppliers_merida ({len(merida_matches)} merida matches)")
     except AssertionError as exc:
         print(f"FAIL test_find_best_suppliers_merida: {exc}")
@@ -98,9 +97,7 @@ def run() -> int:
         selected = tools[0]
         peers = peers_of(selected["id"], "tools", same_category=True)
         assert isinstance(peers, list)
-        print(
-            f"PASS test_e2e_workflow (selected={selected['id']}, peers={len(peers)})"
-        )
+        print(f"PASS test_e2e_workflow (selected={selected['id']}, peers={len(peers)})")
     except AssertionError as exc:
         print(f"FAIL test_e2e_workflow: {exc}")
         failed += 1

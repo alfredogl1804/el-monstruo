@@ -5,13 +5,16 @@ contra un modelo externo (Gemini) para validar comprensión ciega.
 SPR-RISK-CLASSIFICATION-001 — Phase 5
 """
 
-import os
 import json
-import requests
+import os
 from datetime import datetime, timezone
 
+import requests
+
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
-GEMINI_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+GEMINI_URL = (
+    f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={GEMINI_API_KEY}"
+)
 
 # Las 15 preguntas del Restore Test (sin respuestas)
 QUESTIONS = [
@@ -29,7 +32,7 @@ QUESTIONS = [
     "Si el Oráculo genera un catálogo con fechas actuales, pero la fuente dice 'static_v0_seed', ¿qué debe hacer el Auditor?",
     "¿Qué evento registra el Auditor en el State Fabric al terminar?",
     "¿Cómo se llama el componente que verifica si la acción del Auditor está permitida por su contrato?",
-    "¿Qué decisión T1 queda pendiente tras este sprint?"
+    "¿Qué decisión T1 queda pendiente tras este sprint?",
 ]
 
 # Respuestas correctas (keywords clave para scoring)
@@ -48,7 +51,7 @@ ANSWER_KEYS = [
     ["finding", "evidence discipline", "static"],
     ["audit_completed"],
     ["preflight_check", "policy engine"],
-    ["vigilia", "oracle", "m2", "apis"]
+    ["vigilia", "oracle", "m2", "apis"],
 ]
 
 # Contexto mínimo para el modelo externo (sin dar respuestas)
@@ -77,17 +80,12 @@ Responde cada pregunta de forma concisa (1-3 oraciones máximo). No inventes inf
 def call_gemini(questions_text):
     """Llama a Gemini con las 15 preguntas."""
     payload = {
-        "contents": [{
-            "parts": [{
-                "text": f"{CONTEXT}\n\n---\n\nResponde las siguientes 15 preguntas:\n\n{questions_text}"
-            }]
-        }],
-        "generationConfig": {
-            "temperature": 0.1,
-            "maxOutputTokens": 4096
-        }
+        "contents": [
+            {"parts": [{"text": f"{CONTEXT}\n\n---\n\nResponde las siguientes 15 preguntas:\n\n{questions_text}"}]}
+        ],
+        "generationConfig": {"temperature": 0.1, "maxOutputTokens": 4096},
     }
-    
+
     response = requests.post(GEMINI_URL, json=payload, timeout=60)
     response.raise_for_status()
     data = response.json()
@@ -106,14 +104,14 @@ def score_answer(answer_text, keywords):
 def main():
     print("=" * 60)
     print("RESTORE TEST EXTERNO — Loop Auditor")
-    print(f"Modelo: Gemini 2.5 Flash")
+    print("Modelo: Gemini 2.5 Flash")
     print(f"Fecha: {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')}")
     print("=" * 60)
     print()
-    
+
     # Formatear preguntas
-    questions_text = "\n".join([f"{i+1}. {q}" for i, q in enumerate(QUESTIONS)])
-    
+    questions_text = "\n".join([f"{i + 1}. {q}" for i, q in enumerate(QUESTIONS)])
+
     # Llamar al modelo
     print("Enviando 15 preguntas a Gemini 2.5 Flash...")
     try:
@@ -121,11 +119,11 @@ def main():
     except Exception as e:
         print(f"ERROR: {e}")
         return
-    
+
     print("\n--- RESPUESTAS DEL MODELO ---\n")
     print(response_text)
     print("\n--- SCORING ---\n")
-    
+
     # Parsear respuestas (split por números)
     answers = []
     lines = response_text.split("\n")
@@ -141,31 +139,33 @@ def main():
             current_answer += " " + stripped
     if current_answer:
         answers.append(current_answer.strip())
-    
+
     # Si no se parsearon bien, usar el texto completo dividido
     if len(answers) < 15:
         print(f"[WARN] Solo se parsearon {len(answers)} respuestas. Usando texto completo para scoring.")
         # Fallback: score against full text
         answers = [response_text] * 15
-    
+
     # Scoring
     results = []
     passed = 0
     for i in range(15):
         answer = answers[i] if i < len(answers) else ""
         is_pass = score_answer(answer, ANSWER_KEYS[i])
-        results.append({
-            "question_num": i + 1,
-            "question": QUESTIONS[i],
-            "answer_excerpt": answer[:200],
-            "keywords_checked": ANSWER_KEYS[i],
-            "result": "PASS" if is_pass else "FAIL"
-        })
+        results.append(
+            {
+                "question_num": i + 1,
+                "question": QUESTIONS[i],
+                "answer_excerpt": answer[:200],
+                "keywords_checked": ANSWER_KEYS[i],
+                "result": "PASS" if is_pass else "FAIL",
+            }
+        )
         status = "PASS" if is_pass else "FAIL"
         if is_pass:
             passed += 1
-        print(f"  Q{i+1:02d}: {status}")
-    
+        print(f"  Q{i + 1:02d}: {status}")
+
     # Veredicto
     print(f"\n{'=' * 60}")
     print(f"SCORE: {passed}/15")
@@ -177,7 +177,7 @@ def main():
         verdict = "FAIL"
     print(f"VERDICT: {verdict}")
     print(f"{'=' * 60}")
-    
+
     # Guardar resultado
     result_doc = {
         "test_type": "RESTORE_TEST_EXTERNAL",
@@ -190,13 +190,13 @@ def main():
         "score": f"{passed}/15",
         "verdict": verdict,
         "results": results,
-        "raw_response": response_text
+        "raw_response": response_text,
     }
-    
+
     output_path = os.path.join(os.path.dirname(__file__), "external_restore_test_result.json")
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(result_doc, f, indent=2, ensure_ascii=False)
-    
+
     print(f"\nResultado guardado en: {output_path}")
 
 

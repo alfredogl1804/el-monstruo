@@ -34,6 +34,7 @@ Wiring en produccion (kernel/main.py, post db.connect()):
 
 Origen: DSC-V-001, DSC-G-017.
 """
+
 from kernel.validation._storage_supabase import SupabaseStorage
 from kernel.validation.perplexity_decorator import (
     ClaimRecord,

@@ -17,7 +17,6 @@ from kernel.brand.brand_dna import (
 )
 from kernel.brand.validator import BrandAuditReport, BrandValidationResult, BrandValidator
 
-
 # ═══════════════════════════════════════════════════════════════════════
 # BRAND DNA — Structure Tests
 # ═══════════════════════════════════════════════════════════════════════
@@ -111,36 +110,39 @@ class TestTokenizeIdentifier:
 # ═══════════════════════════════════════════════════════════════════════
 
 
-@pytest.mark.parametrize("name,expected_compliant", [
-    # Compliant
-    ("forja", True),
-    ("embrion_loop", True),
-    ("forja_dashboard", True),
-    ("MagnaClassifier", True),
-    ("multi_agent", True),
-    ("tool_broker", True),
-    # Non-compliant — directo
-    ("handler", False),
-    ("service", False),
-    ("manager", False),
-    # Non-compliant — snake_case (bug histórico)
-    ("data_handler", False),
-    ("user_service", False),
-    ("dispatch_handler", False),
-    ("utils_helper", False),
-    ("service_module", False),
-    # Non-compliant — camelCase
-    ("MyHelper", False),
-    ("messageManager", False),
-    ("URLHelper", False),
-    # Non-compliant — kebab-case y dot.notation
-    ("event-handler", False),
-    ("api.utils.helper", False),
-    # Edge cases
-    ("", False),
-    (None, False),
-    ("forjA", True),  # case insensitive sí, pero "forja" no es prohibido
-])
+@pytest.mark.parametrize(
+    "name,expected_compliant",
+    [
+        # Compliant
+        ("forja", True),
+        ("embrion_loop", True),
+        ("forja_dashboard", True),
+        ("MagnaClassifier", True),
+        ("multi_agent", True),
+        ("tool_broker", True),
+        # Non-compliant — directo
+        ("handler", False),
+        ("service", False),
+        ("manager", False),
+        # Non-compliant — snake_case (bug histórico)
+        ("data_handler", False),
+        ("user_service", False),
+        ("dispatch_handler", False),
+        ("utils_helper", False),
+        ("service_module", False),
+        # Non-compliant — camelCase
+        ("MyHelper", False),
+        ("messageManager", False),
+        ("URLHelper", False),
+        # Non-compliant — kebab-case y dot.notation
+        ("event-handler", False),
+        ("api.utils.helper", False),
+        # Edge cases
+        ("", False),
+        (None, False),
+        ("forjA", True),  # case insensitive sí, pero "forja" no es prohibido
+    ],
+)
 def test_validate_output_name(name, expected_compliant):
     assert validate_output_name(name) == expected_compliant
 

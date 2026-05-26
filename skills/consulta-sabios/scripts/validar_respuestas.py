@@ -74,7 +74,7 @@ async def extraer_afirmaciones(respuestas: str, profundidad: str) -> dict:
     print("🔍 Paso 1: Extrayendo afirmaciones verificables de las respuestas...")
 
     prompt = f"""Analiza las siguientes respuestas de 6 modelos de IA y extrae las afirmaciones verificables.
-Fecha de hoy: {datetime.now().strftime('%d de %B de %Y')}
+Fecha de hoy: {datetime.now().strftime("%d de %B de %Y")}
 Profundidad: {profundidad}
 
 RESPUESTAS DE LOS SABIOS:
@@ -115,13 +115,14 @@ Extrae las afirmaciones verificables ahora."""
 # PASO 2: Perplexity verifica cada afirmación
 # ═══════════════════════════════════════════════════════════════════
 
+
 async def verificar_afirmacion(af: dict) -> dict:
     """Verifica una afirmación individual contra la realidad actual."""
-    prompt = f"""Verifica si la siguiente afirmación sigue siendo correcta al día de hoy ({datetime.now().strftime('%d de %B de %Y')}):
+    prompt = f"""Verifica si la siguiente afirmación sigue siendo correcta al día de hoy ({datetime.now().strftime("%d de %B de %Y")}):
 
-AFIRMACIÓN: "{af['texto']}"
-TIPO: {af['tipo']}
-QUERY DE VERIFICACIÓN: {af['query_verificacion']}
+AFIRMACIÓN: "{af["texto"]}"
+TIPO: {af["tipo"]}
+QUERY DE VERIFICACIÓN: {af["query_verificacion"]}
 
 Responde de forma concisa (máximo 200 palabras):
 1. ¿Es correcta, parcialmente correcta, o incorrecta HOY?
@@ -150,9 +151,9 @@ async def investigar_tema_faltante(tema: dict) -> dict:
     """Investiga un tema que ningún sabio mencionó."""
     prompt = f"""Investiga el siguiente tema que es relevante pero no fue mencionado por ningún modelo de IA:
 
-TEMA: {tema['tema']}
+TEMA: {tema["tema"]}
 
-Proporciona información actualizada al día de hoy ({datetime.now().strftime('%d de %B de %Y')}).
+Proporciona información actualizada al día de hoy ({datetime.now().strftime("%d de %B de %Y")}).
 Máximo 300 palabras. Incluye datos concretos y fuentes."""
 
     async with PERPLEXITY_SEMAPHORE:
@@ -173,6 +174,7 @@ Máximo 300 palabras. Incluye datos concretos y fuentes."""
 # ═══════════════════════════════════════════════════════════════════
 # PASO 3: Compilar Informe de Validación
 # ═══════════════════════════════════════════════════════════════════
+
 
 def compilar_informe(verificaciones: list, temas_nuevos: list) -> str:
     """Compila el informe de validación final."""
@@ -203,7 +205,7 @@ def compilar_informe(verificaciones: list, temas_nuevos: list) -> str:
             lines.append("")
 
             for v in verifs:
-                lines.append(f"**Afirmación ({v['sabio']}):** \"{v['afirmacion']}\"")
+                lines.append(f'**Afirmación ({v["sabio"]}):** "{v["afirmacion"]}"')
                 lines.append("")
                 lines.append(f"**Verificación:** {v['verificacion']}")
                 lines.append("")
@@ -225,13 +227,15 @@ def compilar_informe(verificaciones: list, temas_nuevos: list) -> str:
                 lines.append("")
 
     # Instrucción para el orquestador
-    lines.extend([
-        "## Instrucción para el Orquestador (GPT-5.4)",
-        "",
-        "Al generar la síntesis final, incorpora las correcciones de este informe.",
-        "Si una afirmación fue marcada como desactualizada o incorrecta, la síntesis",
-        "debe reflejar la información correcta y actualizada, no la versión original del sabio.",
-    ])
+    lines.extend(
+        [
+            "## Instrucción para el Orquestador (GPT-5.4)",
+            "",
+            "Al generar la síntesis final, incorpora las correcciones de este informe.",
+            "Si una afirmación fue marcada como desactualizada o incorrecta, la síntesis",
+            "debe reflejar la información correcta y actualizada, no la versión original del sabio.",
+        ]
+    )
 
     return "\n".join(lines)
 
@@ -240,12 +244,17 @@ def compilar_informe(verificaciones: list, temas_nuevos: list) -> str:
 # MAIN
 # ═══════════════════════════════════════════════════════════════════
 
+
 async def main():
     parser = argparse.ArgumentParser(description="Validación post-consulta en tiempo real")
     parser.add_argument("--respuestas", required=True, help="Ruta al archivo de respuestas combinadas")
     parser.add_argument("--output", required=True, help="Ruta de salida para el informe de validación")
-    parser.add_argument("--profundidad", choices=["rapida", "normal", "profunda"], default="normal",
-                        help="Profundidad de validación (default: normal)")
+    parser.add_argument(
+        "--profundidad",
+        choices=["rapida", "normal", "profunda"],
+        default="normal",
+        help="Profundidad de validación (default: normal)",
+    )
 
     args = parser.parse_args()
 
@@ -283,8 +292,8 @@ async def main():
 
     # Ejecutar todo en paralelo
     todos = await asyncio.gather(*(tareas_verif + tareas_temas))
-    verificaciones = todos[:len(afirmaciones)]
-    temas_nuevos = todos[len(afirmaciones):]
+    verificaciones = todos[: len(afirmaciones)]
+    temas_nuevos = todos[len(afirmaciones) :]
 
     v_exitosas = sum(1 for v in verificaciones if v["exito"])
     t_exitosos = sum(1 for t in temas_nuevos if t["exito"])

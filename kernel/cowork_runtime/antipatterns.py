@@ -22,6 +22,7 @@ Doctrina:
 Spec firmado: bridge/sprints_propuestos/sprint_COWORK_AUTO_DISCIPLINE_REAL_001.md commit d53b80ff
 DSCs referenciados: DSC-S-016, DSC-G-008 v3, DSC-MO-006 v1.1, DSC-S-012.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -163,6 +164,7 @@ def all_new_ids() -> list[str]:
 # ============================================================================
 # Re-export F1-F22 desde rule_reinjection (fuente histórica canónica)
 # ============================================================================
+
 
 def get_canonical_hard_rules() -> str:
     """

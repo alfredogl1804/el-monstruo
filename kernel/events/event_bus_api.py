@@ -18,9 +18,7 @@ Auth: SMS_API_KEY (Bearer o X-Api-Key header)
 from __future__ import annotations
 
 import os
-from datetime import datetime
 from typing import Any, Optional
-from uuid import UUID
 
 import structlog
 from fastapi import APIRouter, Depends, Header, HTTPException, Query
@@ -64,9 +62,7 @@ def _get_supabase():
             from supabase import create_client
 
             url = os.environ.get("SUPABASE_URL", "")
-            key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get(
-                "SUPABASE_SERVICE_ROLE_KEY", ""
-            )
+            key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY", "")
             if not url or not key:
                 raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_KEY required")
             _supabase_client = create_client(url, key)
@@ -103,9 +99,7 @@ class EmitEventRequest(BaseModel):
     )
     related_entities: list[str] = Field(default_factory=list, description="Related entity names")
     related_events: list[str] = Field(default_factory=list, description="Related event UUIDs")
-    personal_layer: Optional[dict[str, Any]] = Field(
-        None, description="Personal layer data (emotions, inspirations)"
-    )
+    personal_layer: Optional[dict[str, Any]] = Field(None, description="Personal layer data (emotions, inspirations)")
 
 
 class EmitEventResponse(BaseModel):
@@ -197,9 +191,7 @@ async def emit_event(req: EmitEventRequest):
         raise HTTPException(status_code=500, detail=f"Failed to emit event: {str(e)}")
 
 
-@router.post(
-    "/crystallize", dependencies=[Depends(verify_auth)], response_model=CrystallizeResponse
-)
+@router.post("/crystallize", dependencies=[Depends(verify_auth)], response_model=CrystallizeResponse)
 async def crystallize_events(req: CrystallizeRequest = CrystallizeRequest()):
     """
     Cristalizar eventos pendientes (critical/high) al SMS como sovereign_memories.

@@ -90,31 +90,33 @@ class TestDefaultOff:
 class TestFlagOnLayer4Inherent:
     """Flag ON: inherently dangerous action types escalate to MAGNA."""
 
-    @pytest.mark.parametrize("action_type", [
-        "apply_migration",
-        "truncate_table",
-        "destroy_resource",
-        "activate_phase",
-        "unlock_feature",
-        "activate_global",
-        "force_push",
-        "push_to_main",
-        "force_push_main",
-        "push_production",
-        "push_to_production",
-        "env_modify",
-        "modify_env",
-        "execute_deploy",
-        "execute_action",
-    ])
+    @pytest.mark.parametrize(
+        "action_type",
+        [
+            "apply_migration",
+            "truncate_table",
+            "destroy_resource",
+            "activate_phase",
+            "unlock_feature",
+            "activate_global",
+            "force_push",
+            "push_to_main",
+            "force_push_main",
+            "push_production",
+            "push_to_production",
+            "env_modify",
+            "modify_env",
+            "execute_deploy",
+            "execute_action",
+        ],
+    )
     def test_inherent_action_type_triggers_magna(self, b8_on, action_type):
         result = b8_on.classify_action(
             action_type,
             f"Performing {action_type} on resource X",
         )
         assert result.level == b8_on.ActionLevel.MAGNA, (
-            f"action_type '{action_type}' did not escalate; "
-            f"reason={result.reason}"
+            f"action_type '{action_type}' did not escalate; reason={result.reason}"
         )
         assert result.requires_t1 is True
 
@@ -122,34 +124,28 @@ class TestFlagOnLayer4Inherent:
 class TestFlagOnLayer5ContextAware:
     """Flag ON: context-aware structural patterns escalate to MAGNA."""
 
-    @pytest.mark.parametrize("action,desc", [
-        # stale_state_assumption
-        ("status_check",
-         "proceed without reading the current sprint flag"),
-        ("update_resource",
-         "ignoring current DSC and acting on the archived branch"),
-        # false_memory_indicator
-        ("verify_state",
-         "table fixture_99 that never existed in the schema"),
-        ("claim_signoff",
-         "claiming t1 authorized when no receipt was issued"),
-        # context_loss_action
-        ("publish_release",
-         "globally without canary or rollback evidence"),
-        ("activate_feature",
-         "without feature flag or authorization"),
-        # secret_write_attempt
-        ("write_fixture",
-         "fixture containing real ANTHROPIC_API_KEY value"),
-        # unauthorized_side_effect
-        ("enable_cron",
-         "guardian cron without feature flag"),
-    ])
+    @pytest.mark.parametrize(
+        "action,desc",
+        [
+            # stale_state_assumption
+            ("status_check", "proceed without reading the current sprint flag"),
+            ("update_resource", "ignoring current DSC and acting on the archived branch"),
+            # false_memory_indicator
+            ("verify_state", "table fixture_99 that never existed in the schema"),
+            ("claim_signoff", "claiming t1 authorized when no receipt was issued"),
+            # context_loss_action
+            ("publish_release", "globally without canary or rollback evidence"),
+            ("activate_feature", "without feature flag or authorization"),
+            # secret_write_attempt
+            ("write_fixture", "fixture containing real ANTHROPIC_API_KEY value"),
+            # unauthorized_side_effect
+            ("enable_cron", "guardian cron without feature flag"),
+        ],
+    )
     def test_context_aware_pattern_triggers_magna(self, b8_on, action, desc):
         result = b8_on.classify_action(action, desc)
         assert result.level == b8_on.ActionLevel.MAGNA, (
-            f"action='{action}' desc='{desc}' did not escalate; "
-            f"reason={result.reason}"
+            f"action='{action}' desc='{desc}' did not escalate; reason={result.reason}"
         )
         assert result.requires_t1 is True
 
@@ -157,11 +153,20 @@ class TestFlagOnLayer5ContextAware:
 class TestBranchAwareGitPush:
     """Hotfix: git_push is branch-aware via metadata.target_branch."""
 
-    @pytest.mark.parametrize("branch", [
-        "main", "master", "production", "prod", "release",
-    ])
+    @pytest.mark.parametrize(
+        "branch",
+        [
+            "main",
+            "master",
+            "production",
+            "prod",
+            "release",
+        ],
+    )
     def test_git_push_to_protected_branch_escalates_when_on(
-        self, b8_on, branch,
+        self,
+        b8_on,
+        branch,
     ):
         result = b8_on.classify_action(
             "git_push",
@@ -171,12 +176,19 @@ class TestBranchAwareGitPush:
         assert result.level == b8_on.ActionLevel.MAGNA
         assert "protected branch" in result.reason
 
-    @pytest.mark.parametrize("branch", [
-        "feature/foo", "control-tower/2026-05-21-b8-v3-preactivation-hotfix",
-        "dev", "staging-branch",
-    ])
+    @pytest.mark.parametrize(
+        "branch",
+        [
+            "feature/foo",
+            "control-tower/2026-05-21-b8-v3-preactivation-hotfix",
+            "dev",
+            "staging-branch",
+        ],
+    )
     def test_git_push_to_feature_branch_stays_standard_when_on(
-        self, b8_on, branch,
+        self,
+        b8_on,
+        branch,
     ):
         result = b8_on.classify_action(
             "git_push",
@@ -223,7 +235,9 @@ class TestGitPushRegressionGuard:
 
     def test_narrower_variants_present_in_inherent_set(self, b8_on):
         for narrow in (
-            "push_to_main", "force_push_main", "push_production",
+            "push_to_main",
+            "force_push_main",
+            "push_production",
             "push_to_production",
         ):
             assert narrow in b8_on.MAGNA_ACTION_TYPES_INHERENT

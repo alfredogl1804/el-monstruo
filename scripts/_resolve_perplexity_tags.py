@@ -24,6 +24,7 @@ EXIT CODES:
     1 = error API o persistencia
     2 = error de uso (env faltante, etc.)
 """
+
 from __future__ import annotations
 
 import argparse
@@ -36,10 +37,8 @@ import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import requests  # type: ignore[import-untyped]
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 TOOL_TAGS = REPO_ROOT / "tools" / "check_perplexity_tags.py"
@@ -146,10 +145,7 @@ PROMPT_TEMPLATES: dict[str, str] = {
         "Stack contable vigente para SaaS Mexico 2026: Contpaq i, QuickBooks, "
         "Xero. CFDI 4.x integraciones SAT via PAC. Max 250 palabras."
     ),
-    "tax_rates_2026": (
-        "Tasas impositivas vigentes Mexico 2026: ISR persona moral, IVA, "
-        "ISN nomina. Max 150 palabras."
-    ),
+    "tax_rates_2026": ("Tasas impositivas vigentes Mexico 2026: ISR persona moral, IVA, ISN nomina. Max 150 palabras."),
     "alerting_stack_2026": (
         "Stack canonico de alerting/observability 2026 para SaaS production: "
         "Prometheus + Grafana vs Datadog vs Honeycomb. Pricing comparado. "
@@ -205,8 +201,7 @@ def _call_perplexity(claim_type: str, prompt: str, api_key: str) -> ResolvedTag:
                 {
                     "role": "system",
                     "content": (
-                        "You are a research assistant. Provide accurate, source-cited "
-                        "answers. Be concise but complete."
+                        "You are a research assistant. Provide accurate, source-cited answers. Be concise but complete."
                     ),
                 },
                 {"role": "user", "content": prompt},
@@ -238,13 +233,9 @@ def _build_insert_sql(resolved: list[ResolvedTag]) -> str:
     """Construye un INSERT SQL atomico para validation_log."""
     values_parts = []
     for r in resolved:
-        fingerprint = hashlib.sha256(
-            f"{r.claim_type}:{r.claim_value}".encode()
-        ).hexdigest()[:32]
+        fingerprint = hashlib.sha256(f"{r.claim_type}:{r.claim_value}".encode()).hexdigest()[:32]
         # Escapar single quotes y newlines en claim_value
-        claim_value_escaped = (
-            r.claim_value.replace("'", "''").replace("\n", " ").replace("\r", "")
-        )
+        claim_value_escaped = r.claim_value.replace("'", "''").replace("\n", " ").replace("\r", "")
         evidence_url = r.citations[0] if r.citations else ""
         evidence_url_escaped = evidence_url.replace("'", "''")
         metadata = {
@@ -271,9 +262,7 @@ def _build_insert_sql(resolved: list[ResolvedTag]) -> str:
         "INSERT INTO validation_log ("
         "claim_type, claim_fingerprint, claim_value, validator, "
         "evidence_url, timestamp_unix, ttl_seconds, metadata"
-        ") VALUES "
-        + ",\n".join(values_parts)
-        + "\nRETURNING id, claim_type, validator, timestamp_unix;"
+        ") VALUES " + ",\n".join(values_parts) + "\nRETURNING id, claim_type, validator, timestamp_unix;"
     )
 
 
@@ -315,8 +304,7 @@ def main() -> int:
     detected = _extract_unique_claim_types()
     if not detected:
         print(
-            "[ERR] check_perplexity_tags.py no detecto ningun tag. "
-            "Algo cambio en el repo.",
+            "[ERR] check_perplexity_tags.py no detecto ningun tag. Algo cambio en el repo.",
             file=sys.stderr,
         )
         return 1
@@ -329,8 +317,7 @@ def main() -> int:
     missing_templates = [t for t in to_process if t not in PROMPT_TEMPLATES]
     if missing_templates:
         print(
-            f"[ERR] {len(missing_templates)} claim_types sin prompt template: "
-            f"{missing_templates}",
+            f"[ERR] {len(missing_templates)} claim_types sin prompt template: {missing_templates}",
             file=sys.stderr,
         )
         return 1
@@ -348,13 +335,9 @@ def main() -> int:
     for i, claim_type in enumerate(to_process, 1):
         print(f"[{i}/{len(to_process)}] resolving {claim_type}...", flush=True)
         try:
-            r = _call_perplexity(
-                claim_type, PROMPT_TEMPLATES[claim_type], api_key
-            )
+            r = _call_perplexity(claim_type, PROMPT_TEMPLATES[claim_type], api_key)
             resolved.append(r)
-            print(
-                f"  OK {len(r.claim_value)}chars, {len(r.citations)} citations"
-            )
+            print(f"  OK {len(r.claim_value)}chars, {len(r.citations)} citations")
         except Exception as e:
             print(f"  FAIL {type(e).__name__}: {str(e)[:200]}", file=sys.stderr)
             return 1

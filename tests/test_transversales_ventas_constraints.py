@@ -22,6 +22,7 @@ Cubrimiento:
 
 Plus tests de la interfaz (instantiation, RestrictedVerticalError, etc.).
 """
+
 from __future__ import annotations
 
 import sys
@@ -46,7 +47,6 @@ from kernel.transversales.ventas._canonical_constraints import (  # noqa: E402
     is_commercial,
     require_commercial,
 )
-
 
 CAPILLA = ROOT / "discovery_forense" / "CAPILLA_DECISIONES"
 
@@ -76,9 +76,7 @@ def test_dsc_cip_001_propiedad_nunca_se_vende():
 
 
 def test_dsc_cip_005_lanzamiento_sureste_mx():
-    dsc = _read_dsc(
-        CAPILLA / "CIP" / "DSC-CIP-005_lanzamiento_focalizado_sureste_mx.md"
-    )
+    dsc = _read_dsc(CAPILLA / "CIP" / "DSC-CIP-005_lanzamiento_focalizado_sureste_mx.md")
     text_low = dsc.lower()
     assert "sureste" in text_low
     assert any(r in text_low for r in ["yucatán", "yucatan", "quintana roo", "campeche"])
@@ -91,9 +89,7 @@ def test_dsc_cip_005_lanzamiento_sureste_mx():
 
 
 def test_dsc_liketickets_003_stripe_canonico_replicable():
-    dsc = _read_dsc(
-        CAPILLA / "LIKETICKETS" / "DSC-LT-003_patron_checkout_stripe_replicable.md"
-    )
+    dsc = _read_dsc(CAPILLA / "LIKETICKETS" / "DSC-LT-003_patron_checkout_stripe_replicable.md")
     text_low = dsc.lower()
     assert "stripe" in text_low
     assert "webhook" in text_low
@@ -110,9 +106,7 @@ def test_dsc_liketickets_003_stripe_canonico_replicable():
 
 
 def test_dsc_lt_002_313_butacas_piloto():
-    dsc = _read_dsc(
-        CAPILLA / "LIKETICKETS" / "DSC-LT-002_producto_piloto_313_butacas.md"
-    )
+    dsc = _read_dsc(CAPILLA / "LIKETICKETS" / "DSC-LT-002_producto_piloto_313_butacas.md")
     assert "313" in dsc
     text_low = dsc.lower()
     assert "butaca" in text_low or "asiento" in text_low or "lugar" in text_low
@@ -121,9 +115,7 @@ def test_dsc_lt_002_313_butacas_piloto():
 
 
 def test_dsc_k365_001_operacion_365_dias():
-    dsc = _read_dsc(
-        CAPILLA / "KUKULKAN-365" / "DSC-K365-001_distrito_entretenimiento_climatizado.md"
-    )
+    dsc = _read_dsc(CAPILLA / "KUKULKAN-365" / "DSC-K365-001_distrito_entretenimiento_climatizado.md")
     assert "365" in dsc
     text_low = dsc.lower()
     assert "merida" in text_low or "mérida" in text_low
@@ -133,9 +125,7 @@ def test_dsc_k365_001_operacion_365_dias():
 
 
 def test_dsc_mb_001_mena_baduy_no_comercial():
-    dsc = _read_dsc(
-        CAPILLA / "MENA-BADUY" / "DSC-MB-001_operacion_electoral_merida_2027.md"
-    )
+    dsc = _read_dsc(CAPILLA / "MENA-BADUY" / "DSC-MB-001_operacion_electoral_merida_2027.md")
     text_low = dsc.lower()
     assert "opsec" in text_low or "confidencialidad" in text_low
     assert "electoral" in text_low or "candidatura" in text_low
@@ -171,23 +161,18 @@ def test_ventas_recommend_for_cip_returns_structured_data():
     assert result.layer_name == "ventas"
     assert result.vertical == VerticalId.CIP
     pricing_rec = next(
-        (r for r in result.recommendations
-         if r.rule_id == "ventas.pricing.tiers.structural"),
+        (r for r in result.recommendations if r.rule_id == "ventas.pricing.tiers.structural"),
         None,
     )
     assert pricing_rec is not None
     assert pricing_rec.value["min_ticket_usd"] == 1.00
     geo_rec = next(
-        (r for r in result.recommendations
-         if r.rule_id == "ventas.geo.initial_markets"),
+        (r for r in result.recommendations if r.rule_id == "ventas.geo.initial_markets"),
         None,
     )
     assert geo_rec is not None
     assert "yucatan" in geo_rec.value["initial_markets"]
-    assert any(
-        "[NEEDS_PERPLEXITY_VALIDATION]" in tag
-        for tag in result.aggregated_validation_tags
-    )
+    assert any("[NEEDS_PERPLEXITY_VALIDATION]" in tag for tag in result.aggregated_validation_tags)
 
 
 def test_ventas_recommend_for_mena_baduy_raises():
@@ -228,9 +213,7 @@ def test_vertical_archetype_mapping_complete():
         if v in NON_COMMERCIAL_VERTICALS:
             continue
         assert v in VERTICAL_ARCHETYPE, f"falta archetype para {v}"
-        assert v in PRICING_CANONICAL_PER_VERTICAL, (
-            f"falta entry en PRICING_CANONICAL_PER_VERTICAL para {v}"
-        )
+        assert v in PRICING_CANONICAL_PER_VERTICAL, f"falta entry en PRICING_CANONICAL_PER_VERTICAL para {v}"
 
 
 if __name__ == "__main__":
@@ -245,6 +228,6 @@ if __name__ == "__main__":
     test_ventas_layer_instantiable()
     test_ventas_recommend_for_cip_returns_structured_data()
     test_ventas_recommend_for_mena_baduy_raises()
-    test_ventas_implement_not_implemented()
+    test_ventas_implement_is_implemented()
     test_vertical_archetype_mapping_complete()
     print("\n[ok] Los 13 tests del DSC-as-Contract de Capa Ventas pasaron.")

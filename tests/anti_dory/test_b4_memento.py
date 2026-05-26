@@ -125,9 +125,13 @@ class TestValidateMemory:
 
     def test_empty_content_corrupted(self, integration):
         memory = Memory(
-            id="mem-empty", content="", content_hash="",
-            source="test", created_at=datetime.utcnow(),
-            ttl_hours=720, metadata={},
+            id="mem-empty",
+            content="",
+            content_hash="",
+            source="test",
+            created_at=datetime.utcnow(),
+            ttl_hours=720,
+            metadata={},
         )
         result = integration.validate_memory(memory)
         assert result.status == MemoryStatus.CORRUPTED
@@ -148,9 +152,13 @@ class TestIsMemoryExpired:
 
     def test_default_ttl_used_when_none(self, integration):
         memory = Memory(
-            id="m", content="x", content_hash="", source="",
+            id="m",
+            content="x",
+            content_hash="",
+            source="",
             created_at=datetime.utcnow() - timedelta(hours=100),
-            ttl_hours=None, metadata={},
+            ttl_hours=None,
+            metadata={},
         )
         # Default TTL is 720h (30 days), 100h < 720h → not expired
         assert integration.is_memory_expired(memory) is False
@@ -196,27 +204,36 @@ class TestCheckDrift:
 class TestMementoContext:
     def test_health_ratio_all_valid(self):
         ctx = MementoContext(
-            memories=[], validations=[
+            memories=[],
+            validations=[
                 MemoryValidation("m1", MemoryStatus.VALID, "ok", True),
                 MemoryValidation("m2", MemoryStatus.VALID, "ok", True),
             ],
-            valid_count=2, stale_count=0, corrupted_count=0,
+            valid_count=2,
+            stale_count=0,
+            corrupted_count=0,
         )
         assert ctx.health_ratio == 1.0
 
     def test_health_ratio_half(self):
         ctx = MementoContext(
-            memories=[], validations=[
+            memories=[],
+            validations=[
                 MemoryValidation("m1", MemoryStatus.VALID, "ok", True),
                 MemoryValidation("m2", MemoryStatus.CORRUPTED, "bad", False),
             ],
-            valid_count=1, stale_count=0, corrupted_count=1,
+            valid_count=1,
+            stale_count=0,
+            corrupted_count=1,
         )
         assert ctx.health_ratio == 0.5
 
     def test_health_ratio_empty(self):
         ctx = MementoContext(
-            memories=[], validations=[],
-            valid_count=0, stale_count=0, corrupted_count=0,
+            memories=[],
+            validations=[],
+            valid_count=0,
+            stale_count=0,
+            corrupted_count=0,
         )
         assert ctx.health_ratio == 1.0

@@ -15,6 +15,7 @@ Capa Memento:
 
 [Hilo Manus Catastro] · Sprint 86.5 · 2026-05-05
 """
+
 from __future__ import annotations
 
 import logging
@@ -22,7 +23,6 @@ import os
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field
-
 
 logger = logging.getLogger(__name__)
 
@@ -58,35 +58,25 @@ CODING_TAGS_VOCABULARY = (
 # STRUCTURED OUTPUT SCHEMA (39va semilla)
 # ============================================================================
 
+
 class CodingClassification(BaseModel):
     """Output estructurado del classifier."""
-    
-    tags: list[str] = Field(
-        ...,
-        description="Subcapacidades de coding asignadas, del vocabulario de 15."
-    )
-    primary_strength: str = Field(
-        ...,
-        description="Fortaleza principal del modelo en coding."
-    )
-    confidence: float = Field(
-        ..., ge=0.0, le=1.0,
-        description="Confianza del classifier en 0-1."
-    )
-    reasoning: str = Field(
-        ...,
-        description="Razonamiento corto (1-2 oraciones)."
-    )
+
+    tags: list[str] = Field(..., description="Subcapacidades de coding asignadas, del vocabulario de 15.")
+    primary_strength: str = Field(..., description="Fortaleza principal del modelo en coding.")
+    confidence: float = Field(..., ge=0.0, le=1.0, description="Confianza del classifier en 0-1.")
+    reasoning: str = Field(..., description="Razonamiento corto (1-2 oraciones).")
 
 
 # ============================================================================
 # CODING CLASSIFIER
 # ============================================================================
 
+
 class CodingClassifier:
     """
     Clasificador de subcapacidades coding.
-    
+
     Input: scores normalizados {swe_bench: float, human_eval: float, mbpp: float}
     Output: CodingClassification con tags del vocabulario controlado.
     """
@@ -107,12 +97,12 @@ class CodingClassifier:
     ) -> CodingClassification:
         """
         Asigna subcapacidades coding a un modelo basándose en sus scores.
-        
+
         Args:
             modelo_id: slug del modelo.
             scores: dict con keys 'swe_bench', 'human_eval', 'mbpp' (opcional cada una).
             gaming_detected: si True, agrega tag 'anti-gaming-verified' si NO hay gaming.
-        
+
         Returns:
             CodingClassification con tags, fortaleza principal, confianza, razonamiento.
         """
@@ -120,9 +110,7 @@ class CodingClassifier:
             try:
                 return self._classify_with_llm(modelo_id, scores, gaming_detected)
             except Exception as e:  # noqa: BLE001
-                logger.warning(
-                    f"[coding_classifier] LLM falló para {modelo_id}, fallback heuristic: {e}"
-                )
+                logger.warning(f"[coding_classifier] LLM falló para {modelo_id}, fallback heuristic: {e}")
                 return self._classify_heuristic(modelo_id, scores, gaming_detected)
         else:
             return self._classify_heuristic(modelo_id, scores, gaming_detected)
@@ -149,7 +137,10 @@ class CodingClassifier:
         response = client.beta.chat.completions.parse(
             model="gpt-4o-mini",  # ligero y barato para classifier
             messages=[
-                {"role": "system", "content": "Sos un experto en clasificación de modelos LLM por capacidades de coding. Devolvés output estricto en el schema."},
+                {
+                    "role": "system",
+                    "content": "Sos un experto en clasificación de modelos LLM por capacidades de coding. Devolvés output estricto en el schema.",
+                },
                 {"role": "user", "content": prompt},
             ],
             response_format=CodingClassification,
@@ -158,14 +149,12 @@ class CodingClassifier:
         parsed = response.choices[0].message.parsed
         if parsed is None:
             raise RuntimeError("LLM devolvió None en structured parse")
-        
+
         # Validar tags contra vocabulario controlado
         valid_tags = [t for t in parsed.tags if t in CODING_TAGS_VOCABULARY]
         if len(valid_tags) != len(parsed.tags):
             invalid = set(parsed.tags) - set(CODING_TAGS_VOCABULARY)
-            logger.warning(
-                f"[coding_classifier] Tags inválidos descartados para {modelo_id}: {invalid}"
-            )
+            logger.warning(f"[coding_classifier] Tags inválidos descartados para {modelo_id}: {invalid}")
             parsed.tags = valid_tags
 
         return parsed
@@ -179,11 +168,11 @@ class CodingClassifier:
         """Fallback heuristic si LLM no disponible."""
         tags: list[str] = []
         primary = "general-coding"
-        
+
         swe = scores.get("swe_bench") or 0.0
         he = scores.get("human_eval") or 0.0
         mbpp = scores.get("mbpp") or 0.0
-        
+
         # Heuristics simples basadas en scores
         if swe >= 40.0:
             tags.append("agentic-coding")
@@ -197,17 +186,14 @@ class CodingClassifier:
             tags.append("anti-gaming-verified")
         if he >= 90.0 and mbpp >= 90.0:
             tags.append("competitive-programming")
-        
+
         # Default si nada matcheó
         if not tags:
             tags = ["python-strong"]
-        
+
         confidence = 0.5  # heuristic = baja confianza
-        reasoning = (
-            f"Heuristic mode: SWE={swe:.1f}, HE={he:.1f}, MBPP={mbpp:.1f}. "
-            f"Gaming={gaming_detected}."
-        )
-        
+        reasoning = f"Heuristic mode: SWE={swe:.1f}, HE={he:.1f}, MBPP={mbpp:.1f}. Gaming={gaming_detected}."
+
         return CodingClassification(
             tags=tags,
             primary_strength=primary,
@@ -223,11 +209,11 @@ class CodingClassifier:
     ) -> tuple[bool, dict[str, Any]]:
         """
         Regla anti-gaming v2 (Sprint 86.6): detecta overfit INTER-fuente.
-        
+
         Criterio firme:
         - Coding-strong: SWE-bench Verified >= 60.0
         - Y (Razonamiento < 50.0 O Arena rank > 30)
-        
+
         Returns:
             (is_overfit, evidence_dict)
         """
@@ -237,20 +223,20 @@ class CodingClassifier:
             "razonamiento": razonamiento_score,
             "arena_rank": arena_rank,
         }
-        
+
         if swe_score is None or swe_score < 60.0:
             return False, evidence
-            
+
         # Condición 1: Razonamiento general débil
         if razonamiento_score is not None and razonamiento_score < 50.0:
             is_overfit = True
             evidence["reason"] = "swe_high_but_reasoning_low"
-            
+
         # Condición 2: Arena rank bajo (entre los top 50 asumiendo rank válido)
         elif arena_rank is not None and arena_rank > 30:
             is_overfit = True
             evidence["reason"] = "swe_high_but_arena_rank_low"
-            
+
         return is_overfit, evidence
 
     def _build_prompt(

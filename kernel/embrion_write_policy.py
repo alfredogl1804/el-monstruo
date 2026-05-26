@@ -57,25 +57,36 @@ from typing import Any, Callable, Optional
 
 try:
     import structlog
+
     logger = structlog.get_logger("embrion.write_policy")
 except ImportError:  # pragma: no cover
     import logging
+
     logger = logging.getLogger("embrion.write_policy")
 
 
 # ── Constantes y configuración
 
-PROPOSAL_TYPES = frozenset({
-    "code_commit",
-    "db_write",
-    "external_api_call",
-    "other",
-})
+PROPOSAL_TYPES = frozenset(
+    {
+        "code_commit",
+        "db_write",
+        "external_api_call",
+        "other",
+    }
+)
 
-APPROVAL_STATUSES = frozenset({
-    "pending", "approved", "rejected",
-    "expired", "executing", "executed", "failed",
-})
+APPROVAL_STATUSES = frozenset(
+    {
+        "pending",
+        "approved",
+        "rejected",
+        "expired",
+        "executing",
+        "executed",
+        "failed",
+    }
+)
 
 RISK_LEVELS = frozenset({"low", "medium", "high", "critical"})
 
@@ -88,6 +99,7 @@ TABLE_MEMORIA = "embrion_memoria"
 
 # ── Cliente REST mínimo (mismo patrón que embrion_budget._SupabaseRest pero
 # con select/insert/update; reusamos firma esperada por los tests del sprint)
+
 
 class _SupabaseRest:
     """Cliente REST mínimo y testeable. Evita supabase-py para mantener
@@ -109,6 +121,7 @@ class _SupabaseRest:
 
     def select(self, table: str, params: dict, prefer: Optional[str] = None):
         import requests
+
         r = requests.get(
             f"{self.url}/rest/v1/{table}",
             headers=self._headers(prefer=prefer),
@@ -120,6 +133,7 @@ class _SupabaseRest:
 
     def insert(self, table: str, payload: dict | list[dict]):
         import requests
+
         r = requests.post(
             f"{self.url}/rest/v1/{table}",
             headers=self._headers(prefer="return=representation"),
@@ -132,6 +146,7 @@ class _SupabaseRest:
     def update(self, table: str, params: dict, payload: dict):
         """PATCH a /rest/v1/{table}?<filters>. Devuelve filas afectadas."""
         import requests
+
         r = requests.patch(
             f"{self.url}/rest/v1/{table}",
             headers=self._headers(prefer="return=representation"),
@@ -145,11 +160,7 @@ class _SupabaseRest:
 
 def _get_supabase_client() -> _SupabaseRest:
     url = os.environ.get("SUPABASE_URL", "https://xsumzuhwmivjgftsneov.supabase.co")
-    key = (
-        os.environ.get("SUPABASE_SERVICE_KEY")
-        or os.environ.get("SUPABASE_KEY")
-        or os.environ.get("SUPA_KEY")
-    )
+    key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_KEY") or os.environ.get("SUPA_KEY")
     if not key:
         raise RuntimeError(
             "embrion_write_policy: ninguna env var Supabase encontrada "
@@ -160,13 +171,15 @@ def _get_supabase_client() -> _SupabaseRest:
 
 # ── Dataclasses
 
+
 @dataclass
 class ProposalCreated:
     """Resultado de propose()."""
+
     proposal_id: str
-    created: bool          # True si se insertó, False si idempotency key colisionó
-    status: str            # status actual
-    expires_at: str        # ISO8601
+    created: bool  # True si se insertó, False si idempotency key colisionó
+    status: str  # status actual
+    expires_at: str  # ISO8601
     summary: str
     risk_level: str
 
@@ -174,6 +187,7 @@ class ProposalCreated:
 @dataclass
 class ExecutionResult:
     """Resultado de la ejecución de una proposal aprobada."""
+
     proposal_id: str
     success: bool
     result: Any = None
@@ -182,6 +196,7 @@ class ExecutionResult:
 
 
 # ── Helpers internos
+
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -219,6 +234,7 @@ def compute_idempotency_key(
 
 # ── API pública
 
+
 def propose(
     client: Any,
     *,
@@ -242,15 +258,9 @@ def propose(
     Si `auto_notify=True`, intenta enviar notificación HITL post-creación.
     """
     if proposal_type not in PROPOSAL_TYPES:
-        raise ValueError(
-            f"proposal_type inválido: {proposal_type!r}. "
-            f"Válidos: {sorted(PROPOSAL_TYPES)}"
-        )
+        raise ValueError(f"proposal_type inválido: {proposal_type!r}. Válidos: {sorted(PROPOSAL_TYPES)}")
     if risk_level not in RISK_LEVELS:
-        raise ValueError(
-            f"risk_level inválido: {risk_level!r}. "
-            f"Válidos: {sorted(RISK_LEVELS)}"
-        )
+        raise ValueError(f"risk_level inválido: {risk_level!r}. Válidos: {sorted(RISK_LEVELS)}")
     if not isinstance(payload, dict):
         raise TypeError("payload debe ser dict serializable a JSON")
     if not summary or not summary.strip():
@@ -351,10 +361,7 @@ def approve(
         raise ValueError(f"proposal {proposal_id} no encontrada")
     p = rows[0]
     if p["approval_status"] != "pending":
-        raise ValueError(
-            f"proposal {proposal_id} no está pending "
-            f"(status actual: {p['approval_status']!r})"
-        )
+        raise ValueError(f"proposal {proposal_id} no está pending (status actual: {p['approval_status']!r})")
 
     update = {
         "approval_status": "approved",
@@ -371,8 +378,7 @@ def approve(
     )
     if not updated:
         raise RuntimeError(
-            f"approve race condition en proposal {proposal_id} — "
-            "otro agente cambió el status mientras aprobábamos"
+            f"approve race condition en proposal {proposal_id} — otro agente cambió el status mientras aprobábamos"
         )
 
     logger.info(
@@ -402,10 +408,7 @@ def reject(
         raise ValueError(f"proposal {proposal_id} no encontrada")
     p = rows[0]
     if p["approval_status"] != "pending":
-        raise ValueError(
-            f"proposal {proposal_id} no está pending "
-            f"(status actual: {p['approval_status']!r})"
-        )
+        raise ValueError(f"proposal {proposal_id} no está pending (status actual: {p['approval_status']!r})")
 
     update = {
         "approval_status": "rejected",
@@ -559,10 +562,7 @@ def execute_next(
         try:
             result = executor_fn(locked_row)
             if not isinstance(result, ExecutionResult):
-                raise TypeError(
-                    f"executor_fn debe retornar ExecutionResult, "
-                    f"retornó {type(result).__name__}"
-                )
+                raise TypeError(f"executor_fn debe retornar ExecutionResult, retornó {type(result).__name__}")
         except Exception as exc:  # noqa: BLE001
             result = ExecutionResult(
                 proposal_id=proposal_id,
@@ -780,6 +780,7 @@ def notify_hitl(
 
 
 # ── Utilidades para integración con embrion_loop / endpoints
+
 
 def get_pending_count(client: Any) -> int:
     """Helper para checkpoints rápidos. Retorna el conteo de pending vigentes."""

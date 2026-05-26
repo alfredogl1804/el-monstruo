@@ -2,9 +2,9 @@
 Tests for Artifact Ops Epoch Adapter v0.1
 16 tests required: all must PASS.
 """
+
 import json
 import sys
-import tempfile
 from pathlib import Path
 
 # Add adapter to path
@@ -15,6 +15,7 @@ import artifact_ops_epoch_adapter_v0_1 as adapter
 passed = 0
 failed = 0
 
+
 def test(name, condition):
     global passed, failed
     if condition:
@@ -23,6 +24,7 @@ def test(name, condition):
     else:
         failed += 1
         print(f"  FAIL [{passed + failed:02d}] {name}")
+
 
 print("=" * 60)
 print("Artifact Ops Epoch Adapter v0.1 Tests")

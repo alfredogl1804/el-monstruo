@@ -36,6 +36,7 @@ Uso CLI:
     python -m kernel.cowork_runtime.rule_reinjection \\
         --turnos 7 --violations-history history.json
 """
+
 from __future__ import annotations
 
 import argparse
@@ -52,7 +53,6 @@ if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
 from tools.cowork_guardian import GuardianVerdict  # noqa: E402
-
 
 # Reglas duras condensadas — fuente: CLAUDE.md + AUDITORIA_PROFUNDA seccion II
 HARD_RULES_CANONICAS: tuple[tuple[str, str], ...] = (
@@ -194,8 +194,7 @@ class RuleReinjector:
         lines = [
             "==========================================",
             "[COWORK_REINJECT — REGLAS DURAS NO DILUIBLES]",
-            f"turno: {self.state.turnos_total}, "
-            f"reinyeccion: {self.state.reinyecciones_total + 1}",
+            f"turno: {self.state.turnos_total}, reinyeccion: {self.state.reinyecciones_total + 1}",
             f"timestamp_utc: {datetime.now(timezone.utc).isoformat()}",
             "",
             "## Top-5 reglas duras MAS RELEVANTES esta sesion",
@@ -207,25 +206,31 @@ class RuleReinjector:
             lines.append(f"  [{codigo}] {descripcion}")
 
         if not self.state.pre_flight_ejecutado_turno_1 and self.state.turnos_total >= 2:
-            lines.extend([
-                "",
-                "## ALERTA — Pre-flight Memento NO ejecutado en turno 1",
-                "  Ejecuta AHORA: leer COWORK_ESTADO_VIVO.md + COWORK_BASE_CONOCIMIENTO.md",
-                "  + ultima fila cowork_sesiones (ver kernel/cowork_runtime/session_memory.py)",
-            ])
+            lines.extend(
+                [
+                    "",
+                    "## ALERTA — Pre-flight Memento NO ejecutado en turno 1",
+                    "  Ejecuta AHORA: leer COWORK_ESTADO_VIVO.md + COWORK_BASE_CONOCIMIENTO.md",
+                    "  + ultima fila cowork_sesiones (ver kernel/cowork_runtime/session_memory.py)",
+                ]
+            )
 
         if self.state.ultimo_correctivo_alfredo:
-            lines.extend([
-                "",
-                "## Ultimo correctivo de Alfredo (sin atender)",
-                f"  > {self.state.ultimo_correctivo_alfredo[:300]}",
-            ])
+            lines.extend(
+                [
+                    "",
+                    "## Ultimo correctivo de Alfredo (sin atender)",
+                    f"  > {self.state.ultimo_correctivo_alfredo[:300]}",
+                ]
+            )
 
         if estado_vivo:
-            lines.extend([
-                "",
-                "## Estado vivo del Monstruo",
-            ])
+            lines.extend(
+                [
+                    "",
+                    "## Estado vivo del Monstruo",
+                ]
+            )
             if "kernel_version" in estado_vivo:
                 lines.append(f"  kernel: {estado_vivo['kernel_version']}")
             if "embrion_ultimo_latido_utc" in estado_vivo:
@@ -238,14 +243,16 @@ class RuleReinjector:
                 for c in commits[:5]:
                     lines.append(f"    - {c}")
 
-        lines.extend([
-            "",
-            "## Recordatorio operativo",
-            "  - Hablas con codigo, no con texto",
-            "  - PROHIBIDO push-to-pause cuando Alfredo demanda avance",
-            "  - Si dudas sobre alcance, pregunta a Alfredo via cowork_bridge",
-            "==========================================",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Recordatorio operativo",
+                "  - Hablas con codigo, no con texto",
+                "  - PROHIBIDO push-to-pause cuando Alfredo demanda avance",
+                "  - Si dudas sobre alcance, pregunta a Alfredo via cowork_bridge",
+                "==========================================",
+            ]
+        )
         return "\n".join(lines)
 
     def mark_reinjected(self) -> None:
@@ -272,6 +279,7 @@ class RuleReinjector:
         if not self.state.violaciones_acumuladas:
             return []
         from collections import Counter
+
         codes_in_violations: list[str] = []
         for viol in self.state.violaciones_acumuladas:
             for codigo, _ in HARD_RULES_CANONICAS:
@@ -281,7 +289,8 @@ class RuleReinjector:
                 elif codigo == "PUSH-PAUSE" and (
                     "sugiere parar" in viol.lower()
                     or "sugiere dormir" in viol.lower()
-                    or "magna" in viol.lower() and "exige avance" in viol.lower()
+                    or "magna" in viol.lower()
+                    and "exige avance" in viol.lower()
                 ):
                     codes_in_violations.append(codigo)
                 elif codigo == "AVANCE-REAL" and "meta-trabajo" in viol.lower():
@@ -309,7 +318,8 @@ def main(argv: Optional[list[str]] = None) -> int:
         description="Re-inyector de reglas duras de Cowork (T2 Sprint COWORK-RUNTIME-001).",
     )
     parser.add_argument(
-        "--turnos", "-t",
+        "--turnos",
+        "-t",
         type=int,
         default=1,
         help="Cuantos turnos simular (cada uno hace tick()).",
@@ -357,6 +367,7 @@ def main(argv: Optional[list[str]] = None) -> int:
     # Simular turnos
     for i in range(args.turnos):
         from tools.cowork_guardian import AdvanceScore
+
         verdict = None
         if i < len(fake_violations):
             v = fake_violations[i]

@@ -71,9 +71,7 @@ def main():
                 "url": t.get("task_url", ""),
             }
             all_accounts[account_num]["tasks"].append(task_info)
-            status_icon = {"running": "🟢", "stopped": "⚪", "error": "🔴"}.get(
-                t.get("status"), "⚪"
-            )
+            status_icon = {"running": "🟢", "stopped": "⚪", "error": "🔴"}.get(t.get("status"), "⚪")
             print(f"  {status_icon} {task_info['title']}")
             print(f"     ID: {task_info['id']} | Status: {task_info['status']}")
         print(f"  Total: {len(tasks)} hilos\n")

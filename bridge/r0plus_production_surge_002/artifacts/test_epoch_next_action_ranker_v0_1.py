@@ -2,6 +2,7 @@
 Tests for Epoch Next Action Ranker v0.1
 Minimum 12 tests required.
 """
+
 import json
 import sys
 from pathlib import Path
@@ -12,6 +13,7 @@ import epoch_next_action_ranker_v0_1 as ranker
 passed = 0
 failed = 0
 
+
 def test(name, condition):
     global passed, failed
     if condition:
@@ -21,14 +23,17 @@ def test(name, condition):
         failed += 1
         print(f"  FAIL [{passed + failed:02d}] {name}")
 
+
 print("=" * 60)
 print("Epoch Next Action Ranker v0.1 Tests")
 print("=" * 60)
 
 # Test 01: Happy path - run_ranker returns valid structure
 result = ranker.run_ranker()
-test("happy path returns valid structure",
-     "artifact" in result and "top_5_next_actions" in result and "next_recommended_sprint" in result)
+test(
+    "happy path returns valid structure",
+    "artifact" in result and "top_5_next_actions" in result and "next_recommended_sprint" in result,
+)
 
 # Test 02: Top 5 actions limited to 5
 test("top 5 actions limited", len(result["top_5_next_actions"]) <= 5)

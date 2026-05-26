@@ -18,18 +18,17 @@ de un programa tradicional event-driven:
 Comparamos: comportamiento SIN física vs CON física en 3 escenarios.
 """
 
-import time
-import math
 from dataclasses import dataclass, field
 from typing import Callable, List, Optional
-
 
 # ============================================================
 # CAPA 0 — ENGRANAJE SIMPLE (sin física, baseline)
 # ============================================================
 
+
 class EngranajeSimple:
     """Versión v1.0 — sin física. Cada vuelta entrante = transmisión inmediata."""
+
     def __init__(self, nombre: str, radio: float, accion: Callable):
         self.nombre = nombre
         self.radio = radio
@@ -60,6 +59,7 @@ class EngranajeSimple:
 # CAPA 1 — ENGRANAJE FÍSICO (con las 4 propiedades reales)
 # ============================================================
 
+
 @dataclass
 class EngranajeFisico:
     """
@@ -72,6 +72,7 @@ class EngranajeFisico:
       - frecuencia_natural (ω): frecuencia preferida de giro. Si recibe cerca de esa, amplifica.
       - holgura (ε):   margen de tolerancia. Vueltas por debajo de este umbral no se propagan.
     """
+
     nombre: str
     radio: float
     accion: Callable
@@ -93,7 +94,9 @@ class EngranajeFisico:
             self.engranados.append(otro)
             otro.engranados.append(self)
 
-    def girar(self, vueltas_entrantes: float, frecuencia_entrante: float = 1.0, origen: Optional["EngranajeFisico"] = None):
+    def girar(
+        self, vueltas_entrantes: float, frecuencia_entrante: float = 1.0, origen: Optional["EngranajeFisico"] = None
+    ):
         # 1. HOLGURA: si las vueltas entrantes son menores al margen de holgura, se absorben sin propagar
         if abs(vueltas_entrantes) < self.holgura:
             self.veces_amortiguado_holgura += 1
@@ -141,6 +144,7 @@ class EngranajeFisico:
 # ACCIONES (compartidas por ambas capas)
 # ============================================================
 
+
 def accion_log(nombre: str):
     print(f"      ⚡ [{nombre}] ejecutó acción")
 
@@ -150,11 +154,12 @@ def accion_log(nombre: str):
 # (entradas chiquitas y constantes — ej. ping de monitoreo)
 # ============================================================
 
+
 def escenario_1_ruido(con_fisica: bool):
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"ESCENARIO 1: Ruido de alta frecuencia ({'CON' if con_fisica else 'SIN'} física)")
-    print(f"Entrada: 100 micro-eventos de 0.05 vueltas cada uno")
-    print(f"{'='*60}")
+    print("Entrada: 100 micro-eventos de 0.05 vueltas cada uno")
+    print(f"{'=' * 60}")
     if con_fisica:
         e1 = EngranajeFisico("Sensor", radio=1.0, accion=accion_log, holgura=0.1, friccion=0.1)
         e2 = EngranajeFisico("Procesador", radio=1.0, accion=accion_log, holgura=0.1, friccion=0.1)
@@ -169,13 +174,17 @@ def escenario_1_ruido(con_fisica: bool):
     for i in range(100):
         e1.girar(0.05) if not con_fisica else e1.girar(0.05, frecuencia_entrante=1.0)
 
-    print(f"\nResultados:")
+    print("\nResultados:")
     print(f"  Sensor:     {e1.acciones_ejecutadas} acciones | acumulado: {e1.vueltas_acumuladas:.2f}")
     print(f"  Procesador: {e2.acciones_ejecutadas} acciones | acumulado: {e2.vueltas_acumuladas:.2f}")
     print(f"  Decisor:    {e3.acciones_ejecutadas} acciones | acumulado: {e3.vueltas_acumuladas:.2f}")
     if con_fisica:
-        print(f"  → Holgura amortiguó {e1.veces_amortiguado_holgura + e2.veces_amortiguado_holgura + e3.veces_amortiguado_holgura} micro-eventos (no llegaron a propagarse)")
-        print(f"  → Energía perdida por fricción: {e1.energia_perdida_friccion + e2.energia_perdida_friccion:.2f} vueltas")
+        print(
+            f"  → Holgura amortiguó {e1.veces_amortiguado_holgura + e2.veces_amortiguado_holgura + e3.veces_amortiguado_holgura} micro-eventos (no llegaron a propagarse)"
+        )
+        print(
+            f"  → Energía perdida por fricción: {e1.energia_perdida_friccion + e2.energia_perdida_friccion:.2f} vueltas"
+        )
 
 
 # ============================================================
@@ -183,11 +192,12 @@ def escenario_1_ruido(con_fisica: bool):
 # (un evento gigante repentino — ej. lanzamiento de campaña)
 # ============================================================
 
+
 def escenario_2_shock(con_fisica: bool):
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"ESCENARIO 2: Shock brusco ({'CON' if con_fisica else 'SIN'} física)")
-    print(f"Entrada: 1 evento de 10.0 vueltas (shock masivo)")
-    print(f"{'='*60}")
+    print("Entrada: 1 evento de 10.0 vueltas (shock masivo)")
+    print(f"{'=' * 60}")
     if con_fisica:
         e1 = EngranajeFisico("Recepción", radio=1.0, accion=accion_log, inercia=0.0)
         e2 = EngranajeFisico("Buffer", radio=1.0, accion=accion_log, inercia=0.7, friccion=0.05)
@@ -201,12 +211,12 @@ def escenario_2_shock(con_fisica: bool):
 
     e1.girar(10.0) if not con_fisica else e1.girar(10.0, frecuencia_entrante=1.0)
 
-    print(f"\nResultados:")
+    print("\nResultados:")
     print(f"  Recepción: {e1.acciones_ejecutadas} acciones")
     print(f"  Buffer:    {e2.acciones_ejecutadas} acciones | velocidad final: {getattr(e2, 'velocidad_actual', 'N/A')}")
     print(f"  Ejecutor:  {e3.acciones_ejecutadas} acciones | velocidad final: {getattr(e3, 'velocidad_actual', 'N/A')}")
     if con_fisica:
-        print(f"  → INERCIA absorbió el shock: el Ejecutor solo recibió fracción del torque inicial.")
+        print("  → INERCIA absorbió el shock: el Ejecutor solo recibió fracción del torque inicial.")
 
 
 # ============================================================
@@ -214,11 +224,12 @@ def escenario_2_shock(con_fisica: bool):
 # (input rítmico que coincide con frecuencia natural)
 # ============================================================
 
+
 def escenario_3_resonancia(con_fisica: bool):
-    print(f"\n{'='*60}")
+    print(f"\n{'=' * 60}")
     print(f"ESCENARIO 3: Resonancia ({'CON' if con_fisica else 'SIN'} física)")
-    print(f"Entrada: 10 eventos de 0.3 vueltas a frecuencia 1.0 (sintonía perfecta)")
-    print(f"{'='*60}")
+    print("Entrada: 10 eventos de 0.3 vueltas a frecuencia 1.0 (sintonía perfecta)")
+    print(f"{'=' * 60}")
     if con_fisica:
         e1 = EngranajeFisico("Antena", radio=1.0, accion=accion_log, frecuencia_natural=1.0)
         e2 = EngranajeFisico("Amplificador", radio=1.0, accion=accion_log, frecuencia_natural=1.0)
@@ -236,7 +247,7 @@ def escenario_3_resonancia(con_fisica: bool):
         else:
             e1.girar(0.3)
 
-    print(f"\nResultados:")
+    print("\nResultados:")
     print(f"  Antena:        {e1.acciones_ejecutadas} acciones | acumulado: {e1.vueltas_acumuladas:.2f}")
     print(f"  Amplificador:  {e2.acciones_ejecutadas} acciones | acumulado: {e2.vueltas_acumuladas:.2f}")
     print(f"  Salida:        {e3.acciones_ejecutadas} acciones | acumulado: {e3.vueltas_acumuladas:.2f}")
@@ -250,16 +261,16 @@ def escenario_3_resonancia(con_fisica: bool):
 # ============================================================
 
 if __name__ == "__main__":
-    print("\n" + "█"*60)
+    print("\n" + "█" * 60)
     print("█  ARQUITECTURA ENGRANAJE — CAPA 1: FÍSICA REAL  █")
     print("█  Comparativa SIN física (v1.0) vs CON física (v2.0)  █")
-    print("█"*60)
+    print("█" * 60)
 
     for con_fisica in [False, True]:
         escenario_1_ruido(con_fisica)
         escenario_2_shock(con_fisica)
         escenario_3_resonancia(con_fisica)
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("FIN DE PRUEBAS — analizar logs arriba para detectar emergencias")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")

@@ -10,6 +10,7 @@ Endpoints REST para el protocolo A2A:
 
 El endpoint /.well-known/agent.json está en main.py (raíz de la app).
 """
+
 from __future__ import annotations
 
 from typing import Any, Optional
@@ -34,6 +35,7 @@ def set_registry(registry) -> None:
 
 # ── Request Models ──────────────────────────────────────────────
 
+
 class RegisterRequest(BaseModel):
     name: str
     description: str
@@ -56,6 +58,7 @@ class HeartbeatRequest(BaseModel):
 
 # ── Endpoints ──────────────────────────────────────────────────
 
+
 @router.get("/agents")
 async def list_agents() -> dict[str, Any]:
     """Listar todos los agentes registrados en el A2A Registry."""
@@ -76,8 +79,9 @@ async def register_agent(req: RegisterRequest) -> dict[str, Any]:
     if not _registry:
         raise HTTPException(503, "A2A Registry not initialized")
 
-    from kernel.a2a_registry import AgentCard
     from uuid import uuid4
+
+    from kernel.a2a_registry import AgentCard
 
     card = AgentCard(
         agent_id=str(uuid4()),

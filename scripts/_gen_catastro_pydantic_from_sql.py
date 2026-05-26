@@ -23,6 +23,7 @@ Uso:
 
 Mini-Sprint 86.4.5 pre-B2 · 2026-05-05 · Hilo Manus
 """
+
 from __future__ import annotations
 
 import argparse
@@ -41,7 +42,6 @@ warnings.filterwarnings("ignore", module="sqlglot")
 
 import sqlglot
 from sqlglot import expressions as exp
-
 
 # ============================================================================
 # Configuración fija — zona primaria
@@ -147,9 +147,7 @@ def _pg_type_to_python(col_type_str: str, is_array: bool) -> str:
 def _read_migration(rel_path: str) -> str:
     full = REPO_ROOT / rel_path
     if not full.exists():
-        raise CatastroSchemaGenError(
-            f"catastro_schema_gen_migration_missing: {full} no existe"
-        )
+        raise CatastroSchemaGenError(f"catastro_schema_gen_migration_missing: {full} no existe")
     return full.read_text(encoding="utf-8")
 
 
@@ -218,9 +216,7 @@ def _extract_table_statements(sql: str) -> list[str]:
             continue
         upper = s.upper().lstrip()
         # Solo nos interesan estos dos tipos
-        if upper.startswith("CREATE TABLE") or (
-            upper.startswith("ALTER TABLE") and "ADD COLUMN" in upper
-        ):
+        if upper.startswith("CREATE TABLE") or (upper.startswith("ALTER TABLE") and "ADD COLUMN" in upper):
             out.append(s)
     return out
 
@@ -291,8 +287,7 @@ def _extract_column_info(col_def: exp.ColumnDef) -> tuple[str | None, dict[str, 
 
     col_type = col_def.args.get("kind")
     if col_type is None:
-        return name, {"type": "UNKNOWN", "nullable": True, "default": None,
-                      "is_array": False, "primary_key": False}
+        return name, {"type": "UNKNOWN", "nullable": True, "default": None, "is_array": False, "primary_key": False}
 
     type_str = str(col_type).upper()
     # sqlglot representa text[] como ARRAY<TEXT> y a veces deja sufijo []
@@ -398,7 +393,7 @@ def _emit_class(table: str, cols: dict[str, dict[str, Any]]) -> str:
         f"class {class_name}(BaseModel):",
         f'    """Espejo bit-perfect de la tabla `{table}` (PostgreSQL DDL).',
         "",
-        '    Generado automáticamente desde las migrations.',
+        "    Generado automáticamente desde las migrations.",
         '    """',
         '    model_config = ConfigDict(extra="ignore")',
         "",
@@ -411,7 +406,9 @@ def _emit_class(table: str, cols: dict[str, dict[str, Any]]) -> str:
         else:
             type_str = py_type
             # NOT NULL sin default → required
-            default = "" if info["default"] is None else f" = Field(default=None)  # SQL default: {info['default'][:80]}"
+            default = (
+                "" if info["default"] is None else f" = Field(default=None)  # SQL default: {info['default'][:80]}"
+            )
         lines.append(f"    {col_name}: {type_str}{default}")
     lines.append("")
     lines.append("")
@@ -437,6 +434,7 @@ def _emit_table_columns_dict(tables: dict) -> str:
 
 def _emit_full(tables: dict, source_hash: str) -> str:
     from datetime import datetime as _dt
+
     out = HEADER.format(
         source_hash=source_hash,
         generated_at=_dt.utcnow().isoformat(timespec="seconds") + "Z",
@@ -476,7 +474,10 @@ def main() -> int:
         return 2
 
     if not tables:
-        print("ERROR: catastro_schema_gen_no_tables_found: no se encontraron tablas del Catastro en las migrations.", file=sys.stderr)
+        print(
+            "ERROR: catastro_schema_gen_no_tables_found: no se encontraron tablas del Catastro en las migrations.",
+            file=sys.stderr,
+        )
         return 2
 
     output = _emit_full(tables, source_hash)
@@ -487,11 +488,11 @@ def main() -> int:
             print(f"DRIFT: {OUTPUT_FILE} no existe — correr el generator", file=sys.stderr)
             return 1
         current = output_path.read_text(encoding="utf-8")
+
         # Comparar todo menos `__GENERATED_AT__` (siempre cambia)
         def _strip_timestamp(s: str) -> str:
-            return "\n".join(
-                l for l in s.splitlines() if not l.startswith("__GENERATED_AT__")
-            )
+            return "\n".join(l for l in s.splitlines() if not l.startswith("__GENERATED_AT__"))
+
         if _strip_timestamp(current) == _strip_timestamp(output):
             print(f"OK: {OUTPUT_FILE} sincronizado con migrations (source_hash={source_hash[:12]})")
             return 0

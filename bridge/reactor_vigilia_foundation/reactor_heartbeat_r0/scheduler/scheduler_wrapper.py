@@ -27,7 +27,7 @@ Reglas estrictas:
 import json
 import subprocess
 import sys
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 # --- Paths ---
@@ -129,29 +129,29 @@ def generate_report(state: dict, run_result: dict):
     report = f"""# Scheduler Report — SPR-REACTOR-SCHEDULER-R0-001
 
 **Generated:** {now_iso()}
-**Status:** {state['status']}
+**Status:** {state["status"]}
 
 ## Current State
 
 | Metric | Value |
 |--------|-------|
-| Total cycles | {state['total_cycles']} |
-| Successful | {state['successful_cycles']} |
-| Failed | {state['failed_cycles']} |
-| Consecutive failures | {state['consecutive_failures']} |
-| Last run | {state['last_run_at'] or 'Never'} |
-| Last result | {state['last_result'] or 'N/A'} |
-| Last decision | {state['last_decision'] or 'N/A'} |
+| Total cycles | {state["total_cycles"]} |
+| Successful | {state["successful_cycles"]} |
+| Failed | {state["failed_cycles"]} |
+| Consecutive failures | {state["consecutive_failures"]} |
+| Last run | {state["last_run_at"] or "Never"} |
+| Last result | {state["last_result"] or "N/A"} |
+| Last decision | {state["last_decision"] or "N/A"} |
 
 ## Last Run Details
 
 | Field | Value |
 |-------|-------|
-| Timestamp | {run_result.get('timestamp', 'N/A')} |
-| Exit code | {run_result.get('exit_code', 'N/A')} |
-| Duration | {run_result.get('duration_seconds', 'N/A')}s |
-| Decision | {run_result.get('decision', 'N/A')} |
-| Outcome | {run_result.get('outcome', 'N/A')} |
+| Timestamp | {run_result.get("timestamp", "N/A")} |
+| Exit code | {run_result.get("exit_code", "N/A")} |
+| Duration | {run_result.get("duration_seconds", "N/A")}s |
+| Decision | {run_result.get("decision", "N/A")} |
+| Outcome | {run_result.get("outcome", "N/A")} |
 
 ## Configuration
 
@@ -161,7 +161,7 @@ def generate_report(state: dict, run_result: dict):
 | Mode | audit-only / report-only |
 | Budget per cycle | $0 (R0 local) |
 | Max consecutive failures | {MAX_CONSECUTIVE_FAILURES} |
-| Kill-switch | {'ACTIVE' if is_kill_switch_active() else 'INACTIVE'} |
+| Kill-switch | {"ACTIVE" if is_kill_switch_active() else "INACTIVE"} |
 
 ## Anti-Loop Protection
 

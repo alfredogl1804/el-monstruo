@@ -16,22 +16,22 @@ Constraints duros:
 - No tocar kernel.anti_dory.context_broker (usar broker mock vía factory).
 - Reset rate limiter entre tests (mantiene aislamiento).
 """
+
 from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
 from typing import Any, Optional
-from unittest.mock import MagicMock
 
 import pytest
 
 from tools import manus_bridge as bridge_mod
 from tools.manus_bridge import create_task, set_anti_dory_broker_factory
 
-
 # =============================================================================
 # Fixtures comunes
 # =============================================================================
+
 
 @pytest.fixture(autouse=True)
 def _reset_state(monkeypatch):
@@ -71,6 +71,7 @@ def _mock_manus_http(monkeypatch):
 # Helpers
 # =============================================================================
 
+
 @dataclass
 class FakePack:
     attachment_ok: bool
@@ -90,9 +91,7 @@ class FakeBrokerHydrates:
 
     def hydrate_prompt(self, *, project_id, front_id, user_prompt):
         prefix = (
-            f"=== ATTACHMENT_OK (mock) ===\n"
-            f"project_id={project_id}\nfront_id={front_id}\n"
-            f"=== END ATTACHMENT_OK ==="
+            f"=== ATTACHMENT_OK (mock) ===\nproject_id={project_id}\nfront_id={front_id}\n=== END ATTACHMENT_OK ==="
         )
         return FakeHydratedPrompt(
             hydrated_prompt=f"{prefix}\n\n{user_prompt}",
@@ -111,11 +110,13 @@ class FakeBrokerRaises:
 # Tests
 # =============================================================================
 
+
 def test_attach_context_false_passthrough(_mock_manus_http, monkeypatch):
     """Si attach_context=False, manus_bridge.create_task NO toca el prompt
     y no invoca al broker, idéntico a pre-FASE-C."""
     # Forzar ANTI_DORY_ENABLED=True para descartar que el flag sea quien protege.
     import kernel.anti_dory as anti_dory_pkg
+
     monkeypatch.setattr(anti_dory_pkg, "ANTI_DORY_ENABLED", True, raising=False)
 
     # Configurar broker que fallaría si se invocara: así verificamos que NO es invocado.
@@ -133,6 +134,7 @@ def test_attach_context_true_flag_off_passthrough(_mock_manus_http, monkeypatch)
     """Si attach_context=True pero ANTI_DORY_ENABLED=False (default actual),
     el wire respeta el flag global y NO hidrata. Broker no se invoca."""
     import kernel.anti_dory as anti_dory_pkg
+
     monkeypatch.setattr(anti_dory_pkg, "ANTI_DORY_ENABLED", False, raising=False)
 
     set_anti_dory_broker_factory(lambda: FakeBrokerRaises())
@@ -153,6 +155,7 @@ def test_attach_context_true_flag_on_hydrates(_mock_manus_http, monkeypatch, cap
     """Si attach_context=True y ANTI_DORY_ENABLED=True y factory configurada,
     el prompt enviado a Manus está prefijado por el broker."""
     import kernel.anti_dory as anti_dory_pkg
+
     monkeypatch.setattr(anti_dory_pkg, "ANTI_DORY_ENABLED", True, raising=False)
 
     set_anti_dory_broker_factory(lambda: FakeBrokerHydrates())
@@ -173,10 +176,7 @@ def test_attach_context_true_flag_on_hydrates(_mock_manus_http, monkeypatch, cap
     # El user_prompt original sigue al final.
     assert sent_prompt.endswith("continuá lo de ayer; no te reexplico nada.")
     # Logging de attachment_ok.
-    assert any(
-        "anti_dory_attachment_ok" in record.message
-        for record in caplog.records
-    )
+    assert any("anti_dory_attachment_ok" in record.message for record in caplog.records)
     assert result["status"] == "queued"
 
 
@@ -184,6 +184,7 @@ def test_broker_exception_fallback_to_original_prompt(_mock_manus_http, monkeypa
     """Si broker.hydrate_prompt() lanza excepción con flag ON, create_task
     cae en fail-open y manda el prompt original (NO interrumpe la tarea)."""
     import kernel.anti_dory as anti_dory_pkg
+
     monkeypatch.setattr(anti_dory_pkg, "ANTI_DORY_ENABLED", True, raising=False)
 
     set_anti_dory_broker_factory(lambda: FakeBrokerRaises())
@@ -200,8 +201,7 @@ def test_broker_exception_fallback_to_original_prompt(_mock_manus_http, monkeypa
     assert _mock_manus_http["json_payload"]["message"]["content"] == "prompt-fail-open-z"
     # Logging de fallback warning con la causa del fallo.
     assert any(
-        "anti_dory_broker_fallback" in record.message
-        and "simulated broker failure" in record.message
+        "anti_dory_broker_fallback" in record.message and "simulated broker failure" in record.message
         for record in caplog.records
     )
     # Task se creó correctamente a pesar del fallo del broker.
@@ -212,10 +212,12 @@ def test_broker_exception_fallback_to_original_prompt(_mock_manus_http, monkeypa
 # Tests extras de defensa (no requeridos pero recomendados)
 # =============================================================================
 
+
 def test_factory_none_with_flag_on_fails_open(_mock_manus_http, monkeypatch, caplog):
     """Si attach_context=True y flag ON pero factory NO configurada,
     create_task cae en fail-open (sin romper la tarea)."""
     import kernel.anti_dory as anti_dory_pkg
+
     monkeypatch.setattr(anti_dory_pkg, "ANTI_DORY_ENABLED", True, raising=False)
 
     # No setear factory; fuerza el path RuntimeError → fail-open.
@@ -231,8 +233,7 @@ def test_factory_none_with_flag_on_fails_open(_mock_manus_http, monkeypatch, cap
 
     assert _mock_manus_http["json_payload"]["message"]["content"] == "prompt-no-factory"
     assert any(
-        "anti_dory_broker_fallback" in record.message
-        and "factory not configured" in record.message
+        "anti_dory_broker_fallback" in record.message and "factory not configured" in record.message
         for record in caplog.records
     )
     assert result["task_id"] == "mock-task-id"
@@ -245,13 +246,13 @@ def test_default_front_id_helper():
     assert bridge_mod._default_front_id("") == "unknown-project"
 
 
-
 # =============================================================================
 # F-pattern #11 mitigation tests (Sprint MANUS-ANTI-DORY-002 v1 FASE D5-FIX-PROJECT-ID)
 # =============================================================================
 # Verifica que tools.manus_bridge.create_task distingue correctamente entre:
 # - Real Manus UUID (22-char alphanumeric) → forwarded to payload
 # - Anti-Dory logical label (e.g. "el_monstruo") → broker-only, NOT in payload
+
 
 def test_project_id_uuid_manus_passed_to_payload(_mock_manus_http):
     """UUID Manus real (22 chars alphanumeric) DEBE pasarse al payload."""

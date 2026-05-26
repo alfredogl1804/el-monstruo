@@ -8,6 +8,7 @@ con slots conceptuales. Valida que:
   - monitor() detecta credenciales pendientes y tags Perplexity
   - dry_run=True hasta firma HITL via DSC-G-002
 """
+
 from __future__ import annotations
 
 from kernel.transversales.base import (
@@ -41,16 +42,21 @@ def test_implement_returns_canonical_keys():
     impl = layer.implement(recs)
 
     expected_keys = {
-        "vertical", "crm_target", "billing_target", "pricing_envelope",
-        "hubspot_products_payload", "stripe_products_payload",
-        "funnel_pipeline_stages", "checkout_pattern",
-        "dry_run", "dry_run_reason",
-        "pending_credentials", "validation_log_anchor",
+        "vertical",
+        "crm_target",
+        "billing_target",
+        "pricing_envelope",
+        "hubspot_products_payload",
+        "stripe_products_payload",
+        "funnel_pipeline_stages",
+        "checkout_pattern",
+        "dry_run",
+        "dry_run_reason",
+        "pending_credentials",
+        "validation_log_anchor",
         "validation_tags_pending",
     }
-    assert expected_keys.issubset(impl.keys()), (
-        f"keys faltantes: {expected_keys - impl.keys()}"
-    )
+    assert expected_keys.issubset(impl.keys()), f"keys faltantes: {expected_keys - impl.keys()}"
 
 
 def test_implement_crm_targets_are_canonical():
@@ -133,9 +139,7 @@ def test_monitor_pending_credentials_warning_when_envs_missing(monkeypatch):
     monkeypatch.delenv("STRIPE_SECRET_KEY", raising=False)
     layer = VentasLayer()
     mon = layer.monitor(_ctx_liketickets())
-    creds_warn = [
-        w for w in mon["warnings"] if "Credenciales pendientes" in w
-    ]
+    creds_warn = [w for w in mon["warnings"] if "Credenciales pendientes" in w]
     assert len(creds_warn) == 1
     assert "HUBSPOT_ACCESS_TOKEN" in creds_warn[0]
     assert "STRIPE_SECRET_KEY" in creds_warn[0]

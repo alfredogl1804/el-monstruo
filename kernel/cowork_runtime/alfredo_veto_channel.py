@@ -31,26 +31,27 @@ Refs:
   - DSC-MO-008 (membrana telegram_notifier no modificable)
   - DSC-MO-011 Gate 7 (Blue-Green)
 """
+
 from __future__ import annotations
 
 import json
 import os
 import re
 import time
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from enum import Enum
 from pathlib import Path
 from typing import Callable, Optional
-
 
 # ============================================================================
 # Tipos
 # ============================================================================
 
+
 class VetoSeverity(str, Enum):
-    SOFT = "soft"     # warn + reinject_rules
-    HARD = "hard"     # block + force_preflight
-    HALT = "halt"     # stop session, require Alfredo restart
+    SOFT = "soft"  # warn + reinject_rules
+    HARD = "hard"  # block + force_preflight
+    HALT = "halt"  # stop session, require Alfredo restart
 
 
 # Palabras clave canonicas con severidad asignada
@@ -243,8 +244,10 @@ class AlfredoVetoChannel:
 # CLI (para que Alfredo emita veto desde terminal)
 # ============================================================================
 
+
 def main(argv: Optional[list[str]] = None) -> int:
     import argparse
+
     parser = argparse.ArgumentParser(description="Canal de veto Alfredo→Cowork (M9).")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
@@ -255,17 +258,17 @@ def main(argv: Optional[list[str]] = None) -> int:
     p_emit.add_argument("--enable", action="store_true", help="Forzar enabled=True")
 
     # peek
-    p_peek = sub.add_parser("peek", help="Ver veto pendiente sin consumir")
+    sub.add_parser("peek", help="Ver veto pendiente sin consumir")
 
     # consume
-    p_consume = sub.add_parser("consume", help="Consumir veto pendiente")
+    sub.add_parser("consume", help="Consumir veto pendiente")
 
     # history
     p_hist = sub.add_parser("history", help="Ver historial de vetos")
     p_hist.add_argument("--limit", type=int, default=20)
 
     # clear
-    p_clear = sub.add_parser("clear", help="Borrar todo el historial (irreversible)")
+    sub.add_parser("clear", help="Borrar todo el historial (irreversible)")
 
     args = parser.parse_args(argv)
 

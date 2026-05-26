@@ -25,7 +25,6 @@ Tests (3 obligatorios + 2 extras de robustez):
 from __future__ import annotations
 
 import json
-from typing import Any
 
 import httpx
 import pytest
@@ -36,7 +35,6 @@ from kernel.anti_dory.supabase_client import (
     build_default_broker,
     build_default_broker_factory,
 )
-
 
 # =============================================================================
 # Fixtures
@@ -104,10 +102,7 @@ def test_call_rpc_happy_path_returns_decoded_json():
 
     # Verificaciones binarias
     assert captured["method"] == "POST"
-    assert (
-        captured["url"]
-        == "https://test.supabase.co/rest/v1/rpc/rpc_get_attachment_pack"
-    )
+    assert captured["url"] == "https://test.supabase.co/rest/v1/rpc/rpc_get_attachment_pack"
     assert captured["body"] == {
         "p_project_id": "el-monstruo",
         "p_front_id": "anti-dory-002",
@@ -221,8 +216,9 @@ def test_call_rpc_timeout_propagates_to_caller():
 def test_client_implements_protocol_contract():
     """Verifica estructuralmente que HTTPXSupabaseRPCClient cumple el Protocol
     SupabaseRPCClient (sin runtime_checkable, hacemos check manual)."""
-    from kernel.anti_dory.context_broker import SupabaseRPCClient  # Protocol
     import inspect
+
+    from kernel.anti_dory.context_broker import SupabaseRPCClient  # Protocol
 
     sig = inspect.signature(HTTPXSupabaseRPCClient.call_rpc)
     params = list(sig.parameters.keys())
@@ -251,18 +247,14 @@ def test_constructor_rejects_empty_service_key():
 
 
 def test_call_rpc_rejects_invalid_name():
-    client = HTTPXSupabaseRPCClient(
-        url="https://test.supabase.co", service_key="k"
-    )
+    client = HTTPXSupabaseRPCClient(url="https://test.supabase.co", service_key="k")
     with pytest.raises(ValueError, match="RPC name"):
         client.call_rpc("", {})
     client.close()
 
 
 def test_call_rpc_rejects_non_dict_params():
-    client = HTTPXSupabaseRPCClient(
-        url="https://test.supabase.co", service_key="k"
-    )
+    client = HTTPXSupabaseRPCClient(url="https://test.supabase.co", service_key="k")
     with pytest.raises(ValueError, match="params"):
         client.call_rpc("rpc_x", "not a dict")  # type: ignore[arg-type]
     client.close()

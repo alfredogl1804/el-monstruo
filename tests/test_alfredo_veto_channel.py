@@ -1,4 +1,5 @@
 """tests/test_alfredo_veto_channel.py — M9 canal de veto Alfredo→Cowork."""
+
 from __future__ import annotations
 
 import json
@@ -13,10 +14,9 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 from kernel.cowork_runtime.alfredo_veto_channel import (
+    VETO_KEYWORDS,
     AlfredoVetoChannel,
     VetoSeverity,
-    VetoEvent,
-    VETO_KEYWORDS,
 )
 
 
@@ -26,6 +26,7 @@ def tmp_channel(tmp_path):
 
 
 # ---- Disabled default ----
+
 
 def test_disabled_por_default():
     """Por canon DSC-MO-011 Blue-Green, default enabled=false."""
@@ -42,6 +43,7 @@ def test_disabled_emit_no_persiste(tmp_path):
 
 
 # ---- Emit ----
+
 
 def test_emit_palabra_clave_canonica(tmp_channel):
     event = tmp_channel.emit_veto("VETO", contexto="No me entendiste")
@@ -76,7 +78,9 @@ def test_emit_persiste_estado(tmp_channel):
 def test_emit_dispara_callback(tmp_path):
     cb = MagicMock()
     channel = AlfredoVetoChannel(
-        state_path=tmp_path / "veto.json", enabled=True, notify_callback=cb,
+        state_path=tmp_path / "veto.json",
+        enabled=True,
+        notify_callback=cb,
     )
     channel.emit_veto("VETO")
     cb.assert_called_once()
@@ -86,7 +90,9 @@ def test_emit_dispara_callback(tmp_path):
 def test_callback_failure_no_bloquea(tmp_path):
     cb = MagicMock(side_effect=Exception("boom"))
     channel = AlfredoVetoChannel(
-        state_path=tmp_path / "veto.json", enabled=True, notify_callback=cb,
+        state_path=tmp_path / "veto.json",
+        enabled=True,
+        notify_callback=cb,
     )
     # No debe levantar
     event = channel.emit_veto("VETO")
@@ -94,6 +100,7 @@ def test_callback_failure_no_bloquea(tmp_path):
 
 
 # ---- Detect en mensaje ----
+
 
 def test_detect_veto_en_mensaje(tmp_channel):
     # 'STOP' y 'basta'->'BASTA' son ambos HALT; el detector elige
@@ -126,6 +133,7 @@ def test_detect_sin_keyword_devuelve_none(tmp_channel):
 
 
 # ---- Consume / peek ----
+
 
 def test_consume_pending_veto(tmp_channel):
     tmp_channel.emit_veto("VETO")
@@ -169,6 +177,7 @@ def test_clear(tmp_channel):
 
 # ---- Catalogo de palabras clave ----
 
+
 def test_palabras_clave_canonicas_completas():
     """Las 9 palabras clave canonizadas en CLAUDE.md (M9 anexo)."""
     expected = {"VETO", "ALTO", "STOP", "BASTA", "PARAR", "REPENSAR", "EQUIVOCADO", "MAL", "NO"}
@@ -177,17 +186,30 @@ def test_palabras_clave_canonicas_completas():
 
 # ---- CLI ----
 
+
 def test_cli_emit(tmp_path, monkeypatch):
-    import subprocess
     import os as _os
-    state = tmp_path / "veto.json"
+    import subprocess
+
+    tmp_path / "veto.json"
     env = _os.environ.copy()
     env["COWORK_VETO_ENABLED"] = "true"
     # Cambiar al tmp_path para que el state default caiga ahi
     result = subprocess.run(
-        [sys.executable, "-m", "kernel.cowork_runtime.alfredo_veto_channel",
-         "emit", "VETO", "--contexto", "test cli", "--enable"],
-        cwd=REPO_ROOT, capture_output=True, text=True, env=env,
+        [
+            sys.executable,
+            "-m",
+            "kernel.cowork_runtime.alfredo_veto_channel",
+            "emit",
+            "VETO",
+            "--contexto",
+            "test cli",
+            "--enable",
+        ],
+        cwd=REPO_ROOT,
+        capture_output=True,
+        text=True,
+        env=env,
     )
     assert result.returncode == 0
     out = json.loads(result.stdout)
@@ -196,19 +218,26 @@ def test_cli_emit(tmp_path, monkeypatch):
 
 
 def test_cli_peek_sin_pendientes(tmp_path):
-    import subprocess
     import os as _os
+    import subprocess
+
     # Usar HOME tmp para que el state file por defecto no exista
     env = _os.environ.copy()
     # Aislar: peek lee bridge/alfredo_veto_state.json relativo a cwd
     aux_dir = tmp_path / "aux"
     (aux_dir / "bridge").mkdir(parents=True)
     result = subprocess.run(
-        [sys.executable, "-c",
-         "import sys; sys.path.insert(0, '" + str(REPO_ROOT) + "'); "
-         "from kernel.cowork_runtime.alfredo_veto_channel import main; "
-         "sys.exit(main(['peek']))"],
-        cwd=aux_dir, capture_output=True, text=True, env=env,
+        [
+            sys.executable,
+            "-c",
+            "import sys; sys.path.insert(0, '" + str(REPO_ROOT) + "'); "
+            "from kernel.cowork_runtime.alfredo_veto_channel import main; "
+            "sys.exit(main(['peek']))",
+        ],
+        cwd=aux_dir,
+        capture_output=True,
+        text=True,
+        env=env,
     )
     assert result.returncode == 0, result.stderr
     assert result.stdout.strip() == "null"

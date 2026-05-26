@@ -3,26 +3,33 @@ Tests del Sprint 60 — Brand Checklist Check #6
 ===============================================
 Cubre: SovereigntyEngine, TechRadar, CausalSimulatorV2, EmbrionFinanciero, EmbrionInvestigador
 """
-import pytest
-import sys
+
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+import sys
+
+import pytest
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
 # ── Tests Sprint 60.1 — Sovereignty Engine ──────────────────────────────────
 
+
 class TestSovereigntyEngine:
     def test_importacion(self):
         from kernel.sovereignty.engine import SovereigntyEngine
+
         assert SovereigntyEngine is not None
 
     def test_instanciacion(self):
         from kernel.sovereignty.engine import SovereigntyEngine
+
         engine = SovereigntyEngine()
         assert engine is not None
 
     def test_to_dict_tiene_campos_requeridos(self):
         from kernel.sovereignty.engine import SovereigntyEngine
+
         engine = SovereigntyEngine()
         d = engine.to_dict()
         assert "modulo" in d
@@ -30,29 +37,35 @@ class TestSovereigntyEngine:
         assert "objetivo" in d
 
     def test_singleton_init(self):
-        from kernel.sovereignty.engine import init_sovereignty_engine, get_sovereignty_engine
+        from kernel.sovereignty.engine import get_sovereignty_engine, init_sovereignty_engine
+
         engine = init_sovereignty_engine()
         assert get_sovereignty_engine() is engine
 
     def test_naming_con_identidad(self):
         from kernel.sovereignty import engine as mod
-        assert hasattr(mod, 'SovereigntyEngine')
+
+        assert hasattr(mod, "SovereigntyEngine")
 
 
 # ── Tests Sprint 60.2 — Tech Radar ──────────────────────────────────────────
 
+
 class TestTechRadar:
     def test_importacion(self):
         from kernel.vanguard.tech_radar import TechRadar
+
         assert TechRadar is not None
 
     def test_instanciacion(self):
         from kernel.vanguard.tech_radar import TechRadar
+
         radar = TechRadar()
         assert radar is not None
 
     def test_to_dict_tiene_campos_requeridos(self):
         from kernel.vanguard.tech_radar import TechRadar
+
         radar = TechRadar()
         d = radar.to_dict()
         assert "modulo" in d
@@ -60,29 +73,35 @@ class TestTechRadar:
         assert "objetivo" in d
 
     def test_singleton_init(self):
-        from kernel.vanguard.tech_radar import init_tech_radar, get_tech_radar
+        from kernel.vanguard.tech_radar import get_tech_radar, init_tech_radar
+
         radar = init_tech_radar()
         assert get_tech_radar() is radar
 
     def test_naming_con_identidad(self):
         from kernel.vanguard import tech_radar as mod
-        assert hasattr(mod, 'TechRadar')
+
+        assert hasattr(mod, "TechRadar")
 
 
 # ── Tests Sprint 60.3 — CausalSimulatorV2 ───────────────────────────────────
 
+
 class TestCausalSimulatorV2:
     def test_importacion(self):
         from kernel.simulator.causal_simulator_v2 import CausalSimulatorV2
+
         assert CausalSimulatorV2 is not None
 
     def test_instanciacion(self):
         from kernel.simulator.causal_simulator_v2 import CausalSimulatorV2
+
         sim = CausalSimulatorV2()
         assert sim is not None
 
     def test_escenarios_predefinidos(self):
         from kernel.simulator.causal_simulator_v2 import CausalSimulatorV2
+
         sim = CausalSimulatorV2()
         assert "optimista" in sim.ESCENARIOS
         assert "base" in sim.ESCENARIOS
@@ -91,6 +110,7 @@ class TestCausalSimulatorV2:
 
     def test_simulate_base(self):
         from kernel.simulator.causal_simulator_v2 import CausalSimulatorV2
+
         sim = CausalSimulatorV2()
         result = sim.simulate(escenario_nombre="base", n_simulaciones=100)
         assert result.p10 <= result.p50 <= result.p90
@@ -98,26 +118,31 @@ class TestCausalSimulatorV2:
 
     def test_simulate_mrr_positivo(self):
         from kernel.simulator.causal_simulator_v2 import CausalSimulatorV2
+
         sim = CausalSimulatorV2()
         result = sim.simulate(escenario_nombre="optimista", metric="mrr", n_simulaciones=100)
         assert result.p50 >= 0
 
     def test_calibrate_from_financials(self):
         from kernel.simulator.causal_simulator_v2 import CausalSimulatorV2
+
         sim = CausalSimulatorV2()
-        sim.calibrate_from_financials({
-            "mrr_actual": 5000,
-            "clientes_actuales": 50,
-            "cac": 300,
-            "ltv": 1800,
-            "burn_rate": 8000,
-            "runway_meses": 18,
-        })
+        sim.calibrate_from_financials(
+            {
+                "mrr_actual": 5000,
+                "clientes_actuales": 50,
+                "cac": 300,
+                "ltv": 1800,
+                "burn_rate": 8000,
+                "runway_meses": 18,
+            }
+        )
         assert sim._calibration is not None
         assert sim._calibration["mrr_actual"] == 5000
 
     def test_to_dict_tiene_campos_requeridos(self):
         from kernel.simulator.causal_simulator_v2 import CausalSimulatorV2
+
         sim = CausalSimulatorV2()
         d = sim.to_dict()
         assert "modulo" in d
@@ -126,17 +151,20 @@ class TestCausalSimulatorV2:
 
     def test_escenario_invalido_lanza_error(self):
         from kernel.simulator.causal_simulator_v2 import CausalSimulatorV2, SimulatorV2Error
+
         sim = CausalSimulatorV2()
         with pytest.raises(SimulatorV2Error):
             sim.simulate(escenario_nombre="escenario_inexistente")
 
     def test_singleton_init(self):
-        from kernel.simulator.causal_simulator_v2 import init_simulator_v2, get_simulator_v2
+        from kernel.simulator.causal_simulator_v2 import get_simulator_v2, init_simulator_v2
+
         sim = init_simulator_v2()
         assert get_simulator_v2() is sim
 
     def test_resultado_to_dict(self):
         from kernel.simulator.causal_simulator_v2 import CausalSimulatorV2
+
         sim = CausalSimulatorV2()
         result = sim.simulate(n_simulaciones=50)
         d = result.to_dict()
@@ -147,6 +175,7 @@ class TestCausalSimulatorV2:
 
     def test_simulate_clientes(self):
         from kernel.simulator.causal_simulator_v2 import CausalSimulatorV2
+
         sim = CausalSimulatorV2()
         result = sim.simulate(metric="clientes", n_simulaciones=50)
         assert result.metric == "clientes"
@@ -155,18 +184,22 @@ class TestCausalSimulatorV2:
 
 # ── Tests Sprint 60.4 — EmbrionFinanciero ───────────────────────────────────
 
+
 class TestEmbrionFinanciero:
     def test_importacion(self):
         from kernel.embriones.embrion_financiero import EmbrionFinanciero
+
         assert EmbrionFinanciero is not None
 
     def test_instanciacion(self):
         from kernel.embriones.embrion_financiero import EmbrionFinanciero
+
         embrion = EmbrionFinanciero()
         assert embrion is not None
 
     def test_calculate_unit_economics(self):
         from kernel.embriones.embrion_financiero import EmbrionFinanciero
+
         embrion = EmbrionFinanciero()
         ue = embrion.calculate_unit_economics(
             proyecto_id="test-001",
@@ -184,6 +217,7 @@ class TestEmbrionFinanciero:
 
     def test_unit_economics_saludable(self):
         from kernel.embriones.embrion_financiero import EmbrionFinanciero
+
         embrion = EmbrionFinanciero()
         ue = embrion.calculate_unit_economics(
             proyecto_id="saludable",
@@ -199,6 +233,7 @@ class TestEmbrionFinanciero:
 
     def test_to_dict_tiene_campos_requeridos(self):
         from kernel.embriones.embrion_financiero import EmbrionFinanciero
+
         embrion = EmbrionFinanciero()
         d = embrion.to_dict()
         assert "modulo" in d
@@ -207,12 +242,14 @@ class TestEmbrionFinanciero:
         assert "total_mrr_usd" in d
 
     def test_singleton_init(self):
-        from kernel.embriones.embrion_financiero import init_embrion_financiero, get_embrion_financiero
+        from kernel.embriones.embrion_financiero import get_embrion_financiero, init_embrion_financiero
+
         embrion = init_embrion_financiero()
         assert get_embrion_financiero() is embrion
 
     def test_unit_economics_to_dict(self):
         from kernel.embriones.embrion_financiero import EmbrionFinanciero
+
         embrion = EmbrionFinanciero()
         ue = embrion.calculate_unit_economics(
             proyecto_id="dict-test",
@@ -229,18 +266,22 @@ class TestEmbrionFinanciero:
 
 # ── Tests Sprint 60.5 — EmbrionInvestigador ─────────────────────────────────
 
+
 class TestEmbrionInvestigador:
     def test_importacion(self):
         from kernel.embriones.embrion_investigador import EmbrionInvestigador
+
         assert EmbrionInvestigador is not None
 
     def test_instanciacion(self):
         from kernel.embriones.embrion_investigador import EmbrionInvestigador
+
         embrion = EmbrionInvestigador()
         assert embrion is not None
 
     def test_to_dict_tiene_campos_requeridos(self):
         from kernel.embriones.embrion_investigador import EmbrionInvestigador
+
         embrion = EmbrionInvestigador()
         d = embrion.to_dict()
         assert "modulo" in d
@@ -251,6 +292,7 @@ class TestEmbrionInvestigador:
 
     def test_colmena_completa_7_embriones(self):
         from kernel.embriones.embrion_investigador import EmbrionInvestigador
+
         embrion = EmbrionInvestigador()
         d = embrion.to_dict()
         embriones = d["embriones_activos"]
@@ -264,18 +306,21 @@ class TestEmbrionInvestigador:
 
     def test_budget_check_lanza_error_cuando_agotado(self):
         from kernel.embriones.embrion_investigador import EmbrionInvestigador, EmbrionInvestigadorError
+
         embrion = EmbrionInvestigador(budget_daily_usd=0.0)
         embrion._spent_today = 1.0
         with pytest.raises(EmbrionInvestigadorError):
             embrion._check_budget()
 
     def test_singleton_init_milestone(self):
-        from kernel.embriones.embrion_investigador import init_embrion_investigador, get_embrion_investigador
+        from kernel.embriones.embrion_investigador import get_embrion_investigador, init_embrion_investigador
+
         embrion = init_embrion_investigador()
         assert get_embrion_investigador() is embrion
 
     def test_extract_json_con_markdown(self):
         from kernel.embriones.embrion_investigador import EmbrionInvestigador
+
         embrion = EmbrionInvestigador()
         raw = '```json\n{"key": "value"}\n```'
         extracted = embrion._extract_json(raw)
@@ -283,6 +328,7 @@ class TestEmbrionInvestigador:
 
     def test_default_tasks_definidas(self):
         from kernel.embriones.embrion_investigador import EmbrionInvestigador
+
         embrion = EmbrionInvestigador()
         assert "daily_briefing" in embrion.DEFAULT_TASKS
         assert "competitor_monitor" in embrion.DEFAULT_TASKS

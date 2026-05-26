@@ -14,14 +14,12 @@ Ejecutar:
 
 from __future__ import annotations
 
-import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock
 from uuid import uuid4
 
 import pytest
 
 from kernel.background_store import BackgroundStore
-
 
 # ── Fixtures ─────────────────────────────────────────────────────────
 
@@ -176,15 +174,18 @@ class TestProgreso:
         job_id = str(uuid4())
         await store_inmemory.create(job_id=job_id, message="test")
         await store_inmemory.set_running(job_id)
-        await store_inmemory.set_completed(job_id, {
-            "run_id": "test",
-            "status": "completed",
-            "response": "ok",
-            "tokens_in": 10,
-            "tokens_out": 20,
-            "cost_usd": 0.001,
-            "latency_ms": 500,
-        })
+        await store_inmemory.set_completed(
+            job_id,
+            {
+                "run_id": "test",
+                "status": "completed",
+                "response": "ok",
+                "tokens_in": 10,
+                "tokens_out": 20,
+                "cost_usd": 0.001,
+                "latency_ms": 500,
+            },
+        )
         job = await store_inmemory.get(job_id)
         assert job["progress"] == 100
         assert job["status"] == "completed"
@@ -224,9 +225,10 @@ class TestCancelacion:
         job_id = str(uuid4())
         await store_inmemory.create(job_id=job_id, message="test")
         await store_inmemory.set_running(job_id)
-        await store_inmemory.set_completed(job_id, {"status": "completed", "response": "ok",
-                                                      "tokens_in": 0, "tokens_out": 0,
-                                                      "cost_usd": 0, "latency_ms": 0})
+        await store_inmemory.set_completed(
+            job_id,
+            {"status": "completed", "response": "ok", "tokens_in": 0, "tokens_out": 0, "cost_usd": 0, "latency_ms": 0},
+        )
 
         result = await store_inmemory.request_cancel(job_id)
         assert result is False
@@ -269,11 +271,17 @@ class TestTransicionesEstado:
         assert job["status"] == "running"
         assert job["started_at"] is not None
 
-        await store_inmemory.set_completed(job_id, {
-            "status": "completed", "response": "done",
-            "tokens_in": 100, "tokens_out": 200,
-            "cost_usd": 0.005, "latency_ms": 1200,
-        })
+        await store_inmemory.set_completed(
+            job_id,
+            {
+                "status": "completed",
+                "response": "done",
+                "tokens_in": 100,
+                "tokens_out": 200,
+                "cost_usd": 0.005,
+                "latency_ms": 1200,
+            },
+        )
         job = await store_inmemory.get(job_id)
         assert job["status"] == "completed"
         assert job["completed_at"] is not None

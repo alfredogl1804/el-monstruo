@@ -10,12 +10,13 @@ Si la respuesta no está en este output, Cowork no la afirma.
 Uso:
     python3 tools/audit_app_flutter.py
 """
+
 from __future__ import annotations
 
 import re
 import sys
-from pathlib import Path
 from collections import Counter
+from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 APP_LIB = REPO_ROOT / "apps" / "mobile" / "lib"
@@ -34,6 +35,7 @@ def subsec(title: str) -> None:
 
 
 # ── 1. INVENTARIO DE ARCHIVOS .dart ─────────────────────────────────
+
 
 def audit_files() -> list[Path]:
     section("1. INVENTARIO DE ARCHIVOS .dart")
@@ -97,8 +99,10 @@ def audit_classes(files: list[Path]) -> dict[str, int]:
             else:
                 print(f"    class {cls}")
     print()
-    print(f"  RESUMEN: total clases={summary['total_classes']}, stateful={summary['stateful']}, "
-          f"stateless={summary['stateless']}, consumer={summary['consumer']}")
+    print(
+        f"  RESUMEN: total clases={summary['total_classes']}, stateful={summary['stateful']}, "
+        f"stateless={summary['stateless']}, consumer={summary['consumer']}"
+    )
     return summary
 
 
@@ -146,7 +150,9 @@ def audit_kernel_endpoints(files: list[Path]) -> set[str]:
 
 # ── 5. PROVIDERS Y SERVICES (Riverpod) ───────────────────────────────
 
-PROVIDER_RE = re.compile(r"\b(Provider|StateNotifierProvider|StateProvider|FutureProvider|StreamProvider|NotifierProvider|AsyncNotifierProvider)<[^>]*>\s*\(")
+PROVIDER_RE = re.compile(
+    r"\b(Provider|StateNotifierProvider|StateProvider|FutureProvider|StreamProvider|NotifierProvider|AsyncNotifierProvider)<[^>]*>\s*\("
+)
 
 
 def audit_providers(files: list[Path]) -> int:
@@ -180,6 +186,7 @@ def audit_routes(files: list[Path]) -> list[str]:
 
 # ── 7. WEBSOCKET + REAL-TIME ─────────────────────────────────────────
 
+
 def audit_realtime(files: list[Path]) -> dict[str, list[str]]:
     section("7. WEBSOCKET + COMUNICACIÓN REAL-TIME")
     out = {"websocket_uses": [], "sse_uses": [], "polling_uses": []}
@@ -200,12 +207,13 @@ def audit_realtime(files: list[Path]) -> dict[str, list[str]]:
 
 # ── 8. TODOS Y STUBS DETECTADOS ──────────────────────────────────────
 
+
 def audit_todos(files: list[Path]) -> int:
     section("8. TODOs + STUBS detectados en el código")
     total = 0
     patterns = [
         re.compile(r"//\s*(TODO|FIXME|XXX|HACK):?\s*(.+)", re.IGNORECASE),
-        re.compile(r'throw\s+UnimplementedError\(', re.IGNORECASE),
+        re.compile(r"throw\s+UnimplementedError\(", re.IGNORECASE),
     ]
     for f in files:
         text = f.read_text(encoding="utf-8", errors="ignore")
@@ -226,6 +234,7 @@ def audit_todos(files: list[Path]) -> int:
 
 # ── 9. PUNTOS DE CONEXIÓN POTENCIAL CON EMBRIÓN ──────────────────────
 
+
 def audit_embrion_touchpoints(files: list[Path]) -> list[str]:
     section("9. REFERENCIAS A 'embrion' EN LA APP")
     refs: list[str] = []
@@ -242,6 +251,7 @@ def audit_embrion_touchpoints(files: list[Path]) -> list[str]:
 
 
 # ── 10. VEREDICTO BINARIO ────────────────────────────────────────────
+
 
 def veredicto(files, classes, providers, endpoints, routes, todos, embrion_refs) -> None:
     section("10. VEREDICTO BINARIO APP FLUTTER")

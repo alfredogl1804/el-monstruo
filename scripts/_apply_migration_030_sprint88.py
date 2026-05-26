@@ -9,6 +9,7 @@ Requiere:
     - SUPABASE_DB_URL en env (provisto por Railway)
     - psycopg[binary] instalado
 """
+
 from __future__ import annotations
 
 import os

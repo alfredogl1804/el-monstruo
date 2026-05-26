@@ -2,6 +2,7 @@
 """
 Tests del DSC-as-Contract de la Capa Publicidad (DSC-G-017 enforcement).
 """
+
 from __future__ import annotations
 
 import sys
@@ -24,7 +25,6 @@ from kernel.transversales.publicidad._canonical_constraints import (  # noqa: E4
     require_commercial,
 )
 
-
 CAPILLA = ROOT / "discovery_forense" / "CAPILLA_DECISIONES"
 
 
@@ -44,9 +44,7 @@ def test_cip_blocks_tiktok_audience_mismatch():
 
 
 def test_dsc_cip_005_publicidad_geo_sureste():
-    dsc = _read_dsc(
-        CAPILLA / "CIP" / "DSC-CIP-005_lanzamiento_focalizado_sureste_mx.md"
-    )
+    dsc = _read_dsc(CAPILLA / "CIP" / "DSC-CIP-005_lanzamiento_focalizado_sureste_mx.md")
     assert "sureste" in dsc.lower()
     cip = PUBLICIDAD_CANONICAL_PER_VERTICAL[VerticalId.CIP]
     assert "yucatan" in cip["geo_target_states"]
@@ -56,9 +54,7 @@ def test_dsc_cip_005_publicidad_geo_sureste():
 
 
 def test_dsc_lt_002_publicidad_scarcity_angle():
-    dsc = _read_dsc(
-        CAPILLA / "LIKETICKETS" / "DSC-LT-002_producto_piloto_313_butacas.md"
-    )
+    dsc = _read_dsc(CAPILLA / "LIKETICKETS" / "DSC-LT-002_producto_piloto_313_butacas.md")
     assert "313" in dsc
     lt = PUBLICIDAD_CANONICAL_PER_VERTICAL[VerticalId.LIKETICKETS]
     angles = lt["creative_angles_canonical"]
@@ -66,9 +62,7 @@ def test_dsc_lt_002_publicidad_scarcity_angle():
 
 
 def test_dsc_k365_001_publicidad_climatizado_angle():
-    dsc = _read_dsc(
-        CAPILLA / "KUKULKAN-365" / "DSC-K365-001_distrito_entretenimiento_climatizado.md"
-    )
+    dsc = _read_dsc(CAPILLA / "KUKULKAN-365" / "DSC-K365-001_distrito_entretenimiento_climatizado.md")
     assert "365" in dsc
     k = PUBLICIDAD_CANONICAL_PER_VERTICAL[VerticalId.KUKULKAN_365]
     angles = k["creative_angles_canonical"]
@@ -98,8 +92,14 @@ def test_dsc_mb_001_mena_baduy_no_publicidad():
 
 def test_supported_platforms_finite_set():
     expected = {
-        "meta_ads", "google_ads", "tiktok_ads", "linkedin_ads",
-        "reddit_ads", "x_ads", "pinterest_ads", "youtube_ads",
+        "meta_ads",
+        "google_ads",
+        "tiktok_ads",
+        "linkedin_ads",
+        "reddit_ads",
+        "x_ads",
+        "pinterest_ads",
+        "youtube_ads",
     }
     assert SUPPORTED_AD_PLATFORMS == expected
 
@@ -108,8 +108,7 @@ def test_all_allowed_platforms_in_supported_set():
     for vertical, cfg in PUBLICIDAD_CANONICAL_PER_VERTICAL.items():
         for p in cfg.get("ad_platforms_allowed", []):
             assert p in SUPPORTED_AD_PLATFORMS, (
-                f"{vertical.value} permite {p} que NO esta en "
-                f"SUPPORTED_AD_PLATFORMS. Adicion requiere DSC."
+                f"{vertical.value} permite {p} que NO esta en SUPPORTED_AD_PLATFORMS. Adicion requiere DSC."
             )
 
 
@@ -126,24 +125,19 @@ def test_publicidad_recommend_for_cip_returns_structured_data():
     )
     result = layer.recommend(ctx)
     platforms = next(
-        (r for r in result.recommendations
-         if r.rule_id == "publicidad.platforms.allowed_blocked"),
+        (r for r in result.recommendations if r.rule_id == "publicidad.platforms.allowed_blocked"),
         None,
     )
     assert platforms is not None
     assert "tiktok_ads" in platforms.value["platforms_explicitly_blocked"]
     assert "meta_ads" in platforms.value["platforms_allowed"]
     disclaimer = next(
-        (r for r in result.recommendations
-         if r.rule_id == "publicidad.disclaimers.required"),
+        (r for r in result.recommendations if r.rule_id == "publicidad.disclaimers.required"),
         None,
     )
     assert disclaimer is not None
     assert "tokens_no_son_equity_inmueble" in disclaimer.value["disclaimers"]
-    assert any(
-        "[NEEDS_PERPLEXITY_VALIDATION]" in t
-        for t in result.aggregated_validation_tags
-    )
+    assert any("[NEEDS_PERPLEXITY_VALIDATION]" in t for t in result.aggregated_validation_tags)
 
 
 def test_publicidad_recommend_for_bioguard_blocks_geo_mx():
@@ -154,8 +148,7 @@ def test_publicidad_recommend_for_bioguard_blocks_geo_mx():
     )
     result = layer.recommend(ctx)
     geo = next(
-        (r for r in result.recommendations
-         if r.rule_id == "publicidad.geo.targeting"),
+        (r for r in result.recommendations if r.rule_id == "publicidad.geo.targeting"),
         None,
     )
     assert geo is not None
@@ -211,5 +204,5 @@ if __name__ == "__main__":
     test_publicidad_recommend_for_cip_returns_structured_data()
     test_publicidad_recommend_for_bioguard_blocks_geo_mx()
     test_publicidad_recommend_for_mena_baduy_raises()
-    test_publicidad_implement_not_implemented()
+    test_publicidad_implement_is_implemented()
     print("\n[ok] Los 13 tests del DSC-as-Contract de Capa Publicidad pasaron.")

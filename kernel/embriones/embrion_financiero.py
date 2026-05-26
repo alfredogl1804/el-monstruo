@@ -19,6 +19,7 @@ Sprint 60 — 2026-05-01
 Soberanía: Funciona sin Supabase — persiste en memoria si no hay DB.
            Alternativa: CSV local para snapshots financieros.
 """
+
 from __future__ import annotations
 
 import json
@@ -32,6 +33,7 @@ logger = structlog.get_logger("monstruo.embrion.financiero")
 
 
 # ── Errores con identidad ────────────────────────────────────────────────────
+
 
 class EmbrionFinancieroError(Exception):
     """Error base del Embrión-Financiero."""
@@ -52,6 +54,7 @@ EMBRION_FINANCIERO_RUNWAY_CRITICO = (
 
 # ── Dataclasses ──────────────────────────────────────────────────────────────
 
+
 @dataclass
 class UnitEconomics:
     """
@@ -70,6 +73,7 @@ class UnitEconomics:
         runway_meses: Meses de runway con el cash actual.
         calculado_en: ISO timestamp del cálculo.
     """
+
     proyecto_id: str
     mrr: float
     clientes: int
@@ -85,11 +89,7 @@ class UnitEconomics:
     @property
     def es_saludable(self) -> bool:
         """True si los unit economics son saludables."""
-        return (
-            self.ltv_cac_ratio >= 3.0
-            and self.runway_meses >= 6.0
-            and self.churn_rate <= 0.05
-        )
+        return self.ltv_cac_ratio >= 3.0 and self.runway_meses >= 6.0 and self.churn_rate <= 0.05
 
     def to_dict(self) -> dict:
         """Serializar para el Command Center."""
@@ -240,10 +240,7 @@ class EmbrionFinanciero:
         """
         self._ciclos_ejecutados += 1
         proyectos_saludables = sum(1 for ue in self._unit_economics_cache.values() if ue.es_saludable)
-        proyectos_criticos = [
-            pid for pid, ue in self._unit_economics_cache.items()
-            if ue.runway_meses < 3
-        ]
+        proyectos_criticos = [pid for pid, ue in self._unit_economics_cache.items() if ue.runway_meses < 3]
 
         result = {
             "ciclo": self._ciclos_ejecutados,
@@ -283,14 +280,16 @@ Respond in JSON: {{"recommendations": ["...", "...", "..."]}}"""
         alertas = []
         for pid, ue in self._unit_economics_cache.items():
             if ue.runway_meses < 3:
-                alertas.append({
-                    "tipo": "RUNWAY_CRITICO",
-                    "proyecto": pid,
-                    "runway_meses": round(ue.runway_meses, 1),
-                    "burn_rate": round(ue.burn_rate, 2),
-                    "cash_disponible": round(ue.cash_disponible, 2),
-                    "timestamp": datetime.now(timezone.utc).isoformat(),
-                })
+                alertas.append(
+                    {
+                        "tipo": "RUNWAY_CRITICO",
+                        "proyecto": pid,
+                        "runway_meses": round(ue.runway_meses, 1),
+                        "burn_rate": round(ue.burn_rate, 2),
+                        "cash_disponible": round(ue.cash_disponible, 2),
+                        "timestamp": datetime.now(timezone.utc).isoformat(),
+                    }
+                )
                 self._alertas_emitidas += 1
 
         if alertas:
@@ -307,9 +306,8 @@ Respond in JSON: {{"recommendations": ["...", "...", "..."]}}"""
         """
         total_mrr = sum(ue.mrr for ue in self._unit_economics_cache.values())
         total_clientes = sum(ue.clientes for ue in self._unit_economics_cache.values())
-        avg_ltv_cac = (
-            sum(ue.ltv_cac_ratio for ue in self._unit_economics_cache.values())
-            / max(1, len(self._unit_economics_cache))
+        avg_ltv_cac = sum(ue.ltv_cac_ratio for ue in self._unit_economics_cache.values()) / max(
+            1, len(self._unit_economics_cache)
         )
 
         snapshot = {
@@ -384,10 +382,7 @@ Respond in JSON: {{"recommendations": ["...", "...", "..."]}}"""
             "proyectos_saludables": sum(1 for ue in self._unit_economics_cache.values() if ue.es_saludable),
             "total_mrr_usd": round(sum(ue.mrr for ue in self._unit_economics_cache.values()), 2),
             "simulator_calibrado": self._simulator_v2 is not None,
-            "unit_economics": {
-                pid: ue.to_dict()
-                for pid, ue in list(self._unit_economics_cache.items())[:5]
-            },
+            "unit_economics": {pid: ue.to_dict() for pid, ue in list(self._unit_economics_cache.items())[:5]},
         }
 
 

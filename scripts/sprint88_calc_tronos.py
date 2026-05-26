@@ -19,8 +19,10 @@ Desempate: open_weights DESC, tier_seed ASC, id ASC.
 Resultado: lista de 9 tronos (uno por dominio) que se devuelven y se persisten
 en una vista materializada catastro_tronos_agentes.
 """
+
 import os
 import sys
+
 import psycopg
 
 SCORE_SQL = """

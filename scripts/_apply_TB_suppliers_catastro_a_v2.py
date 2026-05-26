@@ -15,7 +15,6 @@ import sys
 
 import psycopg2
 
-
 REALES_SQL = """
 INSERT INTO public.catastro_suppliers_humanos
   (key, name, role, availability, skills, contact, active, last_active)
@@ -88,7 +87,13 @@ ON CONFLICT (key) DO NOTHING;
 PLACEHOLDER_SPECS = [
     {"slug": "arq", "display": "Arquitecto", "role": "arquitecto", "target": "CIDEY|CICY-Arq", "n": 6},
     {"slug": "valuador", "display": "Valuador", "role": "valuador", "target": "Colegio Valuadores Yucatán", "n": 4},
-    {"slug": "fotografo", "display": "Fotógrafo arquitectura", "role": "fotografo_arquitectura", "target": "Recomendación profesional", "n": 4},
+    {
+        "slug": "fotografo",
+        "display": "Fotógrafo arquitectura",
+        "role": "fotografo_arquitectura",
+        "target": "Recomendación profesional",
+        "n": 4,
+    },
     {"slug": "contratista", "display": "Contratista", "role": "contratista", "target": "CMIC Yucatán", "n": 6},
     {"slug": "abogado", "display": "Abogado", "role": "abogado", "target": "Barra Mexicana Yucatán", "n": 4},
 ]

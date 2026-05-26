@@ -120,7 +120,7 @@ def main() -> int:
     stats = supabase_sql(token, project_ref, sql4)[0]
 
     # Construir reporte
-    report_lines.append(f"# RLS Audit Report — schema public\n")
+    report_lines.append("# RLS Audit Report — schema public\n")
     report_lines.append(f"**Project**: `{project_ref}`")
     report_lines.append(f"**Total tablas**: {stats['total_tables']}")
     report_lines.append(f"**Tablas con RLS**: {stats['tables_rls']}")

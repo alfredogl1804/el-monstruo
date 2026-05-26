@@ -12,12 +12,12 @@ Spec firmado: bridge/a2ui_spec_draft_FIRMADO_2026_05_11.md (Cowork T2 delegada)
 Sprint origen: MOBILE_1B Tarea T1 (kernel side)
 DSC: DSC-MO-011 Embryo Patch Lane v1 (Capa 8 Memento)
 """
+
 from __future__ import annotations
 
-from typing import Any, Literal, Optional, Union
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator
-
 
 # ============================================================================
 # Constantes canonizadas
@@ -25,38 +25,41 @@ from pydantic import BaseModel, Field, field_validator
 
 A2UI_VERSION = "1.0"
 
-A2UI_WHITELIST_TYPES = frozenset({
-    # Contenedores (3)
-    "Stack",
-    "Card",
-    "Section",
-    # Contenido (6)
-    "Text",
-    "Markdown",
-    "Image",
-    "Link",
-    "Code",
-    "Divider",
-    # Accion (2)
-    "Button",
-    "ButtonGroup",
-    # Datos (3)
-    "KeyValueList",
-    "Table",
-    "Badge",
-    # Progreso (2)
-    "Progress",
-    "Stepper",
-    # Especializados Monstruo (3)
-    "EmpresaResultCard",
-    "LeadCard",
-    "ContenidoCard",
-})
+A2UI_WHITELIST_TYPES = frozenset(
+    {
+        # Contenedores (3)
+        "Stack",
+        "Card",
+        "Section",
+        # Contenido (6)
+        "Text",
+        "Markdown",
+        "Image",
+        "Link",
+        "Code",
+        "Divider",
+        # Accion (2)
+        "Button",
+        "ButtonGroup",
+        # Datos (3)
+        "KeyValueList",
+        "Table",
+        "Badge",
+        # Progreso (2)
+        "Progress",
+        "Stepper",
+        # Especializados Monstruo (3)
+        "EmpresaResultCard",
+        "LeadCard",
+        "ContenidoCard",
+    }
+)
 
 
 # ============================================================================
 # Modelo base
 # ============================================================================
+
 
 class A2UIComponent(BaseModel):
     """
@@ -65,6 +68,7 @@ class A2UIComponent(BaseModel):
 
     El tipo debe estar en A2UI_WHITELIST_TYPES o la validacion falla.
     """
+
     type: str
     props: dict[str, Any] = Field(default_factory=dict)
     children: list["A2UIComponent"] = Field(default_factory=list)
@@ -74,8 +78,7 @@ class A2UIComponent(BaseModel):
     def validate_type_in_whitelist(cls, v: str) -> str:
         if v not in A2UI_WHITELIST_TYPES:
             raise ValueError(
-                f"A2UI type '{v}' no esta en whitelist v{A2UI_VERSION}. "
-                f"Tipos validos: {sorted(A2UI_WHITELIST_TYPES)}"
+                f"A2UI type '{v}' no esta en whitelist v{A2UI_VERSION}. Tipos validos: {sorted(A2UI_WHITELIST_TYPES)}"
             )
         return v
 
@@ -88,6 +91,7 @@ A2UIComponent.model_rebuild()
 # Documento A2UI completo
 # ============================================================================
 
+
 class A2UIDocument(BaseModel):
     """
     Documento A2UI completo. Es lo que el kernel envia al WebSocket.
@@ -98,6 +102,7 @@ class A2UIDocument(BaseModel):
         "root": { ...A2UIComponent... }
     }
     """
+
     a2ui_version: str = Field(default=A2UI_VERSION)
     root: A2UIComponent
 
@@ -107,16 +112,14 @@ class A2UIDocument(BaseModel):
         major, _ = v.split(".", 1)
         expected_major, _ = A2UI_VERSION.split(".", 1)
         if major != expected_major:
-            raise ValueError(
-                f"A2UI version major incompatible. Recibido: {v}, "
-                f"soportado: {A2UI_VERSION}"
-            )
+            raise ValueError(f"A2UI version major incompatible. Recibido: {v}, soportado: {A2UI_VERSION}")
         return v
 
 
 # ============================================================================
 # Eventos de accion del usuario
 # ============================================================================
+
 
 class A2UIAction(BaseModel):
     """
@@ -125,6 +128,7 @@ class A2UIAction(BaseModel):
 
     La app envia esto al kernel via WebSocket message tipo a2ui_action.
     """
+
     type: Literal["a2ui_action"] = "a2ui_action"
     action_id: str
     payload: dict[str, Any] = Field(default_factory=dict)
@@ -136,6 +140,7 @@ class A2UIAction(BaseModel):
 # ============================================================================
 # Validacion + fallback
 # ============================================================================
+
 
 def validate_a2ui_document(payload: dict[str, Any]) -> tuple[bool, Optional[A2UIDocument], Optional[str]]:
     """
@@ -182,6 +187,7 @@ def fallback_to_markdown(original_payload: Any, error: str) -> A2UIDocument:
 # Helpers de logging
 # ============================================================================
 
+
 def log_a2ui_validation_failure(error: str, payload_preview: str) -> None:
     """
     Hook para Capa 8 Memento: registra fallos de validacion A2UI sin
@@ -189,10 +195,10 @@ def log_a2ui_validation_failure(error: str, payload_preview: str) -> None:
     """
     # Placeholder - implementacion completa requiere wiring con kernel.error_memory
     import logging
+
     logger = logging.getLogger("kernel.a2ui")
     logger.warning(
-        "A2UI validation failed. Falling back to Markdown. Error: %s | "
-        "Payload preview: %s",
+        "A2UI validation failed. Falling back to Markdown. Error: %s | Payload preview: %s",
         error,
         payload_preview[:200],
     )

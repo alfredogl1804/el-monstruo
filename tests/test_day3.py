@@ -141,9 +141,7 @@ class TestOTelBridge:
             result = await bridge.initialize()
             # Pre-fix: would return True and spam 401 errors.
             # Post-fix: must return False (OTel opt-in only).
-            assert result is False, (
-                "OTel bridge must NOT auto-enable via LANGFUSE_HOST fallback (H4)"
-            )
+            assert result is False, "OTel bridge must NOT auto-enable via LANGFUSE_HOST fallback (H4)"
             assert bridge.enabled is False
 
     def test_span_when_disabled(self):

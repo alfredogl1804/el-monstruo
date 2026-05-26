@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Verifica el estado final del run de smoke Sprint 87.2."""
+
 import json
 import os
 import sys
@@ -30,10 +31,18 @@ for s in d.get("steps", []):
         op = s.get("output_payload") or {}
         print(f"=== {sn} status={s.get('status')} duration_ms={s.get('duration_ms')} ===")
         for k in [
-            "source", "provider", "real_deploy", "deploy_url",
-            "score", "veredicto", "modelo_consultado",
-            "vigia_status", "tracking_endpoint", "tracking_script",
-            "fallback_reason", "error_message",
+            "source",
+            "provider",
+            "real_deploy",
+            "deploy_url",
+            "score",
+            "veredicto",
+            "modelo_consultado",
+            "vigia_status",
+            "tracking_endpoint",
+            "tracking_script",
+            "fallback_reason",
+            "error_message",
         ]:
             if k in op and op[k] is not None:
                 v = op[k]

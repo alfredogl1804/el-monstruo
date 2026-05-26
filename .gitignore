@@ -75,3 +75,4 @@ forja-mcp/
 # Solo se commitea el .gitkeep para preservar el directorio.
 bridge/thread_immunity/*/
 !bridge/thread_immunity/.gitkeep
+.venv-s91/

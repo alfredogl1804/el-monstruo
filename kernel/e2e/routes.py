@@ -27,9 +27,7 @@ from kernel.e2e.schema import (
     JudgmentRequest,
     RunRequest,
     RunResponse,
-    Veredicto,
 )
-
 
 e2e_router = APIRouter(prefix="/v1/e2e", tags=["e2e"])
 

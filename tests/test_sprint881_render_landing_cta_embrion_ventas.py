@@ -11,9 +11,8 @@ El adapter en real_deploy.py mapea ambos shapes:
 
 Brand DNA: errores prefijo e2e_render_landing_cta_*_failed.
 """
-from __future__ import annotations
 
-import pytest
+from __future__ import annotations
 
 from kernel.e2e.deploy.real_deploy import render_landing_html
 
@@ -103,42 +102,34 @@ def _state_with_step_copy_output_shape() -> dict:
 # Tests adapter EmbrionVentasReport
 # ============================================================================
 
+
 class TestRenderLandingAdapterEmbrionVentas:
     """El render extrae propuesta_valor del EmbrionVentasReport para hero/body/CTA."""
 
     def test_hero_headline_uses_propuesta_valor_statement(self):
         state = _state_with_embrion_ventas_shape()
-        files = render_landing_html(
-            state=state, run_id="test_881_a", ingest_url="https://example.com/ingest"
-        )
+        files = render_landing_html(state=state, run_id="test_881_a", ingest_url="https://example.com/ingest")
         html = files["index.html"]
         assert "Pintura al óleo artesanal de Mérida" in html
 
     def test_hero_subheadline_uses_diferenciador(self):
         state = _state_with_embrion_ventas_shape()
-        files = render_landing_html(
-            state=state, run_id="test_881_b", ingest_url="https://example.com/ingest"
-        )
+        files = render_landing_html(state=state, run_id="test_881_b", ingest_url="https://example.com/ingest")
         html = files["index.html"]
         assert "Cada pieza es exclusiva" in html
 
     def test_body_copy_concatena_beneficios(self):
         state = _state_with_embrion_ventas_shape()
-        files = render_landing_html(
-            state=state, run_id="test_881_c", ingest_url="https://example.com/ingest"
-        )
+        files = render_landing_html(state=state, run_id="test_881_c", ingest_url="https://example.com/ingest")
         html = files["index.html"]
         # Al menos uno de los beneficios debe estar en el body
         assert any(
-            b in html
-            for b in ["Obras únicas hechas a mano", "Técnicas tradicionales", "Apoyo directo a artistas"]
+            b in html for b in ["Obras únicas hechas a mano", "Técnicas tradicionales", "Apoyo directo a artistas"]
         )
 
     def test_cta_primary_es_contextual_no_generico(self):
         state = _state_with_embrion_ventas_shape()
-        files = render_landing_html(
-            state=state, run_id="test_881_d", ingest_url="https://example.com/ingest"
-        )
+        files = render_landing_html(state=state, run_id="test_881_d", ingest_url="https://example.com/ingest")
         html = files["index.html"]
         # NO debe caer al fallback genérico "Empezar ahora" cuando hay propuesta_valor
         assert "Empezar ahora" not in html
@@ -147,17 +138,13 @@ class TestRenderLandingAdapterEmbrionVentas:
 
     def test_cta_secondary_usa_primer_canal(self):
         state = _state_with_embrion_ventas_shape()
-        files = render_landing_html(
-            state=state, run_id="test_881_e", ingest_url="https://example.com/ingest"
-        )
+        files = render_landing_html(state=state, run_id="test_881_e", ingest_url="https://example.com/ingest")
         html = files["index.html"]
         assert "Ver en Galería online" in html
 
     def test_no_renderiza_TBD_subject(self):
         state = _state_with_embrion_ventas_shape()
-        files = render_landing_html(
-            state=state, run_id="test_881_f", ingest_url="https://example.com/ingest"
-        )
+        files = render_landing_html(state=state, run_id="test_881_f", ingest_url="https://example.com/ingest")
         html = files["index.html"]
         # mailto subject debe ser nombre real del proyecto, no "TBD"
         assert "subject=Pinturas%20M" in html or "Pinturas Mérida" in html
@@ -167,22 +154,19 @@ class TestRenderLandingAdapterEmbrionVentas:
 # Tests retrocompat StepCopyOutput
 # ============================================================================
 
+
 class TestRenderLandingBackwardsCompatStepCopy:
     """Si VENTAS produce shape legacy StepCopyOutput, sigue funcionando igual."""
 
     def test_legacy_hero_headline_passthrough(self):
         state = _state_with_step_copy_output_shape()
-        files = render_landing_html(
-            state=state, run_id="test_881_legacy_a", ingest_url="https://example.com/ingest"
-        )
+        files = render_landing_html(state=state, run_id="test_881_legacy_a", ingest_url="https://example.com/ingest")
         html = files["index.html"]
         assert "Tu negocio escala 10x con consultoría real" in html
 
     def test_legacy_cta_primary_passthrough(self):
         state = _state_with_step_copy_output_shape()
-        files = render_landing_html(
-            state=state, run_id="test_881_legacy_b", ingest_url="https://example.com/ingest"
-        )
+        files = render_landing_html(state=state, run_id="test_881_legacy_b", ingest_url="https://example.com/ingest")
         html = files["index.html"]
         assert "Reservar diagnóstico" in html
         assert "Ver casos" in html
@@ -191,6 +175,7 @@ class TestRenderLandingBackwardsCompatStepCopy:
 # ============================================================================
 # Tests defensivos — VENTAS vacío
 # ============================================================================
+
 
 class TestRenderLandingDefensivoVentasVacio:
     """Si VENTAS no produce nada útil, el render no falla y usa fallbacks."""
@@ -205,9 +190,7 @@ class TestRenderLandingDefensivoVentasVacio:
             "tecnico": {"output_payload": {}},
             "research": {},
         }
-        files = render_landing_html(
-            state=state, run_id="test_881_def_a", ingest_url="https://example.com/ingest"
-        )
+        files = render_landing_html(state=state, run_id="test_881_def_a", ingest_url="https://example.com/ingest")
         html = files["index.html"]
         # Hero cae al elevator_pitch
         assert "Pitch fallback" in html
@@ -235,8 +218,6 @@ class TestRenderLandingDefensivoVentasVacio:
             "tecnico": {"output_payload": {}},
             "research": {},
         }
-        files = render_landing_html(
-            state=state, run_id="test_881_def_b", ingest_url="https://example.com/ingest"
-        )
+        files = render_landing_html(state=state, run_id="test_881_def_b", ingest_url="https://example.com/ingest")
         html = files["index.html"]
         assert "X resuelve el problema Y" in html

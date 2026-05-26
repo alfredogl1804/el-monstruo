@@ -19,13 +19,13 @@ Disciplina anti-Dory:
     - invalidate_cache(source_id) para forzar refresh manual
     - get_freshness(source_id) para introspección
 """
+
 from __future__ import annotations
 
-import hashlib
 import secrets
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Awaitable, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Optional
 
 from kernel.memento.models import (
     CriticalOperation,
@@ -99,8 +99,10 @@ class MementoValidator:
             elif source.source_type == "env_var":
                 # Lectura local del env (el kernel sí puede leer su propia env)
                 import os
+
                 value = os.environ.get(source.location, "")
                 from kernel.memento.sources import _hash_content  # type: ignore
+
                 return {
                     "value": value,
                     "fetched_at": _now(),
@@ -113,9 +115,7 @@ class MementoValidator:
                     f"Inyectá un fetcher mock o usá read_railway_env_var con http_client."
                 )
             else:
-                raise RuntimeError(
-                    f"unsupported_source_type: source_id={source.id} type={source.source_type}"
-                )
+                raise RuntimeError(f"unsupported_source_type: source_id={source.id} type={source.source_type}")
 
         return fetcher
 
@@ -193,8 +193,7 @@ class MementoValidator:
                     validation_id=validation_id,
                     context_freshness_seconds=0,
                     remediation=(
-                        f"source_read_failed: source_id={source_id} error={exc!s}. "
-                        f"Verificá la fuente y reintentá."
+                        f"source_read_failed: source_id={source_id} error={exc!s}. Verificá la fuente y reintentá."
                     ),
                     source_consulted=source_id,
                 )

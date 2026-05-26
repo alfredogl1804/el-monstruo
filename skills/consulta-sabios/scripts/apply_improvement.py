@@ -27,7 +27,7 @@ from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from db_store import query_improvements, save_improvement, get_db
+from db_store import get_db, query_improvements
 
 SKILL_DIR = Path(os.path.dirname(os.path.abspath(__file__))).parent
 BACKUP_DIR = SKILL_DIR / "data" / "backups"
@@ -36,11 +36,11 @@ BACKUP_DIR = SKILL_DIR / "data" / "backups"
 def apply_improvement(improvement_id: str, force: bool = False) -> bool:
     """
     Aplica una mejora con backup automático.
-    
+
     Args:
         improvement_id: ID de la mejora
         force: Si True, aplica aunque no esté en estado "aprobada"
-    
+
     Returns:
         True si se aplicó exitosamente
     """
@@ -51,7 +51,7 @@ def apply_improvement(improvement_id: str, force: bool = False) -> bool:
         if imp.get("improvement_id") == improvement_id:
             target = imp
             break
-    
+
     if not target:
         print(f"❌ Mejora {improvement_id} no encontrada")
         return False
@@ -62,7 +62,7 @@ def apply_improvement(improvement_id: str, force: bool = False) -> bool:
         return False
 
     if estado == "propuesta" and not force:
-        print(f"⚠️  Mejora en estado 'propuesta' (no aprobada). Use --force para aplicar.")
+        print("⚠️  Mejora en estado 'propuesta' (no aprobada). Use --force para aplicar.")
         return False
 
     print(f"🔧 Aplicando mejora: {target['descripcion']}")
@@ -79,7 +79,7 @@ def apply_improvement(improvement_id: str, force: bool = False) -> bool:
     cambio = diff.get("cambio", "")
 
     if not target_file:
-        print(f"⚠️  Sin archivo objetivo en diff. Mejora registrada como manual.")
+        print("⚠️  Sin archivo objetivo en diff. Mejora registrada como manual.")
         _update_improvement_status(improvement_id, "aplicada")
         return True
 
@@ -98,8 +98,8 @@ def apply_improvement(improvement_id: str, force: bool = False) -> bool:
     # por el agente. Este script registra el estado y crea el backup.
     print(f"   📝 Cambio a aplicar: {cambio}")
     print(f"   📁 Archivo: {target_file}")
-    print(f"\n   ⚠️  ACCIÓN REQUERIDA: El agente debe aplicar el cambio manualmente.")
-    print(f"   Después de aplicar, ejecutar:")
+    print("\n   ⚠️  ACCIÓN REQUERIDA: El agente debe aplicar el cambio manualmente.")
+    print("   Después de aplicar, ejecutar:")
     print(f"   python3.11 apply_improvement.py --id {improvement_id} --confirm")
 
     _update_improvement_status(improvement_id, "pendiente_aplicacion")
@@ -116,10 +116,10 @@ def confirm_application(improvement_id: str) -> bool:
 def rollback_improvement(improvement_id: str) -> bool:
     """
     Revierte una mejora restaurando el backup.
-    
+
     Args:
         improvement_id: ID de la mejora a revertir
-    
+
     Returns:
         True si se revirtió exitosamente
     """
@@ -136,7 +136,7 @@ def rollback_improvement(improvement_id: str) -> bool:
     for backup_file in backup_dir.iterdir():
         if backup_file.name.endswith(".backup_meta.json"):
             continue
-        
+
         # Leer metadata para saber la ruta original
         meta_file = backup_dir / f"{backup_file.stem}.backup_meta.json"
         if meta_file.exists():
@@ -146,16 +146,13 @@ def rollback_improvement(improvement_id: str) -> bool:
         else:
             # Inferir ruta original
             original_path = SKILL_DIR / backup_file.name
-        
+
         if original_path.exists():
             shutil.copy2(backup_file, original_path)
             print(f"   ✅ Restaurado: {original_path}")
             restored += 1
 
-    _update_improvement_status(
-        improvement_id, "revertida",
-        motivo="Rollback manual"
-    )
+    _update_improvement_status(improvement_id, "revertida", motivo="Rollback manual")
 
     print(f"✅ Rollback completado: {restored} archivos restaurados")
     return True
@@ -165,10 +162,10 @@ def _create_backup(file_path: Path, improvement_id: str) -> Path:
     """Crea un backup de un archivo antes de modificarlo."""
     backup_dir = BACKUP_DIR / improvement_id
     backup_dir.mkdir(parents=True, exist_ok=True)
-    
+
     backup_path = backup_dir / file_path.name
     shutil.copy2(file_path, backup_path)
-    
+
     # Guardar metadata
     meta = {
         "original_path": str(file_path),
@@ -178,7 +175,7 @@ def _create_backup(file_path: Path, improvement_id: str) -> Path:
     meta_path = backup_dir / f"{file_path.stem}.backup_meta.json"
     with open(meta_path, "w") as f:
         json.dump(meta, f, indent=2)
-    
+
     return backup_path
 
 
@@ -188,18 +185,15 @@ def _update_improvement_status(improvement_id: str, estado: str, motivo: str = N
         if estado == "aplicada":
             conn.execute(
                 "UPDATE improvements SET estado = ?, aplicada_en = ? WHERE improvement_id = ?",
-                (estado, datetime.now().isoformat(), improvement_id)
+                (estado, datetime.now().isoformat(), improvement_id),
             )
         elif estado == "revertida":
             conn.execute(
                 "UPDATE improvements SET estado = ?, revertida_en = ?, motivo_reversion = ? WHERE improvement_id = ?",
-                (estado, datetime.now().isoformat(), motivo, improvement_id)
+                (estado, datetime.now().isoformat(), motivo, improvement_id),
             )
         else:
-            conn.execute(
-                "UPDATE improvements SET estado = ? WHERE improvement_id = ?",
-                (estado, improvement_id)
-            )
+            conn.execute("UPDATE improvements SET estado = ? WHERE improvement_id = ?", (estado, improvement_id))
 
 
 def list_applied() -> list:
@@ -211,22 +205,25 @@ def list_backups() -> list:
     """Lista todos los backups disponibles."""
     if not BACKUP_DIR.exists():
         return []
-    
+
     backups = []
     for d in sorted(BACKUP_DIR.iterdir()):
         if d.is_dir():
             files = [f.name for f in d.iterdir() if not f.name.endswith(".backup_meta.json")]
-            backups.append({
-                "improvement_id": d.name,
-                "files": files,
-                "created": datetime.fromtimestamp(d.stat().st_mtime).isoformat(),
-            })
+            backups.append(
+                {
+                    "improvement_id": d.name,
+                    "files": files,
+                    "created": datetime.fromtimestamp(d.stat().st_mtime).isoformat(),
+                }
+            )
     return backups
 
 
 # ═══════════════════════════════════════════════════════════════
 # CLI
 # ═══════════════════════════════════════════════════════════════
+
 
 def main():
     parser = argparse.ArgumentParser(description="Aplicar/revertir mejoras")

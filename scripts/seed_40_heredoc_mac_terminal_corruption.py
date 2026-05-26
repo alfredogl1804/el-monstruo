@@ -42,6 +42,7 @@ Lección a sembrar en la base error_memory:
 
 [Hilo Manus Catastro] · Sprint 86.6 · 2026-05-05
 """
+
 from __future__ import annotations
 
 # Esta semilla NO ejecuta nada. Es metadata consumida por el sistema
@@ -72,8 +73,7 @@ def get_semilla_metadata() -> dict:
         "leccion": LECCION_PRINCIPAL,
         "anti_pattern": "cat << EOF >> /mnt/.../bridge/*.md (en Mac terminal)",
         "patron_ganador": (
-            "file_append via FUSE OR printf '%s\\n' linea por linea "
-            "OR file_write tmp + cat tmp >> bridge.md"
+            "file_append via FUSE OR printf '%s\\n' linea por linea OR file_write tmp + cat tmp >> bridge.md"
         ),
         "incidentes": [
             {
@@ -88,12 +88,12 @@ def get_semilla_metadata() -> dict:
             },
         ],
         "guardian_rule_propuesta": (
-            "Sprint 89+: Guardian rechaza heredoc sobre paths "
-            "**/bridge/**.md automaticamente."
+            "Sprint 89+: Guardian rechaza heredoc sobre paths **/bridge/**.md automaticamente."
         ),
     }
 
 
 if __name__ == "__main__":
     import json
+
     print(json.dumps(get_semilla_metadata(), indent=2, ensure_ascii=False))

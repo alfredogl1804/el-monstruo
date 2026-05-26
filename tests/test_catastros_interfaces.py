@@ -29,7 +29,6 @@ from kernel.catastros.interfaces import (
     build_interfaces,
 )
 
-
 # ───────────────────────────────────────────────────────────────────────────
 # Helpers + Fixtures
 # ───────────────────────────────────────────────────────────────────────────
@@ -404,16 +403,20 @@ async def test_orchestrate_respects_latency_constraint(loaded_catastros):
 
     # Con latency_max_ms=5000: claude descartado, no hay alternativa
     with pytest.raises(NoSuitableResourceError):
-        orch.orchestrate({
-            "capability": "long_context",
-            "latency_max_ms": 5000,
-        })
+        orch.orchestrate(
+            {
+                "capability": "long_context",
+                "latency_max_ms": 5000,
+            }
+        )
 
     # Con latency_max_ms=7000: claude pasa (6000 ≤ 7000)
-    result = orch.orchestrate({
-        "capability": "long_context",
-        "latency_max_ms": 7000,
-    })
+    result = orch.orchestrate(
+        {
+            "capability": "long_context",
+            "latency_max_ms": 7000,
+        }
+    )
     assert result["primary"]["key"] == "claude-opus-4-6"
 
 

@@ -1,4 +1,5 @@
 """Tests del DSC-as-Contract de la Capa Finanzas (DSC-G-017)."""
+
 from __future__ import annotations
 
 import sys
@@ -18,7 +19,6 @@ from kernel.transversales.finanzas._canonical_constraints import (  # noqa: E402
     FINANZAS_CANONICAL_PER_VERTICAL,
     SUPPORTED_REVENUE_MODELS,
     SUPPORTED_TAX_FRAMEWORKS,
-    is_commercial,
     require_commercial,
 )
 
@@ -26,17 +26,13 @@ from kernel.transversales.finanzas._canonical_constraints import (  # noqa: E402
 def test_revenue_models_subset_of_supported():
     for v, cfg in FINANZAS_CANONICAL_PER_VERTICAL.items():
         for rm in cfg.get("revenue_models", []):
-            assert rm in SUPPORTED_REVENUE_MODELS, (
-                f"{v.value} usa revenue_model {rm!r} no soportado"
-            )
+            assert rm in SUPPORTED_REVENUE_MODELS, f"{v.value} usa revenue_model {rm!r} no soportado"
 
 
 def test_tax_frameworks_subset_of_supported():
     for v, cfg in FINANZAS_CANONICAL_PER_VERTICAL.items():
         for tf in cfg.get("tax_frameworks_candidate", []):
-            assert tf in SUPPORTED_TAX_FRAMEWORKS, (
-                f"{v.value} usa tax framework {tf!r} no soportado"
-            )
+            assert tf in SUPPORTED_TAX_FRAMEWORKS, f"{v.value} usa tax framework {tf!r} no soportado"
 
 
 def test_dsc_cip_002_per_token_revenue():

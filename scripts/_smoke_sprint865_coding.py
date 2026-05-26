@@ -21,6 +21,7 @@ Exit codes:
 
 [Hilo Manus Catastro] · Sprint 86.5 · 2026-05-05
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -50,13 +51,13 @@ async def smoke():
     cache = getattr(pipeline, "_coding_cache", {})
     n_cache = len(cache)
     n_with_scores = sum(
-        1 for d in cache.values()
+        1
+        for d in cache.values()
         if any(d.get(k) is not None for k in ["swe_bench_verified", "human_eval_plus", "mbpp_plus"])
     )
     n_gaming = sum(1 for d in cache.values() if d.get("gaming_detected"))
     n_with_data_extra = sum(
-        1 for p_ in result.modelos_persistibles.values()
-        if "data_extra" in p_ and "coding" in p_.get("data_extra", {})
+        1 for p_ in result.modelos_persistibles.values() if "data_extra" in p_ and "coding" in p_.get("data_extra", {})
     )
 
     print("RESULTADOS")
@@ -125,6 +126,7 @@ if __name__ == "__main__":
         sys.exit(code)
     except Exception as e:
         import traceback
+
         print(f"CRASH: {type(e).__name__}: {e}")
         traceback.print_exc()
         sys.exit(2)

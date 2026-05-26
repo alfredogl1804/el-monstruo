@@ -8,11 +8,11 @@ Cubre:
     - MementoValidator: ok / discrepancy / unknown_operation / source_unavailable
     - Mocks de fetchers para simular Railway sin llamadas reales
 """
+
 from __future__ import annotations
 
 import asyncio
-import os
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -27,11 +27,9 @@ from kernel.memento.models import (
 )
 from kernel.memento.sources import (
     SourceCache,
-    _hash_content,
     read_credential_source,
 )
 from kernel.memento.validator import MementoValidator
-
 
 FIXTURE_PATH = "tests/fixtures/credentials_md_sample.md"
 
@@ -39,6 +37,7 @@ FIXTURE_PATH = "tests/fixtures/credentials_md_sample.md"
 # ===========================================================================
 # Fixtures comunes
 # ===========================================================================
+
 
 @pytest.fixture(autouse=True)
 def _set_repo_root(monkeypatch):
@@ -96,6 +95,7 @@ def validator(critical_op_sql, source_ticketlike):
 # ===========================================================================
 # Tests de modelos
 # ===========================================================================
+
 
 class TestModels:
     def test_validation_status_enum(self):
@@ -165,6 +165,7 @@ class TestModels:
 # Tests de read_credential_source
 # ===========================================================================
 
+
 class TestCredentialSource:
     def test_reads_fixture(self):
         result = read_credential_source(FIXTURE_PATH)
@@ -200,6 +201,7 @@ class TestCredentialSource:
 # Tests del SourceCache
 # ===========================================================================
 
+
 class TestSourceCache:
     @pytest.mark.asyncio
     async def test_cache_miss_calls_fetcher(self):
@@ -234,7 +236,12 @@ class TestSourceCache:
 
         def fetcher():
             calls["n"] += 1
-            return {"value": {"x": calls["n"]}, "fetched_at": datetime.now(timezone.utc), "source_id": "s", "raw_hash": "h"}
+            return {
+                "value": {"x": calls["n"]},
+                "fetched_at": datetime.now(timezone.utc),
+                "source_id": "s",
+                "raw_hash": "h",
+            }
 
         await cache.get_or_fetch(source_id="s", ttl_seconds=60, fetcher=fetcher)
         await cache.invalidate("s")
@@ -265,7 +272,12 @@ class TestSourceCache:
 
         async def afetcher():
             await asyncio.sleep(0.001)
-            return {"value": {"async": True}, "fetched_at": datetime.now(timezone.utc), "source_id": "s", "raw_hash": "h"}
+            return {
+                "value": {"async": True},
+                "fetched_at": datetime.now(timezone.utc),
+                "source_id": "s",
+                "raw_hash": "h",
+            }
 
         result = await cache.get_or_fetch(source_id="s", ttl_seconds=60, fetcher=afetcher)
         assert result["value"]["async"] is True
@@ -295,6 +307,7 @@ class TestSourceCache:
 # ===========================================================================
 # Tests del MementoValidator
 # ===========================================================================
+
 
 class TestMementoValidator:
     @pytest.mark.asyncio
@@ -470,6 +483,7 @@ class TestMementoValidator:
 # ===========================================================================
 # Tests de regresión específicos del incidente TiDB del 2026-05-04
 # ===========================================================================
+
 
 class TestRegresionFalsoPositivoTiDB:
     """

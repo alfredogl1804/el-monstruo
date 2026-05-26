@@ -12,20 +12,20 @@ Cobertura:
 
 [Hilo Manus Catastro] · Sprint 86.6 · 2026-05-05
 """
+
 from __future__ import annotations
 
-import os
 import pytest
 
 from kernel.catastro.coding_classifier import (
-    CodingClassifier,
     CODING_TAGS_VOCABULARY,
+    CodingClassifier,
 )
-
 
 # ============================================================================
 # Vocabulario extendido (16 tags)
 # ============================================================================
+
 
 class TestVocabularyExtension:
     def test_vocabulary_has_16_tags(self):
@@ -42,6 +42,7 @@ class TestVocabularyExtension:
 # ============================================================================
 # detect_overfit_cross_area — casos sintéticos
 # ============================================================================
+
 
 class TestDetectOverfitCrossArea:
     def test_sano_cross_area_aligned(self):
@@ -138,6 +139,7 @@ class TestDetectOverfitCrossArea:
 # Pipeline E2E con cross-area injection
 # ============================================================================
 
+
 @pytest.mark.asyncio
 class TestPipelineCrossAreaInjection:
     async def test_pipeline_inject_overfit_evidence_dry_run(self, monkeypatch):
@@ -159,13 +161,10 @@ class TestPipelineCrossAreaInjection:
         with_overfit_evidence = [
             slug
             for slug, p in result.modelos_persistibles.items()
-            if "data_extra" in p
-            and "coding" in p["data_extra"]
-            and "overfit_evidence" in p["data_extra"]["coding"]
+            if "data_extra" in p and "coding" in p["data_extra"] and "overfit_evidence" in p["data_extra"]["coding"]
         ]
         assert len(with_overfit_evidence) >= 1, (
-            f"Esperado >=1 persistible con overfit_evidence, encontrados: "
-            f"{with_overfit_evidence}"
+            f"Esperado >=1 persistible con overfit_evidence, encontrados: {with_overfit_evidence}"
         )
 
     async def test_pipeline_overfit_flag_persisted(self, monkeypatch):

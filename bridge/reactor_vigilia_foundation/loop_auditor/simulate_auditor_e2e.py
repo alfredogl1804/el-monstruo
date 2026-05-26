@@ -15,21 +15,23 @@ Demuestra:
 Requiere: 8/8 PASS para declarar verde.
 """
 
-import os
-import sys
 import json
+import os
 import shutil
+import sys
 import tempfile
-import yaml
 from datetime import datetime, timezone
+
+import yaml
 
 # Add parent paths for imports
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REACTOR_DIR = os.path.dirname(SCRIPT_DIR)
 sys.path.insert(0, REACTOR_DIR)
 
-from policy_engine.dispatcher import MinimalDispatcher
 from loops.oraculo_ias.loop_oraculo_ias import OraculoIALoop
+from policy_engine.dispatcher import MinimalDispatcher
+
 from loop_auditor.loop_auditor import LoopAuditor
 
 
@@ -64,7 +66,7 @@ def setup_test_environment(tmp_dir):
             "owner": "monstruo",
             "max_autonomy_level": "A3",
             "allowed_write_paths": ["bridge/doctrine_candidates/"],
-            "forbidden_actions": ["touch_supabase", "modify_kernel"]
+            "forbidden_actions": ["touch_supabase", "modify_kernel"],
         },
         "loop_auditor": {
             "loop_id": "loop_auditor",
@@ -75,11 +77,11 @@ def setup_test_environment(tmp_dir):
             "owner": "monstruo",
             "max_autonomy_level": "A3",
             "allowed_write_paths": ["bridge/doctrine_candidates/audit_reports/"],
-            "forbidden_actions": ["write_code", "touch_supabase", "modify_kernel", "deploy"]
-        }
+            "forbidden_actions": ["write_code", "touch_supabase", "modify_kernel", "deploy"],
+        },
     }
 
-    with open(os.path.join(state_fabric_dir, "loop_registry.v0.yaml"), 'w') as f:
+    with open(os.path.join(state_fabric_dir, "loop_registry.v0.yaml"), "w") as f:
         yaml.dump(loop_registry, f, default_flow_style=False)
 
     # Crear current_state
@@ -87,9 +89,9 @@ def setup_test_environment(tmp_dir):
         "last_event_id": 0,
         "last_updated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "active_loops": [],
-        "pending_decisions": []
+        "pending_decisions": [],
     }
-    with open(os.path.join(state_fabric_dir, "current_state.v0.json"), 'w') as f:
+    with open(os.path.join(state_fabric_dir, "current_state.v0.json"), "w") as f:
         json.dump(current_state, f, indent=2)
 
     # Crear event_log vacío (seed)
@@ -110,17 +112,17 @@ def setup_test_environment(tmp_dir):
         "supersedes_event_id": None,
         "dedupe_key": "boot_e2e_auditor",
         "ttl_hours": None,
-        "forbidden_inferences": []
+        "forbidden_inferences": [],
     }
-    with open(os.path.join(state_fabric_dir, "event_log.v0.jsonl"), 'w') as f:
-        f.write(json.dumps(seed_event) + '\n')
+    with open(os.path.join(state_fabric_dir, "event_log.v0.jsonl"), "w") as f:
+        f.write(json.dumps(seed_event) + "\n")
 
     return {
         "state_fabric_dir": state_fabric_dir,
         "policy_base_dir": tmp_dir,
         "oracle_output_dir": oracle_output_dir,
         "audit_output_dir": audit_output_dir,
-        "event_log_path": os.path.join(state_fabric_dir, "event_log.v0.jsonl")
+        "event_log_path": os.path.join(state_fabric_dir, "event_log.v0.jsonl"),
     }
 
 
@@ -141,16 +143,10 @@ def run_simulation():
     try:
         # --- FASE 1: Oráculo produce outputs ---
         print("\n[FASE 1] Oráculo produce outputs...")
-        dispatcher = MinimalDispatcher(
-            state_fabric_dir=env["state_fabric_dir"],
-            policy_base_dir=env["policy_base_dir"]
-        )
+        dispatcher = MinimalDispatcher(state_fabric_dir=env["state_fabric_dir"], policy_base_dir=env["policy_base_dir"])
 
-        oraculo = OraculoIALoop(
-            dispatcher=dispatcher,
-            output_dir=env["oracle_output_dir"]
-        )
-        oracle_result = oraculo.run()
+        oraculo = OraculoIALoop(dispatcher=dispatcher, output_dir=env["oracle_output_dir"])
+        oraculo.run()
 
         # TEST 1: Oracle outputs exist
         catalog_path = os.path.join(env["oracle_output_dir"], "oraculo_capability_catalog_v0.json")
@@ -163,9 +159,7 @@ def run_simulation():
         # --- FASE 2: Auditor lee outputs ---
         print("\n[FASE 2] Auditor lee outputs del Oráculo...")
         auditor = LoopAuditor(
-            dispatcher=dispatcher,
-            oracle_output_dir=env["oracle_output_dir"],
-            audit_output_dir=env["audit_output_dir"]
+            dispatcher=dispatcher, oracle_output_dir=env["oracle_output_dir"], audit_output_dir=env["audit_output_dir"]
         )
 
         # TEST 2: Auditor reads oracle outputs
@@ -198,44 +192,36 @@ def run_simulation():
         evidence_gate = auditor_result["gates"].get("evidence_check", {})
         # Evidence gate should PASS (static is correctly acknowledged)
         # but should have a LOW finding about static nature
-        evidence_findings = [f for f in auditor_result["findings"]
-                           if f["subject"] == "evidence_discipline"]
+        evidence_findings = [f for f in auditor_result["findings"] if f["subject"] == "evidence_discipline"]
         test5 = evidence_gate.get("passed", False) and len(evidence_findings) > 0
         print(f"      [{'PASS' if test5 else 'FAIL'}] TEST 5: Auditor detects static-not-realtime caveat")
         if test5:
             tests_passed += 1
 
         # TEST 6: Auditor requests Dispatcher permission before write
-        write_actions = [a for a in auditor_result["actions_log"]
-                        if a["action"] == "create_state_fabric_draft"]
+        write_actions = [a for a in auditor_result["actions_log"] if a["action"] == "create_state_fabric_draft"]
         test6 = len(write_actions) > 0 and write_actions[0]["allowed"]
         print(f"      [{'PASS' if test6 else 'FAIL'}] TEST 6: Auditor requests Dispatcher permission before write")
         if test6:
             tests_passed += 1
 
         # TEST 7: Auditor writes only allowed audit artifacts
-        audit_report_exists = os.path.exists(
-            os.path.join(env["audit_output_dir"], "audit_report.md"))
-        audit_findings_exists = os.path.exists(
-            os.path.join(env["audit_output_dir"], "audit_findings.json"))
-        gate_log_exists = os.path.exists(
-            os.path.join(env["audit_output_dir"], "auditor_gate_log.json"))
+        audit_report_exists = os.path.exists(os.path.join(env["audit_output_dir"], "audit_report.md"))
+        audit_findings_exists = os.path.exists(os.path.join(env["audit_output_dir"], "audit_findings.json"))
+        gate_log_exists = os.path.exists(os.path.join(env["audit_output_dir"], "auditor_gate_log.json"))
         # Also verify the forbidden action was DENIED
-        forbidden_actions = [a for a in auditor_result["actions_log"]
-                           if a["action"] == "write_code"]
+        forbidden_actions = [a for a in auditor_result["actions_log"] if a["action"] == "write_code"]
         forbidden_denied = len(forbidden_actions) > 0 and not forbidden_actions[0]["allowed"]
-        test7 = (audit_report_exists and audit_findings_exists and
-                 gate_log_exists and forbidden_denied)
+        test7 = audit_report_exists and audit_findings_exists and gate_log_exists and forbidden_denied
         print(f"      [{'PASS' if test7 else 'FAIL'}] TEST 7: Auditor writes only allowed audit artifacts")
         if test7:
             tests_passed += 1
 
         # TEST 8: Auditor logs AUDIT_COMPLETED in State Fabric
         # Check event_log for auditor events
-        with open(env["event_log_path"], 'r') as f:
+        with open(env["event_log_path"], "r") as f:
             all_events = [json.loads(line) for line in f if line.strip()]
-        auditor_events = [e for e in all_events
-                         if "loop_auditor" in e.get("summary", "")]
+        auditor_events = [e for e in all_events if "loop_auditor" in e.get("summary", "")]
         test8 = len(auditor_events) >= 2  # At least: 1 ALLOW + 1 DENY
         print(f"      [{'PASS' if test8 else 'FAIL'}] TEST 8: Auditor logs events in State Fabric")
         if test8:
@@ -246,7 +232,7 @@ def run_simulation():
         print(f"\n[RESULTADO] Auditor Status: {auditor_result['status']}")
         print(f"[RESULTADO] Auditor Verdict: {auditor_result['verdict']}")
         print(f"[RESULTADO] Message: {auditor_result['message']}")
-        print(f"\n[GATES]")
+        print("\n[GATES]")
         for gate_name, gate_data in auditor_result["gates"].items():
             status = "PASS" if gate_data["passed"] else "FAIL"
             print(f"      [{status}] {gate_name}: {gate_data['detail']}")
@@ -255,12 +241,12 @@ def run_simulation():
         for f in auditor_result["findings"]:
             print(f"      [{f['severity']}] {f['finding_id']}: {f['subject']}")
 
-        print(f"\n[ACTIONS]")
+        print("\n[ACTIONS]")
         for a in auditor_result["actions_log"]:
             status = "ALLOW" if a["allowed"] else "DENY"
             print(f"      [{status}] {a['action']} → {a['target']}")
 
-        print(f"\n[OUTPUT FILES]")
+        print("\n[OUTPUT FILES]")
         for fp in auditor_result["output_files"]:
             print(f"      {fp}")
 
@@ -273,8 +259,7 @@ def run_simulation():
         shutil.rmtree(tmp_dir, ignore_errors=True)
 
     print("\n" + "=" * 70)
-    print(f"  RESULTADO FINAL: {tests_passed}/{tests_total} — "
-          f"{'PASS' if tests_passed == tests_total else 'FAIL'}")
+    print(f"  RESULTADO FINAL: {tests_passed}/{tests_total} — {'PASS' if tests_passed == tests_total else 'FAIL'}")
     print("=" * 70)
 
     return tests_passed == tests_total

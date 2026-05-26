@@ -37,11 +37,7 @@ if ENV_PATH.exists():
             k, v = raw.split("=", 1)
             os.environ.setdefault(k.strip(), v.strip())
 
-GH_TOKEN = (
-    os.environ.get("GITHUB_TOKEN")
-    or os.environ.get("GITHUB_PERSONAL_ACCESS_TOKEN")
-    or ""
-)
+GH_TOKEN = os.environ.get("GITHUB_TOKEN") or os.environ.get("GITHUB_PERSONAL_ACCESS_TOKEN") or ""
 
 if not GH_TOKEN:
     sys.exit("ERROR: GITHUB_TOKEN o GITHUB_PERSONAL_ACCESS_TOKEN requerido")
@@ -292,7 +288,7 @@ def main() -> int:
     result = scan()
     out_file.write_text(json.dumps(result, indent=2, ensure_ascii=False))
 
-    print(f"\nGITHUB SCAN RESUMEN")
+    print("\nGITHUB SCAN RESUMEN")
     print(f"  expected: {result['expected_total']}")
     print(f"  got     : {result['got_total']}")
     print(f"  match   : {result['coverage_match']}")

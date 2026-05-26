@@ -10,6 +10,7 @@ Cubre:
 
 [Hilo Manus Catastro] · Sprint 86.7 · 2026-05-05
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -17,22 +18,22 @@ import os
 
 import pytest
 
-from kernel.catastro.sources import (
-    AIMEFuente,
-    GPQAFuente,
-    MMLUProFuente,
-)
+from kernel.catastro.pipeline import CatastroPipeline
 from kernel.catastro.reasoning_classifier import (
     REASONING_TAGS_VOCABULARY,
     ReasoningClassification,
     ReasoningClassifier,
 )
-from kernel.catastro.pipeline import CatastroPipeline
-
+from kernel.catastro.sources import (
+    AIMEFuente,
+    GPQAFuente,
+    MMLUProFuente,
+)
 
 # ============================================================================
 # TESTS BLOQUE 1 — SOURCES (AIME / GPQA / MMLU-PRO)
 # ============================================================================
+
 
 class TestSourcesAIME:
     def test_aime_dry_run_returns_data(self):
@@ -118,6 +119,7 @@ class TestSourcesMMLUPro:
 # TESTS BLOQUE 2 — REASONING CLASSIFIER (Heuristic + Vocabulario)
 # ============================================================================
 
+
 class TestReasoningClassifier:
     def test_vocabulary_size_at_least_13(self):
         assert len(REASONING_TAGS_VOCABULARY) >= 13
@@ -166,11 +168,14 @@ class TestReasoningClassifier:
 # TESTS BLOQUE 4 — ANTI-GAMING V2 CROSS-AREA REASONING
 # ============================================================================
 
+
 class TestAntiGamingV2Reasoning:
     def test_overfit_reasoning_high_coding_low(self):
         """Reasoning >= 70 pero coding < 30 → overfit cross-area."""
         is_overfit, ev = ReasoningClassifier.detect_overfit_reasoning_cross_area(
-            aime_score=85.0, gpqa_score=80.0, mmlu_pro_score=75.0,
+            aime_score=85.0,
+            gpqa_score=80.0,
+            mmlu_pro_score=75.0,
             coding_score=20.0,  # bajo coding
             razonamiento_general=60.0,
             arena_rank=10,
@@ -181,7 +186,9 @@ class TestAntiGamingV2Reasoning:
     def test_overfit_reasoning_high_arena_rank_bad(self):
         """Reasoning >= 70 pero arena_rank > 50 → overfit cross-area."""
         is_overfit, ev = ReasoningClassifier.detect_overfit_reasoning_cross_area(
-            aime_score=80.0, gpqa_score=75.0, mmlu_pro_score=70.0,
+            aime_score=80.0,
+            gpqa_score=75.0,
+            mmlu_pro_score=70.0,
             coding_score=60.0,
             razonamiento_general=60.0,
             arena_rank=70,  # rank pobre
@@ -192,7 +199,9 @@ class TestAntiGamingV2Reasoning:
     def test_overfit_reasoning_high_general_low(self):
         """Reasoning >= 70 pero razonamiento general < 40 → overfit cross-area."""
         is_overfit, ev = ReasoningClassifier.detect_overfit_reasoning_cross_area(
-            aime_score=85.0, gpqa_score=70.0, mmlu_pro_score=70.0,
+            aime_score=85.0,
+            gpqa_score=70.0,
+            mmlu_pro_score=70.0,
             coding_score=50.0,
             razonamiento_general=30.0,  # bajo
             arena_rank=20,
@@ -203,7 +212,9 @@ class TestAntiGamingV2Reasoning:
     def test_no_overfit_when_all_consistent(self):
         """Modelo sano: reasoning + coding + arena coherentes."""
         is_overfit, ev = ReasoningClassifier.detect_overfit_reasoning_cross_area(
-            aime_score=80.0, gpqa_score=75.0, mmlu_pro_score=70.0,
+            aime_score=80.0,
+            gpqa_score=75.0,
+            mmlu_pro_score=70.0,
             coding_score=65.0,
             razonamiento_general=70.0,
             arena_rank=8,
@@ -213,7 +224,9 @@ class TestAntiGamingV2Reasoning:
     def test_no_overfit_when_reasoning_below_70(self):
         """Si reasoning < 70 (no es strong), no aplica regla v2."""
         is_overfit, ev = ReasoningClassifier.detect_overfit_reasoning_cross_area(
-            aime_score=60.0, gpqa_score=50.0, mmlu_pro_score=55.0,
+            aime_score=60.0,
+            gpqa_score=50.0,
+            mmlu_pro_score=55.0,
             coding_score=10.0,
             razonamiento_general=20.0,
             arena_rank=80,
@@ -223,7 +236,9 @@ class TestAntiGamingV2Reasoning:
     def test_no_overfit_when_data_missing(self):
         """Si todos los reasoning scores son None, NO aplica regla."""
         is_overfit, ev = ReasoningClassifier.detect_overfit_reasoning_cross_area(
-            aime_score=None, gpqa_score=None, mmlu_pro_score=None,
+            aime_score=None,
+            gpqa_score=None,
+            mmlu_pro_score=None,
             coding_score=20.0,
             razonamiento_general=30.0,
             arena_rank=80,
@@ -234,6 +249,7 @@ class TestAntiGamingV2Reasoning:
 # ============================================================================
 # TESTS BLOQUE 3 — PIPELINE INTEGRATION (E2E + flag CATASTRO_ENABLE_REASONING)
 # ============================================================================
+
 
 class TestPipelineIntegrationReasoning:
     def setup_method(self):
@@ -266,12 +282,10 @@ class TestPipelineIntegrationReasoning:
         result = asyncio.run(p.run())
         # Al menos 1 modelo persistible debe tener data_extra.reasoning
         modelos_with_reasoning = [
-            m for m in result.modelos_persistibles.values()
-            if "reasoning" in m.get("data_extra", {})
+            m for m in result.modelos_persistibles.values() if "reasoning" in m.get("data_extra", {})
         ]
         assert len(modelos_with_reasoning) >= 1, (
-            f"Expected at least 1 model with data_extra.reasoning, "
-            f"got {len(modelos_with_reasoning)}"
+            f"Expected at least 1 model with data_extra.reasoning, got {len(modelos_with_reasoning)}"
         )
 
     def test_pipeline_run_reasoning_classification_present(self):
@@ -286,9 +300,7 @@ class TestPipelineIntegrationReasoning:
                 assert isinstance(cls["tags"], list)
                 # Todos los tags están en el vocabulario controlado
                 for tag in cls["tags"]:
-                    assert tag in REASONING_TAGS_VOCABULARY, (
-                        f"Tag '{tag}' not in vocabulary"
-                    )
+                    assert tag in REASONING_TAGS_VOCABULARY, f"Tag '{tag}' not in vocabulary"
                 return  # OK con primer modelo classificado
         # Si llegamos acá, ningún modelo classificado → fail
         pytest.fail("No model with reasoning.classification found")

@@ -21,8 +21,6 @@ Deployment flow:
 Sprint 47.2 | 2026-04-30
 """
 
-import asyncio
-import base64
 import json
 import logging
 import os
@@ -38,27 +36,23 @@ PROJECT_ROOT = "/home/user/project"  # E2B sandbox path
 
 # ── Templates ────────────────────────────────────────────────────────
 VITE_REACT_TEMPLATE = {
-    "package.json": json.dumps({
-        "name": "monstruo-web-project",
-        "private": True,
-        "version": "1.0.0",
-        "type": "module",
-        "scripts": {
-            "dev": "vite",
-            "build": "vite build",
-            "preview": "vite preview"
+    "package.json": json.dumps(
+        {
+            "name": "monstruo-web-project",
+            "private": True,
+            "version": "1.0.0",
+            "type": "module",
+            "scripts": {"dev": "vite", "build": "vite build", "preview": "vite preview"},
+            "dependencies": {"react": "^19.0.0", "react-dom": "^19.0.0"},
+            "devDependencies": {
+                "@vitejs/plugin-react": "^4.3.0",
+                "vite": "^6.0.0",
+                "tailwindcss": "^4.0.0",
+                "@tailwindcss/vite": "^4.0.0",
+            },
         },
-        "dependencies": {
-            "react": "^19.0.0",
-            "react-dom": "^19.0.0"
-        },
-        "devDependencies": {
-            "@vitejs/plugin-react": "^4.3.0",
-            "vite": "^6.0.0",
-            "tailwindcss": "^4.0.0",
-            "@tailwindcss/vite": "^4.0.0"
-        }
-    }, indent=2),
+        indent=2,
+    ),
     "vite.config.js": """import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'

@@ -23,6 +23,7 @@ opacity o como marca decorativa).
 
 Tests verifican que el CSS template no use --secondary para texto prominente.
 """
+
 from __future__ import annotations
 
 from kernel.e2e.deploy.real_deploy import render_landing_html
@@ -33,24 +34,28 @@ class TestHeroTextColor:
 
     STATE_BASE = {
         "frase_input": "Test landing premium",
-        "creativo": {"output_payload": {
-            "colores_primarios": ["#7B5B3A", "#D9C8B2", "#F2E1D2"],
-            "tono": "calido",
-            "voice_attributes": ["premium", "artesanal"],
-            "elevator_pitch": "test pitch",
-        }},
-        "ventas": {"output_payload": {
-            "propuesta_valor": {
-                "statement": "Statement test premium",
-                "diferenciador": "Diferenciador test",
-                "beneficios": ["B1", "B2", "B3"],
-            },
-            "icp_refinado": {"perfil": "test"},
-            "pricing_tentativo": {"modelo": "test"},
-            "canales_adquisicion": [{"nombre": "Instagram", "razon": "test"}],
-            "primer_funnel": {},
-            "metricas_clave": ["m1"],
-        }},
+        "creativo": {
+            "output_payload": {
+                "colores_primarios": ["#7B5B3A", "#D9C8B2", "#F2E1D2"],
+                "tono": "calido",
+                "voice_attributes": ["premium", "artesanal"],
+                "elevator_pitch": "test pitch",
+            }
+        },
+        "ventas": {
+            "output_payload": {
+                "propuesta_valor": {
+                    "statement": "Statement test premium",
+                    "diferenciador": "Diferenciador test",
+                    "beneficios": ["B1", "B2", "B3"],
+                },
+                "icp_refinado": {"perfil": "test"},
+                "pricing_tentativo": {"modelo": "test"},
+                "canales_adquisicion": [{"nombre": "Instagram", "razon": "test"}],
+                "primer_funnel": {},
+                "metricas_clave": ["m1"],
+            }
+        },
         "architect": {"brief": {"nombre_proyecto": "TestProj"}},
     }
 
@@ -68,12 +73,11 @@ class TestHeroTextColor:
         _, css = self._render()
         # Busca .hero h1 { ... color: var(--text); ... }
         import re
+
         m = re.search(r"\.hero h1\s*\{[^}]*\}", css)
         assert m, "No se encontró bloque .hero h1"
         block = m.group(0)
-        assert "color: var(--text)" in block, (
-            f".hero h1 DEBE usar color: var(--text). Encontrado: {block}"
-        )
+        assert "color: var(--text)" in block, f".hero h1 DEBE usar color: var(--text). Encontrado: {block}"
         assert "color: var(--secondary)" not in block, (
             f".hero h1 NO debe usar var(--secondary) (pálido). Encontrado: {block}"
         )
@@ -82,6 +86,7 @@ class TestHeroTextColor:
         _, css = self._render()
         # h1/h2/section-title prominentes NO deben tener var(--secondary)
         import re
+
         for selector in [
             r"\.section-title",
             r"\.benefits h2",

@@ -18,18 +18,18 @@ Capa Memento:
 
 [Hilo Manus Memento — Ejecutor] · Sprint 87.1 Bloque 3 · 2026-05-05
 """
+
 from __future__ import annotations
 
 import asyncio
 import logging
 import os
 import time
-from typing import Any, Optional, Type, TypeVar
+from typing import Optional, Type, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from kernel.e2e.catastro_client import CatastroRuntimeClient
-
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +38,10 @@ logger = logging.getLogger(__name__)
 # OUTPUT SCHEMAS POR STEP (Structured Outputs Pydantic — semilla 39)
 # ============================================================================
 
+
 class StepConceptOutput(BaseModel):
     """Output del step concept_generation (corresponde a INVESTIGAR)."""
+
     model_config = ConfigDict(extra="forbid")
 
     concepto_central: str = Field(
@@ -69,6 +71,7 @@ class StepConceptOutput(BaseModel):
 
 class StepICPOutput(BaseModel):
     """Output del step icp_definition (corresponde a ESTRATEGIA)."""
+
     model_config = ConfigDict(extra="forbid")
 
     icp_descripcion: str = Field(
@@ -99,6 +102,7 @@ class StepICPOutput(BaseModel):
 
 class StepNamingOutput(BaseModel):
     """Output del step naming (corresponde a CREATIVO)."""
+
     model_config = ConfigDict(extra="forbid")
 
     candidatos: list[str] = Field(
@@ -123,6 +127,7 @@ class StepNamingOutput(BaseModel):
 
 class StepBrandingOutput(BaseModel):
     """Output del step branding (corresponde a CREATIVO/ESTRATEGIA)."""
+
     model_config = ConfigDict(extra="forbid")
 
     tono: str = Field(
@@ -153,6 +158,7 @@ class StepBrandingOutput(BaseModel):
 
 class StepCopyOutput(BaseModel):
     """Output del step copy_generation (corresponde a VENTAS)."""
+
     model_config = ConfigDict(extra="forbid")
 
     hero_headline: str = Field(
@@ -189,6 +195,7 @@ class StepCopyOutput(BaseModel):
 
 class StepEstrategiaOutput(BaseModel):
     """Output del step ESTRATEGIA (cuando se invoca para stack_decision)."""
+
     model_config = ConfigDict(extra="forbid")
 
     stack_decision: str = Field(
@@ -213,6 +220,7 @@ class StepEstrategiaOutput(BaseModel):
 
 class StepFinanzasOutput(BaseModel):
     """Output del step FINANZAS."""
+
     model_config = ConfigDict(extra="forbid")
 
     presupuesto_inicial_usd: float = Field(
@@ -256,6 +264,7 @@ StepLLMOutput = TypeVar(
 # ============================================================================
 # RUNNER GENÉRICO LLM-AS-PARSER
 # ============================================================================
+
 
 def _llm_available() -> bool:
     """Capa Memento: env var lookup en runtime, NO cachea."""
@@ -350,15 +359,14 @@ def _call_openai_structured(
     )
     parsed = response.choices[0].message.parsed
     if parsed is None:
-        raise RuntimeError(
-            f"e2e_step_llm_{schema.__name__.lower()}_failed: parsed=None"
-        )
+        raise RuntimeError(f"e2e_step_llm_{schema.__name__.lower()}_failed: parsed=None")
     return parsed
 
 
 # ============================================================================
 # FALLBACKS HEURÍSTICOS DETERMINÍSTICOS
 # ============================================================================
+
 
 def _heuristic_fallback(schema: Type[BaseModel], context: dict) -> BaseModel:
     """Genera output heurístico determinístico que satisface el schema.
@@ -454,18 +462,17 @@ def _heuristic_fallback(schema: Type[BaseModel], context: dict) -> BaseModel:
         )
     if schema is StepCopyOutput:
         body = (
-            f"Cada pieza nace de un proceso artesanal documentado y trazable. "
-            f"No producimos en masa: cada obra lleva la huella de su autor "
-            f"y la historia de Mérida en su pigmento. Para coleccionistas que "
-            f"entienden que el valor de una obra no se mide en pixels, sino "
-            f"en capas de tiempo, técnica y verdad. Compras directo del "
-            f"atelier — sin intermediarios, sin reproducciones, sin compromisos."
+            "Cada pieza nace de un proceso artesanal documentado y trazable. "
+            "No producimos en masa: cada obra lleva la huella de su autor "
+            "y la historia de Mérida en su pigmento. Para coleccionistas que "
+            "entienden que el valor de una obra no se mide en pixels, sino "
+            "en capas de tiempo, técnica y verdad. Compras directo del "
+            "atelier — sin intermediarios, sin reproducciones, sin compromisos."
         )
         return StepCopyOutput(
             hero_headline="El óleo que sobrevive al tiempo",
             hero_subheadline=(
-                "Pintura al óleo artesanal hecha en Mérida — entrega global, "
-                "certificado de autenticidad incluido."
+                "Pintura al óleo artesanal hecha en Mérida — entrega global, certificado de autenticidad incluido."
             ),
             body_copy=body,
             cta_primary="Ver colección",
@@ -503,6 +510,4 @@ def _heuristic_fallback(schema: Type[BaseModel], context: dict) -> BaseModel:
         )
 
     # Fallback genérico (no debería llegar)
-    raise RuntimeError(
-        f"e2e_step_llm_unknown_schema_failed: {schema.__name__}"
-    )
+    raise RuntimeError(f"e2e_step_llm_unknown_schema_failed: {schema.__name__}")

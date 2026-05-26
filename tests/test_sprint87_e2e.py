@@ -14,24 +14,22 @@ Sin red. Sin dependencias productivas.
 from __future__ import annotations
 
 import asyncio
-import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 import pytest
 
-from kernel.e2e.catastro_client import CatastroRuntimeClient, STEP_FALLBACK_MODEL
+from kernel.e2e.catastro_client import STEP_FALLBACK_MODEL, CatastroRuntimeClient
 from kernel.e2e.orchestrator import E2EOrchestrator
 from kernel.e2e.pipeline import run_e2e_pipeline
 from kernel.e2e.repository import E2ERepository, generate_run_id
 from kernel.e2e.schema import (
-    EstadoRun,
     PIPELINE_STEPS,
+    EstadoRun,
     StepName,
     StepStatus,
     Veredicto,
 )
-
 
 # ---------------- DB Mock ----------------
 
@@ -69,7 +67,7 @@ class FakeDBClient:
             for k, v in filters.items():
                 rows = [r for r in rows if r.get(k) == v]
         if order_by:
-            rows.sort(key=lambda r: (r.get(order_by) or ""), reverse=order_desc)
+            rows.sort(key=lambda r: r.get(order_by) or "", reverse=order_desc)
         if limit is not None:
             rows = rows[:limit]
         return rows
@@ -222,7 +220,7 @@ async def test_orchestrator_dashboard_snapshot():
     db = FakeDBClient()
     orch = E2EOrchestrator(db, pipeline_runner=_no_op_runner)
     r1 = await orch.start_run("frase 1", {})
-    r2 = await orch.start_run("frase 2", {})
+    await orch.start_run("frase 2", {})
     await orch.emit_judgment(r1.id, Veredicto.COMERCIALIZABLE, None)
     snap = await orch.dashboard_snapshot()
     assert snap.runs_total == 2
@@ -283,6 +281,7 @@ async def test_pipeline_stack_decision_persisted(monkeypatch):
 def app_with_e2e(monkeypatch):
     """FastAPI app aislada con E2EOrchestrator inyectado y FakeDBClient."""
     from fastapi import FastAPI
+
     from kernel.e2e.routes import e2e_router
 
     monkeypatch.setenv("MONSTRUO_API_KEY", "test-key-87")

@@ -12,6 +12,7 @@ Valida:
     si no hay storage Supabase
   - cadence respeta MONITORING_CADENCES per archetype
 """
+
 from __future__ import annotations
 
 import pytest
@@ -59,8 +60,14 @@ def test_implement_returns_trend_signals_row_template(cip_ctx):
     impl = layer.implement(rec)
     template = impl["trend_signals_row_template"]
     expected_keys = {
-        "vertical", "source", "signal_type", "score", "payload",
-        "observed_at_unix", "ttl_seconds", "collector",
+        "vertical",
+        "source",
+        "signal_type",
+        "score",
+        "payload",
+        "observed_at_unix",
+        "ttl_seconds",
+        "collector",
     }
     assert expected_keys.issubset(set(template.keys()))
     # Slots con sintaxis canonica SEO {{NAME_SLOT}}.
@@ -108,7 +115,9 @@ def test_monitor_returns_trend_signals_health(cip_ctx):
     assert sh["table"] == "trend_signals"
     # Sin storage Supabase inyectado en test → status pending_storage_injection.
     assert sh["status"] in (
-        "pending_storage_injection", "counted", "storage_error",
+        "pending_storage_injection",
+        "counted",
+        "storage_error",
     ) or sh["status"].startswith("storage_error")
 
 

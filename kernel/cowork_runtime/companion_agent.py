@@ -36,6 +36,7 @@ API publica:
     else:
         cowork_rewrite_with(verdict["correction"])
 """
+
 from __future__ import annotations
 
 import argparse
@@ -111,10 +112,11 @@ _RE_RIESGOS = re.compile(r"\briesgos?\b|\bbloqueantes?\b", re.IGNORECASE)
 # Tipos
 # ============================================================================
 
+
 @dataclass
 class CompanionViolation:
-    code: str          # ej "REPEAT_NO_PROGRESS", "SCOPE_INFLATION"
-    severity: str      # "MAGNA" | "PREMIUM"
+    code: str  # ej "REPEAT_NO_PROGRESS", "SCOPE_INFLATION"
+    severity: str  # "MAGNA" | "PREMIUM"
     descripcion: str
     cita: Optional[str] = None  # fragmento del output que disparo
 
@@ -146,6 +148,7 @@ class CompanionVerdict:
 # ============================================================================
 # Companion Agent
 # ============================================================================
+
 
 class CompanionAgent:
     """
@@ -257,9 +260,7 @@ class CompanionAgent:
         """Normaliza para comparacion: lowercase + collapse whitespace."""
         return re.sub(r"\s+", " ", text.lower().strip())
 
-    def _detect_repeat_no_progress(
-        self, output: str, history: list[str]
-    ) -> Optional[CompanionViolation]:
+    def _detect_repeat_no_progress(self, output: str, history: list[str]) -> Optional[CompanionViolation]:
         if not history:
             return None
         norm_out = self._norm_for_hash(output)
@@ -288,9 +289,7 @@ class CompanionAgent:
         has_dod = bool(_RE_DOD.search(output))
         has_riesgos = bool(_RE_RIESGOS.search(output))
         # Inflacion = 6+ tareas O (5+ tareas + DoD + riesgos)
-        if n_tareas > self.max_tasks_per_spec or (
-            n_tareas >= self.max_tasks_per_spec and has_dod and has_riesgos
-        ):
+        if n_tareas > self.max_tasks_per_spec or (n_tareas >= self.max_tasks_per_spec and has_dod and has_riesgos):
             return CompanionViolation(
                 code="SCOPE_INFLATION",
                 severity=self._SEVERITIES["SCOPE_INFLATION"],
@@ -330,9 +329,7 @@ class CompanionAgent:
             )
         return None
 
-    def _detect_reactividad_inversa(
-        self, output: str, user_msg: str
-    ) -> Optional[CompanionViolation]:
+    def _detect_reactividad_inversa(self, output: str, user_msg: str) -> Optional[CompanionViolation]:
         m = _RE_REACTIVIDAD_INVERSA.search(output)
         if not m:
             return None
@@ -383,9 +380,7 @@ class CompanionAgent:
     # Correccion sugerida
     # ------------------------------------------------------------------
 
-    def _build_correction(
-        self, violations: list[CompanionViolation], output: str, user_msg: str
-    ) -> str:
+    def _build_correction(self, violations: list[CompanionViolation], output: str, user_msg: str) -> str:
         """
         Construye texto de correccion estructurado para que Cowork reescriba.
         """
@@ -405,10 +400,12 @@ class CompanionAgent:
             if v.cita:
                 lines.append(f"    cita: {v.cita!r}")
 
-        lines.extend([
-            "",
-            "## Instruccion de reescritura",
-        ])
+        lines.extend(
+            [
+                "",
+                "## Instruccion de reescritura",
+            ]
+        )
         # Sugerencia primero por severidad MAGNA
         if any(v.code == "REPEAT_NO_PROGRESS" for v in violations):
             lines.append(
@@ -426,22 +423,16 @@ class CompanionAgent:
                 "con hilo_origen=cowork y destinatario=manus_t3."
             )
         if any(v.code == "TRES_OPCIONES" for v in violations):
-            lines.append(
-                "  Diagnostico + prescripcion. NO menu de opciones. Decidi vos."
-            )
+            lines.append("  Diagnostico + prescripcion. NO menu de opciones. Decidi vos.")
         if any(v.code == "REACTIVIDAD_INVERSA" for v in violations):
-            lines.append(
-                "  Verificacion reversible: ejecutala vos. NO devolver pelota."
-            )
+            lines.append("  Verificacion reversible: ejecutala vos. NO devolver pelota.")
         if any(v.code == "CLAIM_SIN_EVIDENCIA" for v in violations):
             lines.append(
                 "  Adjuntar evidencia: curl, git log, psql query, HTTP code, "
                 "stdout literal. Sin evidencia, no afirmar estado."
             )
         if any(v.code == "META_META" for v in violations):
-            lines.append(
-                "  Salir del meta-trabajo. Commitear avance en kernel/ o apps/mobile/."
-            )
+            lines.append("  Salir del meta-trabajo. Commitear avance en kernel/ o apps/mobile/.")
 
         return "\n".join(lines)
 
@@ -449,6 +440,7 @@ class CompanionAgent:
 # ============================================================================
 # CLI
 # ============================================================================
+
 
 def _read_stdin_or_arg(value: Optional[str]) -> str:
     if value is not None:
@@ -459,9 +451,7 @@ def _read_stdin_or_arg(value: Optional[str]) -> str:
 
 
 def main(argv: Optional[list[str]] = None) -> int:
-    parser = argparse.ArgumentParser(
-        description="Companion Agent semantico para Cowork (T4)."
-    )
+    parser = argparse.ArgumentParser(description="Companion Agent semantico para Cowork (T4).")
     parser.add_argument("--output", "-o", help="Output candidato (stdin si no se da).")
     parser.add_argument("--user-message", "-u", default="", help="Ultimo mensaje Alfredo.")
     parser.add_argument("--history", "-H", default="", help="Path a JSON con history list.")

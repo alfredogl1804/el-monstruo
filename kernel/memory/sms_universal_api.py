@@ -31,7 +31,6 @@ Date: 2026-05-21
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import sys
@@ -41,11 +40,11 @@ from typing import Optional
 # Add parent paths for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from fastapi import BackgroundTasks, FastAPI, HTTPException, Header, Depends, Request
+from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from kernel.memory.sms_supabase_adapter import SMSSupabaseAdapter, SMSConfig
+from kernel.memory.sms_supabase_adapter import SMSSupabaseAdapter
 
 logger = logging.getLogger("monstruo.sms.api")
 
@@ -115,6 +114,7 @@ def get_agent_id(request: Request, body_agent: str = None) -> str:
 # MODELS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 class IngestRequest(BaseModel):
     content: str = Field(..., description="The memory content to store")
     memory_type: str = Field("episodic", description="episodic|semantic|procedural|causal")
@@ -171,11 +171,12 @@ class RegisterAgentRequest(BaseModel):
 # ENDPOINTS
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @app.post("/sms/ingest", dependencies=[Depends(verify_auth)])
 async def ingest_memory(request: Request, body: IngestRequest):
     """
     Store a new memory in the Sovereign Memory System.
-    
+
     Any AI agent can call this to persist knowledge that survives across sessions.
     Automatically generates embeddings and deduplicates.
     """
@@ -206,7 +207,7 @@ async def ingest_memory(request: Request, body: IngestRequest):
 async def recall_memories(request: Request, body: RecallRequest):
     """
     Semantic search over all memories.
-    
+
     Returns the most relevant memories for the given query.
     Can filter by agent_id to get only your own memories, or leave empty for global search.
     """
@@ -233,7 +234,7 @@ async def recall_memories(request: Request, body: RecallRequest):
 async def crystallize_axiom(request: Request, body: CrystallizeRequest):
     """
     Promote an understanding to a Sovereign Axiom.
-    
+
     Axioms are compaction-proof: they NEVER decay and are always injected
     into context at session start. Only agents with 'crystallize' permission
     can create axioms (by default: monstruo and alfredo_t1).
@@ -269,7 +270,7 @@ async def get_axioms(
 ):
     """
     Get sovereign axioms.
-    
+
     If query is provided, returns semantically similar axioms.
     Otherwise returns all active axioms (optionally filtered by agent).
     """
@@ -291,11 +292,11 @@ async def get_context(
 ):
     """
     Get the context injection block for session start.
-    
+
     This is THE key endpoint. Call this at the beginning of every session
     to receive sovereign axioms, relevant memories, and knowledge gaps.
     Inject the response directly into your system prompt.
-    
+
     Works for ANY AI: ChatGPT, Claude, Gemini, Grok, Manus, custom.
     """
     adapter = get_adapter()
@@ -326,7 +327,7 @@ async def validate_axiom(request: Request, body: ValidateRequest):
 async def report_conflict(request: Request, body: ConflictRequest):
     """
     Report a contradiction between two claims.
-    
+
     The system will resolve based on confidence, validation count, and source.
     """
     adapter = get_adapter()
@@ -381,7 +382,7 @@ async def health_check():
 async def register_agent(request: Request, body: RegisterAgentRequest):
     """
     Register a new AI agent in the universal registry.
-    
+
     Once registered, the agent can read/write memories based on its permissions.
     Default permissions: read=true, write=true, crystallize=false, forget=false.
     """
@@ -404,6 +405,7 @@ async def register_agent(request: Request, body: RegisterAgentRequest):
 # REM CYCLE (Nightly Consolidation)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @app.post("/sms/rem-cycle", dependencies=[Depends(verify_auth)])
 async def trigger_rem_cycle(background_tasks: BackgroundTasks):
     """
@@ -419,6 +421,7 @@ async def trigger_rem_cycle(background_tasks: BackgroundTasks):
     """
     try:
         from kernel.memory.sms_rem_cycle import run_rem_cycle
+
         background_tasks.add_task(run_rem_cycle)
         return {"status": "triggered", "message": "REM Cycle started in background"}
     except ImportError as e:
@@ -431,11 +434,12 @@ async def trigger_rem_cycle(background_tasks: BackgroundTasks):
 # OPENAPI SPEC EXPORT (for ChatGPT Custom GPT Actions)
 # ═══════════════════════════════════════════════════════════════════════════════
 
+
 @app.get("/sms/openapi.json")
 async def get_openapi_spec():
     """
     Export OpenAPI spec for integration with ChatGPT Custom GPT Actions.
-    
+
     Use this URL as the Actions schema URL in your Custom GPT configuration.
     """
     return app.openapi()

@@ -1,9 +1,12 @@
 """
 Prueba de conectividad para DeepSeek API.
 """
-import os
-import requests
+
 import json
+import os
+
+import requests
+
 
 def test_deepseek():
     api_key = os.environ.get("DEEPSEEK_API_KEY")
@@ -12,19 +15,14 @@ def test_deepseek():
         return
 
     url = "https://api.deepseek.com/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
-    }
-    
+    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+
     payload = {
         "model": "deepseek-chat",
-        "messages": [
-            {"role": "user", "content": "What is the capital of France?"}
-        ],
-        "max_tokens": 50
+        "messages": [{"role": "user", "content": "What is the capital of France?"}],
+        "max_tokens": 50,
     }
-    
+
     print(f"Testing DeepSeek API at {url}...")
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=10)
@@ -37,6 +35,7 @@ def test_deepseek():
             print(response.text)
     except Exception as e:
         print(f"Exception during request: {e}")
+
 
 if __name__ == "__main__":
     test_deepseek()

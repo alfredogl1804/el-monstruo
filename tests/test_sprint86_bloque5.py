@@ -16,10 +16,10 @@ Estilo: mock-based, sin tocar Supabase.
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 5 · 2026-05-04
 """
+
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
 import pytest
@@ -28,16 +28,11 @@ from fastapi.testclient import TestClient
 
 from kernel.catastro import (
     CATASTRO_TRONO_VIEW,
+    MAX_TOP_N,
     CatastroRecommendError,
     CatastroRecommendInvalidArgs,
-    DEFAULT_TOP_N,
-    DominioInfo,
-    ListDominiosResponse,
-    MAX_TOP_N,
     ModeloDetallado,
-    ModeloRecomendado,
     RecommendationEngine,
-    RecommendationResponse,
     StatusSnapshot,
     __bloque__,
     __version__,
@@ -45,7 +40,6 @@ from kernel.catastro import (
 )
 from kernel.catastro import catastro_routes as _routes
 from kernel.catastro import mcp_tools as _mcp_tools
-
 
 # ============================================================================
 # FIXTURES
@@ -200,6 +194,7 @@ class TestRecommendationEngineInit:
     def test_db_factory_falla_retorna_degraded(self):
         def _broken():
             raise RuntimeError("supabase down")
+
         e = RecommendationEngine(db_factory=_broken)
         resp = e.recommend(use_case="anything")
         assert resp.degraded is True
@@ -262,11 +257,14 @@ class TestBuildDefaultDbFactoryDualKey:
         captured = {}
         import sys
         import types
+
         fake_supabase = types.ModuleType("supabase")
+
         def _fake_create_client(url, key):
             captured["url"] = url
             captured["key"] = key
             return object()
+
         fake_supabase.create_client = _fake_create_client  # type: ignore[attr-defined]
         monkeypatch.setitem(sys.modules, "supabase", fake_supabase)
         factory = build_default_db_factory()
@@ -352,6 +350,7 @@ class TestRecommend:
             c = _FakeClient({CATASTRO_TRONO_VIEW: rows})
             client_holder["c"] = c
             return c
+
         e = RecommendationEngine(db_factory=_factory)
         e.recommend(
             use_case="t",
@@ -453,10 +452,8 @@ class TestListDominios:
 class TestStatus:
     def test_status_healthy_con_modelos(self):
         rows = [
-            {"macroarea": "Inteligencia", "dominios": ["llm_frontier"],
-             "last_validated_at": "2026-05-04T20:00:00Z"},
-            {"macroarea": "Visión", "dominios": ["t2i"],
-             "last_validated_at": "2026-05-04T19:00:00Z"},
+            {"macroarea": "Inteligencia", "dominios": ["llm_frontier"], "last_validated_at": "2026-05-04T20:00:00Z"},
+            {"macroarea": "Visión", "dominios": ["t2i"], "last_validated_at": "2026-05-04T19:00:00Z"},
         ]
         e = make_engine_with_rows({"catastro_modelos": rows})
         snap = e.status()
@@ -485,15 +482,22 @@ def app_with_engine(monkeypatch):
     """FastAPI app de test con engine inyectado y auth configurada."""
     monkeypatch.setenv("MONSTRUO_API_KEY", "test-key-bloque5")
     rows = [_make_view_row()]
-    engine = make_engine_with_rows({CATASTRO_TRONO_VIEW: rows, "catastro_modelos": [{
-        "id": "alpha-model",
-        "nombre": "Alpha",
-        "proveedor": "test",
-        "macroarea": "Inteligencia",
-        "dominios": ["llm_frontier"],
-        "trono_global": 70.0,
-        "estado": "production",
-    }]})
+    engine = make_engine_with_rows(
+        {
+            CATASTRO_TRONO_VIEW: rows,
+            "catastro_modelos": [
+                {
+                    "id": "alpha-model",
+                    "nombre": "Alpha",
+                    "proveedor": "test",
+                    "macroarea": "Inteligencia",
+                    "dominios": ["llm_frontier"],
+                    "trono_global": 70.0,
+                    "estado": "production",
+                }
+            ],
+        }
+    )
     app = FastAPI()
     app.state.catastro_engine = engine
     _routes.set_dependencies(engine)
@@ -503,8 +507,7 @@ def app_with_engine(monkeypatch):
 
 class TestCatastroRoutesAuth:
     def test_recommend_sin_api_key_da_401(self, app_with_engine):
-        r = app_with_engine.post("/v1/catastro/recommend",
-                                 json={"use_case": "test"})
+        r = app_with_engine.post("/v1/catastro/recommend", json={"use_case": "test"})
         assert r.status_code == 401
         assert "catastro_api_key_missing" in r.json()["detail"]
 
@@ -574,6 +577,7 @@ class TestMCPTools:
     def test_build_catastro_mcp_sin_fastmcp_retorna_none(self, monkeypatch):
         # Simular fastmcp no instalado
         import sys
+
         monkeypatch.setitem(sys.modules, "fastmcp", None)
         result = _mcp_tools.build_catastro_mcp()
         assert result is None

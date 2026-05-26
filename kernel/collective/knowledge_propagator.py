@@ -13,11 +13,12 @@ Soberanía:
     - Propagación: async → alternativa → sincrónica con threading
 """
 
-import structlog
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Optional
-import uuid
+
+import structlog
 
 logger = structlog.get_logger("collective.propagator")
 
@@ -37,10 +38,7 @@ PROPAGADOR_EMBRION_INVALIDO = (
 )
 
 # Los 7 embriones de la colmena
-ALL_EMBRIONES = [
-    "ventas", "tecnico", "vigia", "creativo",
-    "estratega", "financiero", "investigador"
-]
+ALL_EMBRIONES = ["ventas", "tecnico", "vigia", "creativo", "estratega", "financiero", "investigador"]
 
 # Umbral para propagación automática
 AUTO_PROPAGATE_THRESHOLD = 0.8
@@ -50,6 +48,7 @@ RETRACTION_MIN_APPLICATIONS = 5
 
 
 # ── Modelo de datos ────────────────────────────────────────────────────────────
+
 
 @dataclass
 class LearnedPattern:
@@ -76,6 +75,7 @@ class LearnedPattern:
     Soberanía:
         Storage: Supabase → SQLite local
     """
+
     source_embrion: str
     pattern_type: str
     description: str
@@ -104,6 +104,7 @@ class LearnedPattern:
 
 
 # ── Propagador principal ───────────────────────────────────────────────────────
+
 
 class KnowledgePropagator:
     """Propagador de conocimiento entre embriones de la colmena.
@@ -147,23 +148,27 @@ class KnowledgePropagator:
             Sin Supabase: persiste en caché en memoria
         """
         if pattern.source_embrion not in ALL_EMBRIONES:
-            raise ValueError(
-                f"{PROPAGADOR_EMBRION_INVALIDO} Recibido: {pattern.source_embrion}"
-            )
+            raise ValueError(f"{PROPAGADOR_EMBRION_INVALIDO} Recibido: {pattern.source_embrion}")
 
         # Persistir en Supabase
         if self.supabase:
             try:
-                result = await self.supabase.table("learned_patterns").insert({
-                    "source_embrion": pattern.source_embrion,
-                    "pattern_type": pattern.pattern_type,
-                    "description": pattern.description,
-                    "context": pattern.context,
-                    "success_rate": pattern.success_rate,
-                    "times_applied": pattern.times_applied,
-                    "times_succeeded": pattern.times_succeeded,
-                    "propagated_to": pattern.propagated_to,
-                }).execute()
+                result = (
+                    await self.supabase.table("learned_patterns")
+                    .insert(
+                        {
+                            "source_embrion": pattern.source_embrion,
+                            "pattern_type": pattern.pattern_type,
+                            "description": pattern.description,
+                            "context": pattern.context,
+                            "success_rate": pattern.success_rate,
+                            "times_applied": pattern.times_applied,
+                            "times_succeeded": pattern.times_succeeded,
+                            "propagated_to": pattern.propagated_to,
+                        }
+                    )
+                    .execute()
+                )
                 pattern.id = result.data[0]["id"]
             except Exception as exc:
                 logger.warning("pattern_persist_error", error=str(exc))
@@ -196,9 +201,7 @@ class KnowledgePropagator:
 
         return pattern.id
 
-    async def propagate(
-        self, pattern_id: str, target_embriones: list = None
-    ) -> int:
+    async def propagate(self, pattern_id: str, target_embriones: list = None) -> int:
         """Propagar un patrón a otros embriones.
 
         Args:
@@ -217,13 +220,13 @@ class KnowledgePropagator:
         pattern = self._patterns.get(pattern_id)
         if not pattern and self.supabase:
             try:
-                result = await self.supabase.table("learned_patterns")\
-                    .select("*").eq("id", pattern_id).single().execute()
+                result = (
+                    await self.supabase.table("learned_patterns").select("*").eq("id", pattern_id).single().execute()
+                )
                 if result.data:
-                    pattern = LearnedPattern(**{
-                        k: v for k, v in result.data.items()
-                        if k in LearnedPattern.__dataclass_fields__
-                    })
+                    pattern = LearnedPattern(
+                        **{k: v for k, v in result.data.items() if k in LearnedPattern.__dataclass_fields__}
+                    )
                     self._patterns[pattern_id] = pattern
             except Exception:
                 pass
@@ -250,15 +253,21 @@ class KnowledgePropagator:
 
             if self.supabase:
                 try:
-                    await self.supabase.table("embrion_knowledge").insert({
-                        "embrion_name": embrion,
-                        "pattern_id": pattern_id,
-                        "learned_from": source,
-                        "pattern_type": pattern.pattern_type,
-                        "description": pattern.description,
-                        "context": pattern.context,
-                        "adopted": False,
-                    }).execute()
+                    await (
+                        self.supabase.table("embrion_knowledge")
+                        .insert(
+                            {
+                                "embrion_name": embrion,
+                                "pattern_id": pattern_id,
+                                "learned_from": source,
+                                "pattern_type": pattern.pattern_type,
+                                "description": pattern.description,
+                                "context": pattern.context,
+                                "adopted": False,
+                            }
+                        )
+                        .execute()
+                    )
                 except Exception as exc:
                     logger.warning("propagate_supabase_error", embrion=embrion, error=str(exc))
 
@@ -266,9 +275,12 @@ class KnowledgePropagator:
         pattern.propagated_to = list(already_propagated | set(new_targets))
         if self.supabase:
             try:
-                await self.supabase.table("learned_patterns")\
-                    .update({"propagated_to": pattern.propagated_to})\
-                    .eq("id", pattern_id).execute()
+                await (
+                    self.supabase.table("learned_patterns")
+                    .update({"propagated_to": pattern.propagated_to})
+                    .eq("id", pattern_id)
+                    .execute()
+                )
             except Exception:
                 pass
 
@@ -281,9 +293,7 @@ class KnowledgePropagator:
         )
         return len(new_targets)
 
-    async def record_outcome(
-        self, pattern_id: str, embrion: str, success: bool
-    ) -> None:
+    async def record_outcome(self, pattern_id: str, embrion: str, success: bool) -> None:
         """Registrar el resultado de aplicar un patrón propagado.
 
         Args:
@@ -309,11 +319,18 @@ class KnowledgePropagator:
 
         if self.supabase:
             try:
-                await self.supabase.table("learned_patterns").update({
-                    "times_applied": pattern.times_applied,
-                    "times_succeeded": pattern.times_succeeded,
-                    "success_rate": pattern.success_rate,
-                }).eq("id", pattern_id).execute()
+                await (
+                    self.supabase.table("learned_patterns")
+                    .update(
+                        {
+                            "times_applied": pattern.times_applied,
+                            "times_succeeded": pattern.times_succeeded,
+                            "success_rate": pattern.success_rate,
+                        }
+                    )
+                    .eq("id", pattern_id)
+                    .execute()
+                )
             except Exception as exc:
                 logger.warning("outcome_supabase_error", error=str(exc))
 
@@ -326,10 +343,7 @@ class KnowledgePropagator:
         )
 
         # Retraer si la tasa de éxito cae demasiado
-        if (
-            pattern.success_rate < RETRACTION_THRESHOLD
-            and pattern.times_applied >= RETRACTION_MIN_APPLICATIONS
-        ):
+        if pattern.success_rate < RETRACTION_THRESHOLD and pattern.times_applied >= RETRACTION_MIN_APPLICATIONS:
             await self._retract_pattern(pattern_id)
 
     async def get_relevant_patterns(self, embrion: str, context: str) -> list:
@@ -347,19 +361,18 @@ class KnowledgePropagator:
         """
         if self.supabase:
             try:
-                knowledge = await self.supabase.table("embrion_knowledge")\
-                    .select("*, learned_patterns(*)")\
-                    .eq("embrion_name", embrion)\
-                    .eq("adopted", True)\
+                knowledge = (
+                    await self.supabase.table("embrion_knowledge")
+                    .select("*, learned_patterns(*)")
+                    .eq("embrion_name", embrion)
+                    .eq("adopted", True)
                     .execute()
+                )
                 context_lower = context.lower()
                 relevant = []
-                for item in (knowledge.data or []):
+                for item in knowledge.data or []:
                     pattern = item.get("learned_patterns", {})
-                    if pattern and any(
-                        word in context_lower
-                        for word in pattern.get("context", "").lower().split()
-                    ):
+                    if pattern and any(word in context_lower for word in pattern.get("context", "").lower().split()):
                         relevant.append(pattern)
                 return sorted(relevant, key=lambda x: x.get("success_rate", 0), reverse=True)
             except Exception as exc:
@@ -371,10 +384,7 @@ class KnowledgePropagator:
         relevant = []
         for pid in pattern_ids:
             pattern = self._patterns.get(pid)
-            if pattern and any(
-                word in context_lower
-                for word in pattern.context.lower().split()
-            ):
+            if pattern and any(word in context_lower for word in pattern.context.lower().split()):
                 relevant.append(pattern)
 
         return sorted(relevant, key=lambda x: x.success_rate, reverse=True)
@@ -383,11 +393,13 @@ class KnowledgePropagator:
         """Retraer un patrón que ha demostrado ser poco confiable."""
         if self.supabase:
             try:
-                await self.supabase.table("embrion_knowledge")\
-                    .delete().eq("pattern_id", pattern_id).execute()
-                await self.supabase.table("learned_patterns")\
-                    .update({"propagated_to": [], "retracted": True})\
-                    .eq("id", pattern_id).execute()
+                await self.supabase.table("embrion_knowledge").delete().eq("pattern_id", pattern_id).execute()
+                await (
+                    self.supabase.table("learned_patterns")
+                    .update({"propagated_to": [], "retracted": True})
+                    .eq("id", pattern_id)
+                    .execute()
+                )
             except Exception as exc:
                 logger.warning("retract_supabase_error", error=str(exc))
 
@@ -397,8 +409,7 @@ class KnowledgePropagator:
         for embrion in ALL_EMBRIONES:
             if embrion in self._embrion_knowledge:
                 self._embrion_knowledge[embrion] = [
-                    pid for pid in self._embrion_knowledge[embrion]
-                    if pid != pattern_id
+                    pid for pid in self._embrion_knowledge[embrion] if pid != pattern_id
                 ]
 
         logger.warning("pattern_retracted", id=pattern_id)
@@ -409,9 +420,7 @@ class KnowledgePropagator:
         return {
             "total_patterns": len(patterns),
             "propagated_patterns": sum(1 for p in patterns if p.propagated_to),
-            "avg_success_rate": round(
-                sum(p.success_rate for p in patterns) / max(1, len(patterns)), 3
-            ),
+            "avg_success_rate": round(sum(p.success_rate for p in patterns) / max(1, len(patterns)), 3),
             "embriones_with_knowledge": len(self._embrion_knowledge),
             "total_propagations": sum(len(p.propagated_to) for p in patterns),
         }

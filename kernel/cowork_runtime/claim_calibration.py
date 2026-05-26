@@ -34,6 +34,7 @@ Uso programático:
 
 Spec firmado T1: bridge/sprints_propuestos/sprint_COWORK_MEMENTO_001.md commit 78d1fb00
 """
+
 from __future__ import annotations
 
 import re
@@ -43,13 +44,14 @@ from enum import Enum
 from typing import Any, Callable, Iterable, List, Optional
 from uuid import UUID
 
-
 # ============================================================================
 # Enums (claim taxonomy — 12 tipos canónicos firmados T1)
 # ============================================================================
 
+
 class ClaimType(str, Enum):
     """12 categorías de claim factual extraíbles del output Cowork."""
+
     FILE_PATH = "file_path"
     TABLE_NAME = "table_name"
     COLUMN_NAME = "column_name"
@@ -66,6 +68,7 @@ class ClaimType(str, Enum):
 
 class VerificationStatus(str, Enum):
     """4 estados binarios de verificación post-hoc."""
+
     VERIFIED_PRE = "verified_pre"
     VERIFIED_POST_MATCH = "verified_post_match"
     VERIFIED_POST_MISMATCH = "verified_post_mismatch"
@@ -76,18 +79,21 @@ class VerificationStatus(str, Enum):
 # Dataclasses
 # ============================================================================
 
+
 @dataclass(frozen=True)
 class ClaimCandidate:
     """Claim extraído de output_text por ClaimExtractor (sin verificar aún)."""
+
     claim_type: ClaimType
     claim_value: str
-    detected_in_output: str       # snippet contextual ±50 chars
-    extraction_regex_id: str      # id interno del regex que lo capturó
+    detected_in_output: str  # snippet contextual ±50 chars
+    extraction_regex_id: str  # id interno del regex que lo capturó
 
 
 @dataclass
 class ClaimRecord:
     """Registro listo para INSERT a public.cowork_claims_calibration."""
+
     claim_type: ClaimType
     claim_value: str
     verification_status: VerificationStatus
@@ -225,6 +231,7 @@ class ClaimExtractor:
 # Verification status inference (post-hoc heurístico, L_A3 declarada)
 # ============================================================================
 
+
 def infer_verification_status(
     claim: ClaimCandidate,
     tool_call_history: Iterable[str],
@@ -294,6 +301,7 @@ def _extract_evidence_window(text: str, value: str, radius: int = 40) -> str:
 # ============================================================================
 # ClaimLogger (INSERT a public.cowork_claims_calibration via Supabase client)
 # ============================================================================
+
 
 class ClaimLogger:
     """Persiste ClaimRecords a public.cowork_claims_calibration.
@@ -387,12 +395,15 @@ class ClaimLogger:
             ct = r.get("claim_type", "unknown")
             vs = r.get("verification_status", "unverified")
             n = int(r.get("n") or r.get("count") or 0)
-            by_type.setdefault(ct, {
-                "verified_pre": 0,
-                "verified_post_match": 0,
-                "verified_post_mismatch": 0,
-                "unverified": 0,
-            })
+            by_type.setdefault(
+                ct,
+                {
+                    "verified_pre": 0,
+                    "verified_post_match": 0,
+                    "verified_post_mismatch": 0,
+                    "unverified": 0,
+                },
+            )
             by_type[ct][vs] = by_type[ct].get(vs, 0) + n
             total += n
             if vs in ("unverified", "verified_post_mismatch"):
@@ -434,12 +445,17 @@ class ClaimLogger:
         if hasattr(self.client, "aggregate_claims"):
             return list(self.client.aggregate_claims(days=days, claim_type=claim_type))
         if callable(self.client):
-            return list(self.client({
-                "action": "aggregate",
-                "table": self.TABLE_NAME,
-                "days": days,
-                "claim_type": claim_type,
-            }) or [])
+            return list(
+                self.client(
+                    {
+                        "action": "aggregate",
+                        "table": self.TABLE_NAME,
+                        "days": days,
+                        "claim_type": claim_type,
+                    }
+                )
+                or []
+            )
         return []
 
     @property

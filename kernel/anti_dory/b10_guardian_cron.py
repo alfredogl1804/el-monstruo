@@ -41,6 +41,7 @@ class CheckResult(Enum):
 @dataclass
 class GuardianCheck:
     """A single check performed by the Guardian."""
+
     name: str
     description: str
     interval_minutes: int = 60
@@ -53,6 +54,7 @@ class GuardianCheck:
 @dataclass
 class GuardianRunResult:
     """Result of a full Guardian run cycle."""
+
     timestamp: datetime
     checks_run: int
     checks_passed: int
@@ -69,6 +71,7 @@ class GuardianRunResult:
 @dataclass
 class FeatureFlag:
     """Feature flag controlling Guardian activation."""
+
     name: str = "GUARDIAN_AUTONOMO_ENABLED"
     enabled: bool = False
     reason: str = "Disabled by default — requires T1 activation"
@@ -161,10 +164,7 @@ class GuardianAutonomoCron:
             RuntimeError: If Guardian is not activated.
         """
         if not self._flag.enabled:
-            raise RuntimeError(
-                "Guardian Autónomo is DISABLED. "
-                "Requires T1 activation via activate() method."
-            )
+            raise RuntimeError("Guardian Autónomo is DISABLED. Requires T1 activation via activate() method.")
 
         self._status = GuardianStatus.RUNNING
         timestamp = datetime.utcnow()
@@ -175,11 +175,13 @@ class GuardianAutonomoCron:
         for check in self._checks:
             if not self.is_check_due(check):
                 skipped += 1
-                results.append({
-                    "name": check.name,
-                    "result": CheckResult.SKIP.value,
-                    "message": "Not due yet",
-                })
+                results.append(
+                    {
+                        "name": check.name,
+                        "result": CheckResult.SKIP.value,
+                        "message": "Not due yet",
+                    }
+                )
                 continue
 
             handler = self._check_handlers.get(check.name)
@@ -187,11 +189,13 @@ class GuardianAutonomoCron:
                 skipped += 1
                 check.last_result = CheckResult.SKIP
                 check.last_message = "No handler registered"
-                results.append({
-                    "name": check.name,
-                    "result": CheckResult.SKIP.value,
-                    "message": "No handler registered",
-                })
+                results.append(
+                    {
+                        "name": check.name,
+                        "result": CheckResult.SKIP.value,
+                        "message": "No handler registered",
+                    }
+                )
                 continue
 
             try:
@@ -211,22 +215,26 @@ class GuardianAutonomoCron:
                     check.last_message = str(result) if result else "Failed"
                     failed += 1
 
-                results.append({
-                    "name": check.name,
-                    "result": check.last_result.value,
-                    "message": check.last_message,
-                })
+                results.append(
+                    {
+                        "name": check.name,
+                        "result": check.last_result.value,
+                        "message": check.last_message,
+                    }
+                )
 
             except Exception as e:
                 check.last_run = datetime.utcnow()
                 check.last_result = CheckResult.FAIL
                 check.last_message = f"Exception: {e}"
                 failed += 1
-                results.append({
-                    "name": check.name,
-                    "result": CheckResult.FAIL.value,
-                    "message": f"Exception: {e}",
-                })
+                results.append(
+                    {
+                        "name": check.name,
+                        "result": CheckResult.FAIL.value,
+                        "message": f"Exception: {e}",
+                    }
+                )
 
         run_result = GuardianRunResult(
             timestamp=timestamp,

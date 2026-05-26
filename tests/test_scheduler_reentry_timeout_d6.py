@@ -9,9 +9,9 @@ Cubre los 3 fixes:
 Diseño: usar handlers async controlables (asyncio.Event + sleep) y un cliente DB
 mock que registra calls a upsert sin contactar Supabase real.
 """
+
 import asyncio
 from typing import Any
-from unittest.mock import AsyncMock
 
 import pytest
 
@@ -209,6 +209,7 @@ async def test_timeout_pauses_task_after_max_retries() -> None:
 async def test_logs_started_and_finished_with_duration(caplog) -> None:
     """Verificar que logs estructurados started_at y finished_at se emiten con duration_sec."""
     import logging
+
     caplog.set_level(logging.INFO)
 
     scheduler = EmbrionScheduler(db=_MockDB())

@@ -1,4 +1,5 @@
 """Tests for Memory Palace Pattern Detector v0.1"""
+
 import json
 import sys
 import tempfile
@@ -6,13 +7,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from memory_palace_pattern_detector_v0_1 import (
-    load_entries,
-    detect_recurring_lessons,
     detect_cost_anomalies,
-    detect_grounding_drift,
     detect_embryo_performance,
+    detect_grounding_drift,
+    detect_recurring_lessons,
     detect_task_concentration,
     detect_value_patterns,
+    load_entries,
     run_full_analysis,
 )
 
@@ -26,8 +27,15 @@ def _make_state_file(entries: list[dict]) -> Path:
     return Path(tmp.name)
 
 
-def _make_entry(entry_id="E1", lesson="test lesson", cost=0.0003, grounding=8.0,
-                embryo_id="oracle_ai", task_id="analyze", value_score=7.0):
+def _make_entry(
+    entry_id="E1",
+    lesson="test lesson",
+    cost=0.0003,
+    grounding=8.0,
+    embryo_id="oracle_ai",
+    task_id="analyze",
+    value_score=7.0,
+):
     return {
         "entry_id": entry_id,
         "status": "active",
@@ -36,7 +44,7 @@ def _make_entry(entry_id="E1", lesson="test lesson", cost=0.0003, grounding=8.0,
         "grounding_score": grounding,
         "embryo_id": embryo_id,
         "task_id": task_id,
-        "value_score": value_score
+        "value_score": value_score,
     }
 
 
@@ -199,7 +207,7 @@ if __name__ == "__main__":
         except Exception as e:
             failed += 1
             print(f"  FAIL: {t.__name__} — {e}")
-    print(f"\n{'='*60}")
-    print(f"Memory Palace Pattern Detector Tests: {passed}/{passed+failed} PASS")
+    print(f"\n{'=' * 60}")
+    print(f"Memory Palace Pattern Detector Tests: {passed}/{passed + failed} PASS")
     if failed:
         sys.exit(1)

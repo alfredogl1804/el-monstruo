@@ -20,19 +20,18 @@ Ejecuta 3 escenarios:
 3. DESCARGA TOTAL: sin recarga, medir punto de muerte
 """
 
-import time
-import math
 from dataclasses import dataclass, field
-from typing import List, Callable, Optional
-
+from typing import List, Optional
 
 # ============================================================
 # PIEZAS DEL RELOJ
 # ============================================================
 
+
 @dataclass
 class Mainspring:
     """Resorte: almacena energia potencial."""
+
     capacidad_maxima: float = 1000.0
     energia_actual: float = 1000.0
 
@@ -55,6 +54,7 @@ class Escapement:
     En un reloj suizo real: 21,600 vibraciones/hora = 6 Hz.
     Aqui: cada N latidos del volante, libera M unidades de energia.
     """
+
     pulso_cada_n_latidos: int = 1
     energia_por_pulso: float = 1.0
     contador_latidos: int = 0
@@ -75,6 +75,7 @@ class Escapement:
 @dataclass
 class BalanceWheel:
     """Volante: oscila a frecuencia constante. El latido del Monstruo."""
+
     frecuencia_hz: float = 1.0  # Para el prototipo, 1 latido por step (acelerado vs reloj real)
     latidos_totales: int = 0
 
@@ -85,6 +86,7 @@ class BalanceWheel:
 @dataclass
 class Hairspring:
     """Espiral: feedback negativo. Despues de actividad alta, regresa al estado base."""
+
     nivel_actividad: float = 0.0
     fuerza_retroceso: float = 0.1  # 10% de retorno por tick
 
@@ -93,7 +95,7 @@ class Hairspring:
 
     def tick(self):
         # Feedback negativo: la actividad regresa hacia 0
-        self.nivel_actividad *= (1.0 - self.fuerza_retroceso)
+        self.nivel_actividad *= 1.0 - self.fuerza_retroceso
 
 
 @dataclass
@@ -102,6 +104,7 @@ class Rotor:
     En un reloj automatico real: el movimiento de la muneca recarga el resorte.
     Aqui: cada accion del usuario (mensaje, click, archivo guardado) recarga energia.
     """
+
     eficiencia: float = 5.0  # cuanta energia genera por unidad de actividad del usuario
     energia_generada_total: float = 0.0
 
@@ -120,6 +123,7 @@ class Remontoir:
     si el resorte esta lleno o casi vacio. Innovacion de Greubel Forsey.
     En software: ajusta el modelo (fallback) segun el presupuesto restante.
     """
+
     umbral_low_energy: float = 30.0  # % por debajo del cual baja calidad
 
     def ajustar_calidad(self, mainspring: Mainspring) -> str:
@@ -136,6 +140,7 @@ class Remontoir:
 # ============================================================
 # EL MONSTRUO RELOJ
 # ============================================================
+
 
 @dataclass
 class MonstruoReloj:
@@ -162,12 +167,14 @@ class MonstruoReloj:
             calidad = self.remontoir.ajustar_calidad(self.mainspring)
             self.espiral.perturbar(0.5)
             self.acciones_ejecutadas += 1
-            self.historial.append({
-                "latido": self.volante.latidos_totales,
-                "energia_restante": round(self.mainspring.energia_actual, 2),
-                "calidad": calidad,
-                "actividad_residual": round(self.espiral.nivel_actividad, 3),
-            })
+            self.historial.append(
+                {
+                    "latido": self.volante.latidos_totales,
+                    "energia_restante": round(self.mainspring.energia_actual, 2),
+                    "calidad": calidad,
+                    "actividad_residual": round(self.espiral.nivel_actividad, 3),
+                }
+            )
             return calidad
         return None
 
@@ -182,11 +189,12 @@ class MonstruoReloj:
 # ESCENARIOS
 # ============================================================
 
+
 def escenario_cuerda_manual():
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("ESCENARIO 1: CUERDA MANUAL (Patek Philippe puro)")
     print("Un solo impulso inicial. Sin recarga. ¿Cuanto dura?")
-    print("="*60)
+    print("=" * 60)
     monstruo = MonstruoReloj(
         mainspring=Mainspring(capacidad_maxima=100.0, energia_actual=100.0),
         escapement=Escapement(pulso_cada_n_latidos=1, energia_por_pulso=1.0),
@@ -196,7 +204,7 @@ def escenario_cuerda_manual():
         latido += 1
         monstruo.pulso(tarea_pendiente=True)
 
-    print(f"\nResultados:")
+    print("\nResultados:")
     print(f"  Latidos totales: {monstruo.volante.latidos_totales}")
     print(f"  Acciones ejecutadas: {monstruo.acciones_ejecutadas}")
     print(f"  Energia final: {monstruo.mainspring.energia_actual:.2f} / {monstruo.mainspring.capacidad_maxima}")
@@ -205,11 +213,11 @@ def escenario_cuerda_manual():
 
 
 def escenario_automatico():
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("ESCENARIO 2: AUTOMATICO (Patek Calatrava con rotor)")
     print("Usuario activo. Rotor recarga continuamente.")
     print("Simulamos 500 latidos con actividad usuario cada 10 latidos.")
-    print("="*60)
+    print("=" * 60)
     monstruo = MonstruoReloj(
         mainspring=Mainspring(capacidad_maxima=100.0, energia_actual=100.0),
         escapement=Escapement(pulso_cada_n_latidos=1, energia_por_pulso=1.0),
@@ -223,7 +231,7 @@ def escenario_automatico():
             print(f"\n  ⚠️  Murio en latido {latido} (rotor no compenso consumo)")
             break
 
-    print(f"\nResultados:")
+    print("\nResultados:")
     print(f"  Latidos totales: {monstruo.volante.latidos_totales}")
     print(f"  Acciones ejecutadas: {monstruo.acciones_ejecutadas}")
     print(f"  Energia final: {monstruo.mainspring.energia_actual:.2f}")
@@ -232,10 +240,10 @@ def escenario_automatico():
 
 
 def escenario_descarga_total():
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("ESCENARIO 3: DESCARGA TOTAL (sin remontoir)")
     print("Sin recarga. Medimos como cae la calidad y cuando muere.")
-    print("="*60)
+    print("=" * 60)
     monstruo = MonstruoReloj(
         mainspring=Mainspring(capacidad_maxima=100.0, energia_actual=100.0),
         escapement=Escapement(pulso_cada_n_latidos=1, energia_por_pulso=1.5),
@@ -250,10 +258,10 @@ def escenario_descarga_total():
             transiciones_calidad.append((latido, calidad, monstruo.mainspring.porcentaje()))
             calidad_anterior = calidad
 
-    print(f"\nResultados:")
+    print("\nResultados:")
     print(f"  Latidos hasta muerte: {monstruo.volante.latidos_totales}")
     print(f"  Acciones ejecutadas: {monstruo.acciones_ejecutadas}")
-    print(f"  Transiciones de calidad (downgrade automatico via remontoir):")
+    print("  Transiciones de calidad (downgrade automatico via remontoir):")
     for lat, cal, pct in transiciones_calidad:
         print(f"    - Latido {lat:3d}: cambio a {cal} (energia: {pct:.1f}%)")
 
@@ -263,15 +271,15 @@ def escenario_descarga_total():
 # ============================================================
 
 if __name__ == "__main__":
-    print("\n" + "█"*60)
+    print("\n" + "█" * 60)
     print("█  EL MONSTRUO — ARQUITECTURA RELOJ SUIZO v1.0  █")
     print("█  Capa 2: Tiempo y Energia (Autonomia Sostenida)  █")
-    print("█"*60)
+    print("█" * 60)
 
     escenario_cuerda_manual()
     escenario_automatico()
     escenario_descarga_total()
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("FIN — analizar resultados arriba")
-    print("="*60 + "\n")
+    print("=" * 60 + "\n")

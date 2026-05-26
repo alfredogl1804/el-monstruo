@@ -1,21 +1,34 @@
 """Hard constraints per-vertical para Capa Finanzas (DSC-G-017)."""
+
 from __future__ import annotations
-from kernel.transversales.base import GeoRegion, VerticalId
+
+from kernel.transversales.base import VerticalId
 from kernel.transversales.ventas._canonical_constraints import (
-    NON_COMMERCIAL_VERTICALS, is_commercial, require_commercial,
+    NON_COMMERCIAL_VERTICALS,
+    is_commercial,
+    require_commercial,
 )
 
 SUPPORTED_REVENUE_MODELS = {
-    "subscription_recurring", "transactional_per_event",
-    "transactional_per_token", "commission_marketplace",
-    "hardware_sale_one_time", "hardware_plus_saas_combo",
-    "lease_recurring", "concession_revenue_share", "freemium_to_paid",
+    "subscription_recurring",
+    "transactional_per_event",
+    "transactional_per_token",
+    "commission_marketplace",
+    "hardware_sale_one_time",
+    "hardware_plus_saas_combo",
+    "lease_recurring",
+    "concession_revenue_share",
+    "freemium_to_paid",
 }
 
 SUPPORTED_TAX_FRAMEWORKS = {
-    "mx_pyme_general", "mx_isr_personas_fisicas", "mx_iva_16",
-    "mx_securities_cnbv", "mx_medical_devices_cofepris",
-    "us_state_local", "global_revenue_recognition_ifrs",
+    "mx_pyme_general",
+    "mx_isr_personas_fisicas",
+    "mx_iva_16",
+    "mx_securities_cnbv",
+    "mx_medical_devices_cofepris",
+    "us_state_local",
+    "global_revenue_recognition_ifrs",
     "global_us_gaap_asc606",
 }
 
@@ -39,7 +52,10 @@ FINANZAS_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
             "cnbv_reporting_post_resolucion_figura_legal",
         ],
         "source_dscs": [
-            "DSC-CIP-001", "DSC-CIP-002", "DSC-CIP-004", "DSC-CIP-PEND-001",
+            "DSC-CIP-001",
+            "DSC-CIP-002",
+            "DSC-CIP-004",
+            "DSC-CIP-PEND-001",
         ],
     },
     VerticalId.LIKETICKETS: {
@@ -59,7 +75,8 @@ FINANZAS_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
     },
     VerticalId.KUKULKAN_365: {
         "revenue_models": [
-            "lease_recurring", "concession_revenue_share",
+            "lease_recurring",
+            "concession_revenue_share",
             "transactional_per_event",
         ],
         "revenue_recognition_pattern": "lease_straight_line_plus_event_at_attendance",
@@ -79,7 +96,8 @@ FINANZAS_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
         "revenue_recognition_pattern": "hardware_at_delivery_plus_saas_recurring",
         "min_unit_revenue_usd": None,
         "tax_frameworks_candidate": [
-            "mx_medical_devices_cofepris", "mx_iva_16",
+            "mx_medical_devices_cofepris",
+            "mx_iva_16",
         ],
         "tax_framework_pending_decision": True,
         "tax_blocker_reason": "DSC-BG-PEND-001 COFEPRIS pendiente",
@@ -95,7 +113,8 @@ FINANZAS_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
         "revenue_recognition_pattern": "subscription_pro_rata_per_period",
         "min_unit_revenue_usd": 0,
         "tax_frameworks_candidate": [
-            "global_us_gaap_asc606", "global_revenue_recognition_ifrs",
+            "global_us_gaap_asc606",
+            "global_revenue_recognition_ifrs",
         ],
         "tax_framework_pending_decision": False,
         "unit_economics_tracked": [
@@ -122,14 +141,19 @@ FINANZAS_CANONICAL_PER_VERTICAL: dict[VerticalId, dict] = {
         "tax_frameworks_candidate": ["global_us_gaap_asc606"],
         "tax_framework_pending_decision": False,
         "unit_economics_tracked": [
-            "arr_per_seat", "expansion_revenue_per_account", "logo_churn",
+            "arr_per_seat",
+            "expansion_revenue_per_account",
+            "logo_churn",
         ],
         "source_dscs": [],
     },
 }
 
 __all__ = [
-    "FINANZAS_CANONICAL_PER_VERTICAL", "SUPPORTED_REVENUE_MODELS",
-    "SUPPORTED_TAX_FRAMEWORKS", "is_commercial", "require_commercial",
+    "FINANZAS_CANONICAL_PER_VERTICAL",
+    "SUPPORTED_REVENUE_MODELS",
+    "SUPPORTED_TAX_FRAMEWORKS",
+    "is_commercial",
+    "require_commercial",
     "NON_COMMERCIAL_VERTICALS",
 ]

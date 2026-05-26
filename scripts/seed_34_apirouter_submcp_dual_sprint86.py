@@ -106,8 +106,8 @@ Uso:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 5 · 2026-05-04
 """
-from __future__ import annotations
 
+from __future__ import annotations
 
 SEED_PAYLOAD = {
     "id": "seed-34-apirouter-submcp-dual-sprint86",
@@ -197,4 +197,5 @@ SEED_PAYLOAD = {
 
 if __name__ == "__main__":
     import json
+
     print(json.dumps(SEED_PAYLOAD, indent=2, ensure_ascii=False))

@@ -39,6 +39,7 @@ from kernel.rotor.energy_calculator import (
 
 try:
     import structlog
+
     logger = structlog.get_logger("rotor.recharge")
 except ImportError:  # pragma: no cover
     logger = logging.getLogger("rotor.recharge")
@@ -282,9 +283,7 @@ async def recharge_mainspring_handler(**kwargs: Any) -> dict[str, Any]:
                     """,
                     (today,),
                 )
-                acc_by_source = {
-                    r["source"]: Decimal(str(r["total"])) for r in cur.fetchall()
-                }
+                acc_by_source = {r["source"]: Decimal(str(r["total"])) for r in cur.fetchall()}
 
                 # 4. Run pure cycle
                 result, consumed_ids, units_to_recharge = run_recharge_cycle(
@@ -310,6 +309,7 @@ async def recharge_mainspring_handler(**kwargs: Any) -> dict[str, Any]:
                 if units_to_recharge > Decimal("0"):
                     try:
                         from kernel.embrion_budget import add_recycled_energy
+
                         add_recycled_energy(
                             units_usd=units_to_recharge,
                             cycle_id=cycle_id,

@@ -1,4 +1,4 @@
-"""
+r"""
 Semilla #39 — LLM-as-parser con Pydantic Structured Outputs (anti-regex)
               (Sprint 86.5 — Catastro Macroárea 3 LLM Coding)
 
@@ -62,6 +62,7 @@ Validación cruzada (Quorum 2-de-3 en mente):
 
 [Hilo Manus Catastro] · Sprint 86.5 · 2026-05-05
 """
+
 from __future__ import annotations
 
 # Esta semilla NO ejecuta nada. Es metadata consumida por el sistema
@@ -103,4 +104,5 @@ def get_semilla_metadata() -> dict:
 
 if __name__ == "__main__":
     import json
+
     print(json.dumps(get_semilla_metadata(), indent=2, ensure_ascii=False))

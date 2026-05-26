@@ -46,9 +46,7 @@ _VALID_CATASTROS = ("modelos_llm", "agentes_2026", "herramientas_ai", "suppliers
 
 def _validate_catastro_name(name: Optional[str]) -> None:
     if name is not None and name not in _VALID_CATASTROS:
-        raise ValueError(
-            f"catastro debe ser uno de {list(_VALID_CATASTROS)} — got {name!r}"
-        )
+        raise ValueError(f"catastro debe ser uno de {list(_VALID_CATASTROS)} — got {name!r}")
 
 
 def _extract_tags(row: Dict[str, Any], catastro_name: str) -> List[str]:
@@ -118,9 +116,7 @@ class CatastroLookupInterface:
             "suppliers_humanos": suppliers_humanos,
         }
 
-    def lookup(
-        self, key: str, catastro: Optional[str] = None
-    ) -> Optional[Dict[str, Any]]:
+    def lookup(self, key: str, catastro: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """Find by key.
 
         Args:
@@ -216,11 +212,7 @@ class CatastroSearchInterface:
         if not tags_lower:
             return []
 
-        targets = (
-            [(catastro, self._catastros[catastro])]
-            if catastro is not None
-            else list(self._catastros.items())
-        )
+        targets = [(catastro, self._catastros[catastro])] if catastro is not None else list(self._catastros.items())
 
         results: List[Dict[str, Any]] = []
 
@@ -289,9 +281,7 @@ class CatastroOrchestrationInterface:
             "suppliers_humanos": suppliers_humanos,
         }
         # Reusar SearchInterface internamente para no duplicar lógica de tags.
-        self._search = CatastroSearchInterface(
-            modelos_llm, agentes_2026, herramientas_ai, suppliers_humanos
-        )
+        self._search = CatastroSearchInterface(modelos_llm, agentes_2026, herramientas_ai, suppliers_humanos)
 
     def orchestrate(self, query: Dict[str, Any]) -> Dict[str, Any]:
         """Find best resource matching query + fallbacks.
@@ -319,19 +309,14 @@ class CatastroOrchestrationInterface:
         """
         capability = query.get("capability")
         if not capability or not isinstance(capability, str):
-            raise ValueError(
-                "query['capability'] es obligatorio y debe ser string — "
-                f"got {capability!r}"
-            )
+            raise ValueError(f"query['capability'] es obligatorio y debe ser string — got {capability!r}")
 
         budget = query.get("budget_per_1k")
         latency_max = query.get("latency_max_ms")
         prefer_human = bool(query.get("prefer_human", False))
         match = query.get("match", "any")
 
-        priority = (
-            self._PRIORITY_HUMAN_FIRST if prefer_human else self._PRIORITY_AI_FIRST
-        )
+        priority = self._PRIORITY_HUMAN_FIRST if prefer_human else self._PRIORITY_AI_FIRST
 
         # Recolectar candidatos siguiendo el orden de prioridad.
         candidates: List[Dict[str, Any]] = []
@@ -428,15 +413,9 @@ def build_interfaces(
         result = interfaces["orchestration"].orchestrate({"capability": "code_writing"})
     """
     return {
-        "lookup": CatastroLookupInterface(
-            modelos_llm, agentes_2026, herramientas_ai, suppliers_humanos
-        ),
-        "search": CatastroSearchInterface(
-            modelos_llm, agentes_2026, herramientas_ai, suppliers_humanos
-        ),
-        "orchestration": CatastroOrchestrationInterface(
-            modelos_llm, agentes_2026, herramientas_ai, suppliers_humanos
-        ),
+        "lookup": CatastroLookupInterface(modelos_llm, agentes_2026, herramientas_ai, suppliers_humanos),
+        "search": CatastroSearchInterface(modelos_llm, agentes_2026, herramientas_ai, suppliers_humanos),
+        "orchestration": CatastroOrchestrationInterface(modelos_llm, agentes_2026, herramientas_ai, suppliers_humanos),
     }
 
 

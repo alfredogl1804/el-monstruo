@@ -33,6 +33,7 @@ log = logging.getLogger(__name__)
 
 # ── Resultado canónico de una evaluación del Sabio ────────────────────────
 
+
 @dataclasses.dataclass(frozen=True)
 class SabioEvaluation:
     """Resultado parseado de una evaluación del Sabio sobre una dimensión.

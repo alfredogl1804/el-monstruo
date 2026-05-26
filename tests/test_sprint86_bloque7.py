@@ -18,6 +18,7 @@ Disciplinas:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 7 · 2026-05-04 · v0.86.7
 """
+
 from __future__ import annotations
 
 import os
@@ -29,18 +30,13 @@ import pytest
 from kernel.catastro import __version__
 from kernel.catastro.dashboard import (
     CHART_JS_CDN,
-    DEFAULT_TIMELINE_DAYS,
     MAX_TIMELINE_DAYS,
-    CatastroDashboardError,
     CatastroDashboardInvalidArgs,
-    CuradorsResponse,
     DashboardEngine,
     SummarySnapshot,
-    TimelineResponse,
     dashboard_requires_auth,
     render_html_dashboard,
 )
-
 
 # ============================================================================
 # Helpers fake DB (espejo del patrón de _smoke_catastro_mcp_sprint86.py)
@@ -101,9 +97,11 @@ class _FakeQuery:
         rows = self._apply_filters(self._rows)
         if self._limit:
             rows = rows[: self._limit]
+
         class _Res:
             def __init__(self, data):
                 self.data = data
+
         return _Res(rows)
 
 
@@ -212,30 +210,72 @@ def synthetic_db() -> _FakeClient:
     ]
     eventos = [
         # 3 cron_run ok
-        {"id": "ev1", "tipo": "cron_run", "estado": "ok", "prioridad": "baja",
-         "detectado_en": _iso(now - timedelta(hours=2))},
-        {"id": "ev2", "tipo": "cron_run", "estado": "ok", "prioridad": "baja",
-         "detectado_en": _iso(now - timedelta(days=1))},
-        {"id": "ev3", "tipo": "cron_run", "estado": "ok", "prioridad": "baja",
-         "detectado_en": _iso(now - timedelta(days=2))},
+        {
+            "id": "ev1",
+            "tipo": "cron_run",
+            "estado": "ok",
+            "prioridad": "baja",
+            "detectado_en": _iso(now - timedelta(hours=2)),
+        },
+        {
+            "id": "ev2",
+            "tipo": "cron_run",
+            "estado": "ok",
+            "prioridad": "baja",
+            "detectado_en": _iso(now - timedelta(days=1)),
+        },
+        {
+            "id": "ev3",
+            "tipo": "cron_run",
+            "estado": "ok",
+            "prioridad": "baja",
+            "detectado_en": _iso(now - timedelta(days=2)),
+        },
         # 1 cron_run fallido (drift)
-        {"id": "ev4", "tipo": "cron_run", "estado": "failed", "prioridad": "alta",
-         "detectado_en": _iso(now - timedelta(days=3))},
+        {
+            "id": "ev4",
+            "tipo": "cron_run",
+            "estado": "failed",
+            "prioridad": "alta",
+            "detectado_en": _iso(now - timedelta(days=3)),
+        },
         # 4 nuevos_descubrimientos
-        {"id": "ev5", "tipo": "nuevo_descubrimiento", "estado": "ok",
-         "prioridad": "media", "detectado_en": _iso(now - timedelta(days=5))},
-        {"id": "ev6", "tipo": "nuevo_descubrimiento", "estado": "ok",
-         "prioridad": "media", "detectado_en": _iso(now - timedelta(days=7))},
-        {"id": "ev7", "tipo": "evento_critico", "estado": "ok",
-         "prioridad": "critica", "detectado_en": _iso(now - timedelta(hours=10))},
-        {"id": "ev8", "tipo": "validacion", "estado": "ok",
-         "prioridad": "baja", "detectado_en": _iso(now - timedelta(days=10))},
+        {
+            "id": "ev5",
+            "tipo": "nuevo_descubrimiento",
+            "estado": "ok",
+            "prioridad": "media",
+            "detectado_en": _iso(now - timedelta(days=5)),
+        },
+        {
+            "id": "ev6",
+            "tipo": "nuevo_descubrimiento",
+            "estado": "ok",
+            "prioridad": "media",
+            "detectado_en": _iso(now - timedelta(days=7)),
+        },
+        {
+            "id": "ev7",
+            "tipo": "evento_critico",
+            "estado": "ok",
+            "prioridad": "critica",
+            "detectado_en": _iso(now - timedelta(hours=10)),
+        },
+        {
+            "id": "ev8",
+            "tipo": "validacion",
+            "estado": "ok",
+            "prioridad": "baja",
+            "detectado_en": _iso(now - timedelta(days=10)),
+        },
     ]
-    return _FakeClient({
-        "catastro_modelos": modelos,
-        "catastro_eventos": eventos,
-        "catastro_curadores": curadores,
-    })
+    return _FakeClient(
+        {
+            "catastro_modelos": modelos,
+            "catastro_eventos": eventos,
+            "catastro_curadores": curadores,
+        }
+    )
 
 
 # ============================================================================
@@ -252,12 +292,20 @@ def test_versionado_sprint86_bloque7():
 def test_dashboard_module_exports():
     """API pública del módulo dashboard."""
     from kernel.catastro import dashboard
+
     expected = {
-        "DashboardEngine", "SummarySnapshot", "TimelineResponse",
-        "CuradorsResponse", "FuenteHealth", "CuradorSnapshot",
-        "TimelinePoint", "CatastroDashboardError",
-        "CatastroDashboardInvalidArgs", "render_html_dashboard",
-        "dashboard_requires_auth", "build_default_dashboard_db_factory",
+        "DashboardEngine",
+        "SummarySnapshot",
+        "TimelineResponse",
+        "CuradorsResponse",
+        "FuenteHealth",
+        "CuradorSnapshot",
+        "TimelinePoint",
+        "CatastroDashboardError",
+        "CatastroDashboardInvalidArgs",
+        "render_html_dashboard",
+        "dashboard_requires_auth",
+        "build_default_dashboard_db_factory",
     }
     actual = {n for n in dir(dashboard) if not n.startswith("_")}
     missing = expected - actual
@@ -295,8 +343,10 @@ def test_engine_curators_degraded_no_db_factory():
 
 def test_engine_summary_db_explosion():
     """Si el db_factory levanta, debe degradar a supabase_down (NO crashear)."""
+
     def boom():
         raise RuntimeError("supabase down hard")
+
     eng = DashboardEngine(db_factory=boom)
     s = eng.summary()
     # db_factory falla en _client_or_none → returns None → no_db_factory
@@ -463,6 +513,7 @@ def test_render_html_dashboard_consumes_three_endpoints():
 def _build_test_app(db_factory):
     """Construye FastAPI con catastro_router montado + engines inyectados."""
     from fastapi import FastAPI
+
     from kernel.catastro.catastro_routes import router, set_dependencies
     from kernel.catastro.recommendation import RecommendationEngine
 
@@ -479,6 +530,7 @@ def _build_test_app(db_factory):
 def test_api_dashboard_summary_no_auth(synthetic_db: _FakeClient, monkeypatch):
     """Dashboard summary sin auth (default público)."""
     from fastapi.testclient import TestClient
+
     monkeypatch.delenv("CATASTRO_DASHBOARD_REQUIRE_AUTH", raising=False)
     client = TestClient(_build_test_app(lambda: synthetic_db))
     r = client.get("/v1/catastro/dashboard/summary")
@@ -492,19 +544,20 @@ def test_api_dashboard_summary_no_auth(synthetic_db: _FakeClient, monkeypatch):
 def test_api_dashboard_summary_auth_required(synthetic_db: _FakeClient, monkeypatch):
     """Si CATASTRO_DASHBOARD_REQUIRE_AUTH=true → 401 sin key."""
     from fastapi.testclient import TestClient
+
     monkeypatch.setenv("CATASTRO_DASHBOARD_REQUIRE_AUTH", "true")
     monkeypatch.setenv("MONSTRUO_API_KEY", "test-secret-key-001")
     client = TestClient(_build_test_app(lambda: synthetic_db))
     r = client.get("/v1/catastro/dashboard/summary")
     assert r.status_code == 401
     # Con key → 200
-    r2 = client.get("/v1/catastro/dashboard/summary",
-                    headers={"X-API-Key": "test-secret-key-001"})
+    r2 = client.get("/v1/catastro/dashboard/summary", headers={"X-API-Key": "test-secret-key-001"})
     assert r2.status_code == 200
 
 
 def test_api_dashboard_timeline_with_query(synthetic_db: _FakeClient, monkeypatch):
     from fastapi.testclient import TestClient
+
     monkeypatch.delenv("CATASTRO_DASHBOARD_REQUIRE_AUTH", raising=False)
     client = TestClient(_build_test_app(lambda: synthetic_db))
     r = client.get("/v1/catastro/dashboard/timeline?days=7")
@@ -516,6 +569,7 @@ def test_api_dashboard_timeline_with_query(synthetic_db: _FakeClient, monkeypatc
 
 def test_api_dashboard_timeline_invalid_days(synthetic_db: _FakeClient, monkeypatch):
     from fastapi.testclient import TestClient
+
     monkeypatch.delenv("CATASTRO_DASHBOARD_REQUIRE_AUTH", raising=False)
     client = TestClient(_build_test_app(lambda: synthetic_db))
     r = client.get("/v1/catastro/dashboard/timeline?days=0")
@@ -524,6 +578,7 @@ def test_api_dashboard_timeline_invalid_days(synthetic_db: _FakeClient, monkeypa
 
 def test_api_dashboard_curators(synthetic_db: _FakeClient, monkeypatch):
     from fastapi.testclient import TestClient
+
     monkeypatch.delenv("CATASTRO_DASHBOARD_REQUIRE_AUTH", raising=False)
     client = TestClient(_build_test_app(lambda: synthetic_db))
     r = client.get("/v1/catastro/dashboard/curators")
@@ -534,6 +589,7 @@ def test_api_dashboard_curators(synthetic_db: _FakeClient, monkeypatch):
 
 def test_api_dashboard_html_render(synthetic_db: _FakeClient, monkeypatch):
     from fastapi.testclient import TestClient
+
     monkeypatch.delenv("CATASTRO_DASHBOARD_REQUIRE_AUTH", raising=False)
     client = TestClient(_build_test_app(lambda: synthetic_db))
     r = client.get("/v1/catastro/dashboard/")
@@ -545,19 +601,20 @@ def test_api_dashboard_html_render(synthetic_db: _FakeClient, monkeypatch):
 
 def test_api_dashboard_html_auth_required(synthetic_db: _FakeClient, monkeypatch):
     from fastapi.testclient import TestClient
+
     monkeypatch.setenv("CATASTRO_DASHBOARD_REQUIRE_AUTH", "true")
     monkeypatch.setenv("MONSTRUO_API_KEY", "test-secret-key-002")
     client = TestClient(_build_test_app(lambda: synthetic_db))
     r = client.get("/v1/catastro/dashboard/")
     assert r.status_code == 401
-    r2 = client.get("/v1/catastro/dashboard/",
-                    headers={"X-API-Key": "test-secret-key-002"})
+    r2 = client.get("/v1/catastro/dashboard/", headers={"X-API-Key": "test-secret-key-002"})
     assert r2.status_code == 200
 
 
 def test_api_dashboard_degraded_when_no_db(monkeypatch):
     """Sin db_factory, los endpoints retornan 200 con degraded=true."""
     from fastapi.testclient import TestClient
+
     monkeypatch.delenv("CATASTRO_DASHBOARD_REQUIRE_AUTH", raising=False)
     client = TestClient(_build_test_app(db_factory=None))
     r = client.get("/v1/catastro/dashboard/summary")
@@ -575,6 +632,7 @@ def test_api_dashboard_degraded_when_no_db(monkeypatch):
 def test_e2e_dashboard_after_recommend_calls(synthetic_db: _FakeClient, monkeypatch):
     """E2E: simular recommend + status + dashboard en mismo cliente."""
     from fastapi.testclient import TestClient
+
     monkeypatch.setenv("MONSTRUO_API_KEY", "test-secret-e2e-001")
     monkeypatch.delenv("CATASTRO_DASHBOARD_REQUIRE_AUTH", raising=False)
 
@@ -582,23 +640,41 @@ def test_e2e_dashboard_after_recommend_calls(synthetic_db: _FakeClient, monkeypa
     # Para este E2E mínimo, agregamos al fake la vista trono también.
     tables = synthetic_db._tables
     tables["catastro_trono_view"] = [
-        {"id": "claude-opus-4.7", "nombre": "Claude Opus 4.7",
-         "proveedor": "anthropic", "macroarea": "inteligencia",
-         "dominio": "llm_frontier", "estado": "production",
-         "trono_global": 88.5, "trono_low": 82.0, "trono_high": 95.0,
-         "rank_dominio": 1, "trono_delta": 2.1},
-        {"id": "gpt-5.4", "nombre": "GPT 5.4", "proveedor": "openai",
-         "macroarea": "inteligencia", "dominio": "llm_frontier",
-         "estado": "production", "trono_global": 86.0, "trono_low": 80.0,
-         "trono_high": 92.0, "rank_dominio": 2, "trono_delta": 0.5},
+        {
+            "id": "claude-opus-4.7",
+            "nombre": "Claude Opus 4.7",
+            "proveedor": "anthropic",
+            "macroarea": "inteligencia",
+            "dominio": "llm_frontier",
+            "estado": "production",
+            "trono_global": 88.5,
+            "trono_low": 82.0,
+            "trono_high": 95.0,
+            "rank_dominio": 1,
+            "trono_delta": 2.1,
+        },
+        {
+            "id": "gpt-5.4",
+            "nombre": "GPT 5.4",
+            "proveedor": "openai",
+            "macroarea": "inteligencia",
+            "dominio": "llm_frontier",
+            "estado": "production",
+            "trono_global": 86.0,
+            "trono_low": 80.0,
+            "trono_high": 92.0,
+            "rank_dominio": 2,
+            "trono_delta": 0.5,
+        },
     ]
     client = TestClient(_build_test_app(lambda: synthetic_db))
 
     # 1. recommend (con auth)
-    r1 = client.post("/v1/catastro/recommend",
-                     headers={"X-API-Key": "test-secret-e2e-001"},
-                     json={"use_case": "razonamiento legal LATAM",
-                           "dominios": ["llm_frontier"], "top_n": 2})
+    r1 = client.post(
+        "/v1/catastro/recommend",
+        headers={"X-API-Key": "test-secret-e2e-001"},
+        json={"use_case": "razonamiento legal LATAM", "dominios": ["llm_frontier"], "top_n": 2},
+    )
     assert r1.status_code == 200, r1.text
     assert len(r1.json()["modelos"]) == 2
 
@@ -630,10 +706,12 @@ def test_e2e_dashboard_after_recommend_calls(synthetic_db: _FakeClient, monkeypa
 def test_integration_dashboard_real_supabase():
     """Test opt-in: dashboard contra Supabase production (requiere envs)."""
     from kernel.catastro.dashboard import build_default_dashboard_db_factory
+
     factory = build_default_dashboard_db_factory()
     eng = DashboardEngine(db_factory=factory)
     s = eng.summary()
     # No assert hard sobre trust_level — depende del estado real
     assert isinstance(s, SummarySnapshot)
-    print(f"\n[REAL] trust={s.trust_level} modelos={s.modelos_total} "
-          f"dominios={s.dominios_count} drift={s.drift_detected}")
+    print(
+        f"\n[REAL] trust={s.trust_level} modelos={s.modelos_total} dominios={s.dominios_count} drift={s.drift_detected}"
+    )

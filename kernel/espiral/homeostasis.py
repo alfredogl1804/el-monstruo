@@ -10,6 +10,7 @@ API canónica spec firmado T1:
 
 DSC enforzado: DSC-MO-006 v1.1, DSC-MO-010, DSC-G-008 v3, DSC-S-006 v1.1.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -96,9 +97,7 @@ class Hairspring:
         self.consumer = consumer
         # Si no se pasa canonical, lo deriva del registry canónico del Escape
         self.canonical_interval = (
-            canonical_interval
-            if canonical_interval is not None
-            else get_pulse_interval_seconds(consumer)
+            canonical_interval if canonical_interval is not None else get_pulse_interval_seconds(consumer)
         )
         self.window_minutes = window_minutes
         self.override_ttl_seconds = override_ttl_seconds

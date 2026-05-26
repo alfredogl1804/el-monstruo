@@ -60,6 +60,7 @@ EXIT CODES:
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 6 · 2026-05-04
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -77,6 +78,7 @@ sys.path.insert(0, _REPO_ROOT)
 # ============================================================================
 # COLORES Y FORMATO (sin dependencias externas)
 # ============================================================================
+
 
 class C:
     RESET = "\033[0m"
@@ -98,15 +100,26 @@ def section(label: str) -> None:
     print(f"\n{C.BOLD}── {label}{C.RESET}")
 
 
-def ok(msg: str) -> None: print(f"  {C.OK}✓{C.RESET} {msg}")
-def warn(msg: str) -> None: print(f"  {C.WARN}⚠{C.RESET} {msg}")
-def err(msg: str) -> None: print(f"  {C.ERR}✗{C.RESET} {msg}")
-def info(msg: str) -> None: print(f"  {C.INFO}·{C.RESET} {msg}")
+def ok(msg: str) -> None:
+    print(f"  {C.OK}✓{C.RESET} {msg}")
+
+
+def warn(msg: str) -> None:
+    print(f"  {C.WARN}⚠{C.RESET} {msg}")
+
+
+def err(msg: str) -> None:
+    print(f"  {C.ERR}✗{C.RESET} {msg}")
+
+
+def info(msg: str) -> None:
+    print(f"  {C.INFO}·{C.RESET} {msg}")
 
 
 # ============================================================================
 # PASO 1 — PRE-FLIGHT MEMENTO (OPCIONAL, GRACEFUL)
 # ============================================================================
+
 
 def memento_preflight() -> tuple[bool, Optional[str]]:
     """
@@ -122,7 +135,7 @@ def memento_preflight() -> tuple[bool, Optional[str]]:
         return True, None
 
     try:
-        from tools.memento_preflight import preflight_check, MementoPreflightError
+        from tools.memento_preflight import MementoPreflightError, preflight_check
     except ImportError as exc:
         warn(f"tools.memento_preflight no disponible ({exc!r}); continuando sin pre-flight")
         return True, None
@@ -190,6 +203,7 @@ def check_env() -> dict[str, Any]:
 # ============================================================================
 # PASO 5 — RECOMPUTE TRONO VIA RPC
 # ============================================================================
+
 
 def recompute_trono_via_rpc(env_status: dict[str, Any]) -> dict[str, Any]:
     """
@@ -270,6 +284,7 @@ def verify_post_run_counts(env_status: dict[str, Any]) -> dict[str, Any]:
 # PASO 7 — REPORTE DETALLADO ESTILO COWORK
 # ============================================================================
 
+
 def render_summary_table(summary: dict[str, Any]) -> None:
     """Imprime tabla detallada Markdown del resumen del run."""
     section("Fuentes")
@@ -304,7 +319,7 @@ def render_summary_table(summary: dict[str, Any]) -> None:
     print(f"  Failure rate: {fr_color}{fr:.2%}{C.RESET}")
     cats = persist.get("error_categories", {}) or {}
     if cats:
-        print(f"  Error categories:")
+        print("  Error categories:")
         for cat, n in cats.items():
             print(f"    · {cat}: {n}")
 
@@ -348,6 +363,7 @@ def render_top5_trono(trono_results: dict[str, list[Any]]) -> None:
 # PASO 8 — EXIT CODE DETERMINATION
 # ============================================================================
 
+
 def determine_exit_code(summary: dict[str, Any], env_status: dict[str, Any]) -> int:
     """0 OK, 1 degradado, 2 fatal."""
     if not summary.get("is_success"):
@@ -366,9 +382,10 @@ def determine_exit_code(summary: dict[str, Any], env_status: dict[str, Any]) -> 
 # MAIN
 # ============================================================================
 
+
 async def _run_async() -> int:
     started = datetime.now(timezone.utc)
-    header(f"CATASTRO · Primer Run Productivo (Sprint 86 Bloque 6)")
+    header("CATASTRO · Primer Run Productivo (Sprint 86 Bloque 6)")
     print(f"  Inicio: {started.isoformat()}")
     print(f"  Host:   {os.environ.get('RAILWAY_SERVICE_NAME', 'local')}")
 
@@ -419,6 +436,7 @@ async def _run_async() -> int:
     except Exception as exc:  # noqa: BLE001
         err(f"Pipeline CRASH: {type(exc).__name__}: {exc}")
         import traceback
+
         traceback.print_exc()
         return 2
 
@@ -451,7 +469,9 @@ async def _run_async() -> int:
     print(f"  Run ID:         {summary['run_id']}")
     print(f"  Started at:     {summary['started_at']}")
     print(f"  Finished at:    {summary['finished_at']}")
-    print(f"  Duration:       {summary['duration_seconds']:.2f}s" if summary.get("duration_seconds") else "  Duration: ?")
+    print(
+        f"  Duration:       {summary['duration_seconds']:.2f}s" if summary.get("duration_seconds") else "  Duration: ?"
+    )
     print(f"  is_success:     {summary['is_success']}")
 
     render_summary_table(summary)

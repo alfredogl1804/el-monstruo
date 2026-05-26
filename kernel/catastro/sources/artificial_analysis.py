@@ -29,6 +29,7 @@ Schema clave del response (extraído de docs 2026-05-04):
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 2 · 2026-05-04
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -124,7 +125,7 @@ class ArtificialAnalysisFuente(BaseFuente):
                         {"status_code": response.status_code, "attempt": attempt + 1},
                     )
                     if attempt < self.max_retries:
-                        await asyncio.sleep(self.backoff_base_seconds * (2 ** attempt))
+                        await asyncio.sleep(self.backoff_base_seconds * (2**attempt))
                         continue
                     raise last_error
 
@@ -141,7 +142,7 @@ class ArtificialAnalysisFuente(BaseFuente):
                     {"attempt": attempt + 1},
                 )
                 if attempt < self.max_retries:
-                    await asyncio.sleep(self.backoff_base_seconds * (2 ** attempt))
+                    await asyncio.sleep(self.backoff_base_seconds * (2**attempt))
                     continue
                 raise last_error from e
 
@@ -152,7 +153,7 @@ class ArtificialAnalysisFuente(BaseFuente):
                     {"attempt": attempt + 1},
                 )
                 if attempt < self.max_retries:
-                    await asyncio.sleep(self.backoff_base_seconds * (2 ** attempt))
+                    await asyncio.sleep(self.backoff_base_seconds * (2**attempt))
                     continue
                 raise last_error from e
 

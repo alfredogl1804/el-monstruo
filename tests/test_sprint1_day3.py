@@ -354,6 +354,4 @@ class TestIntegrationSmoke:
             "send_proposal_for_hitl",
         ]
         for m in notifier_methods:
-            assert hasattr(telegram_notifier.TelegramNotifier, m), (
-                f"TelegramNotifier missing public method `{m}`"
-            )
+            assert hasattr(telegram_notifier.TelegramNotifier, m), f"TelegramNotifier missing public method `{m}`"

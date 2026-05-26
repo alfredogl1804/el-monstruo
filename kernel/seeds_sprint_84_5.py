@@ -40,7 +40,6 @@ from __future__ import annotations
 
 from typing import Any
 
-
 # ── Definiciones literales de las 2 semillas ─────────────────────────
 
 SEED_13_CLASSIFIER_SLOW_PATH_RESOLVED: dict[str, Any] = {
@@ -126,6 +125,7 @@ SEEDS_SPRINT_84_5: list[dict[str, Any]] = [
 
 # ── Función de siembra (idempotente) ─────────────────────────────────
 
+
 async def seed_sprint_84_5_into_error_memory(error_memory: Any) -> dict[str, Any]:
     """Siembra las 2 reglas en `error_memory` de forma idempotente.
 
@@ -175,8 +175,6 @@ async def seed_sprint_84_5_into_error_memory(error_memory: Any) -> dict[str, Any
             await db.insert(error_memory.TABLE, seed)
             seeded += 1
         except Exception as exc:  # pragma: no cover — defensivo
-            errors.append(
-                f"{seed['error_signature']}: {type(exc).__name__}: {exc}"
-            )
+            errors.append(f"{seed['error_signature']}: {type(exc).__name__}: {exc}")
 
     return {"seeded": seeded, "skipped": skipped, "errors": errors}

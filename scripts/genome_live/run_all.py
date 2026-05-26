@@ -134,7 +134,7 @@ def main() -> int:
         print(f"    ok={ok}\n  {tail}", flush=True)
 
     # 2. Aggregator
-    print(f"  → aggregator.py ...", flush=True)
+    print("  → aggregator.py ...", flush=True)
     agg_ok, agg_tail = run_script(AGGREGATOR)
     results["aggregator"] = {"ok": agg_ok, "tail": agg_tail}
     print(f"    ok={agg_ok}\n  {agg_tail}", flush=True)
@@ -174,7 +174,7 @@ def main() -> int:
 
     (RUNS_DIR / "last_diff.json").write_text(json.dumps(summary, indent=2, default=str))
 
-    print(f"\nRUN ALL RESUMEN")
+    print("\nRUN ALL RESUMEN")
     print(f"  ts                : {ts}")
     print(f"  duration_s        : {summary['duration_seconds']:.1f}")
     print(f"  binario_100       : {binario_100}")

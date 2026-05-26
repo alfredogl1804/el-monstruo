@@ -20,6 +20,7 @@ Funcionamiento:
 3. Si no hay candidato → declara HARD_FAILURE explícito (cuenta como
    evidencia de que ni heartbeat estaba escribiendo). No inventa nada.
 """
+
 from __future__ import annotations
 
 import logging
@@ -38,6 +39,7 @@ logger = logging.getLogger(__name__)
 # Resultado
 # =============================================================================
 
+
 @dataclass(frozen=True)
 class RecoveryProposal:
     """Resultado de attempt_recovery. Decide si pregunta binaria o hard failure."""
@@ -52,6 +54,7 @@ class RecoveryProposal:
 # =============================================================================
 # Recovery Mode
 # =============================================================================
+
 
 class RecoveryMode:
     """Orquestador del recovery cuando Guardian falla.
@@ -137,7 +140,9 @@ class RecoveryMode:
                     confidence_score=float(scan.get("last_confidence") or 0.5),
                     state_hash=scan.get("last_state_hash"),
                     writer_mode="recovery_scan",
-                    snapshot_age_seconds=int(scan.get("last_age_seconds") or 0) if scan.get("last_age_seconds") is not None else None,
+                    snapshot_age_seconds=int(scan.get("last_age_seconds") or 0)
+                    if scan.get("last_age_seconds") is not None
+                    else None,
                     fallback_reason="recovery_pending_snapshot",
                 )
                 question = self._format_binary_question(pack)
@@ -172,7 +177,9 @@ class RecoveryMode:
             confidence_score=float(head.get("confidence_score") or 0.5),
             state_hash=head.get("state_hash"),
             writer_mode="recovery_scan",
-            snapshot_age_seconds=int(head.get("snapshot_age_seconds") or 0) if head.get("snapshot_age_seconds") is not None else None,
+            snapshot_age_seconds=int(head.get("snapshot_age_seconds") or 0)
+            if head.get("snapshot_age_seconds") is not None
+            else None,
             fallback_reason="recovery_head_below_threshold",
         )
 

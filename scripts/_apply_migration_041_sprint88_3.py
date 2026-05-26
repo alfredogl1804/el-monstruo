@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Apply migration 041 — fix vista tronos VISION_GENERATIVA con UNNEST."""
+
 import os
 import sys
 from pathlib import Path
+
 import psycopg
 
 

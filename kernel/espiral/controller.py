@@ -5,6 +5,7 @@ v1: Sólo P (proportional). v2 candidato: PID completo (DSC-MO-015 candidato).
 DSC-G-008 v2 anti-Goodhart: lógica pura Python, cero LLM. Determinístico.
 DSC-G-008 v3: lazos canonizados firmados T1 en kernel.espiral.config (este módulo).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

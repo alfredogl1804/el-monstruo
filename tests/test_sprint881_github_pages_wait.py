@@ -7,11 +7,11 @@ Resultado: Gemini Vision veía página vacía / 404 y reportaba scores 0-5.
 
 Fix: poll URL hasta que sirva el `<h1>` (landing renderizada real).
 """
+
 from __future__ import annotations
 
 import asyncio
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
 from kernel.e2e.screenshot.capture import _wait_for_github_pages_ready
 
@@ -39,9 +39,7 @@ class TestWaitForGithubPagesReady:
         mock_resp.__exit__ = lambda *a: None
 
         with patch("urllib.request.urlopen", return_value=mock_resp):
-            result = asyncio.run(
-                _wait_for_github_pages_ready(url=url, max_wait_s=10)
-            )
+            result = asyncio.run(_wait_for_github_pages_ready(url=url, max_wait_s=10))
         assert result is True
 
     def test_retorna_false_cuando_404_persiste(self):
@@ -58,9 +56,7 @@ class TestWaitForGithubPagesReady:
             with patch("kernel.e2e.screenshot.capture.asyncio.sleep") as mock_sleep:
                 # mock sleep para que no espere de verdad
                 mock_sleep.side_effect = lambda s: asyncio.sleep(0)
-                result = asyncio.run(
-                    _wait_for_github_pages_ready(url=url, max_wait_s=2)
-                )
+                result = asyncio.run(_wait_for_github_pages_ready(url=url, max_wait_s=2))
         assert result is False
 
     def test_retorna_false_si_html_no_tiene_h1(self):
@@ -76,7 +72,5 @@ class TestWaitForGithubPagesReady:
         with patch("urllib.request.urlopen", return_value=mock_resp):
             with patch("kernel.e2e.screenshot.capture.asyncio.sleep") as mock_sleep:
                 mock_sleep.side_effect = lambda s: asyncio.sleep(0)
-                result = asyncio.run(
-                    _wait_for_github_pages_ready(url=url, max_wait_s=2)
-                )
+                result = asyncio.run(_wait_for_github_pages_ready(url=url, max_wait_s=2))
         assert result is False

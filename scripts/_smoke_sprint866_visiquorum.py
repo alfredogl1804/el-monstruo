@@ -14,6 +14,7 @@ Uso:
 
 [Hilo Manus Catastro] · Sprint 86.6 · 2026-05-05
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -31,8 +32,8 @@ async def main() -> int:
 
     # G5 (early): verificar contrato
     from kernel.catastro.coding_classifier import (
-        CodingClassifier,
         CODING_TAGS_VOCABULARY,
+        CodingClassifier,
     )
 
     assert hasattr(CodingClassifier, "detect_overfit_cross_area"), (
@@ -56,8 +57,7 @@ async def main() -> int:
 
     # G2: persistibles con coding poblado
     persistibles_con_coding = {
-        slug: p for slug, p in result.modelos_persistibles.items()
-        if "data_extra" in p and "coding" in p["data_extra"]
+        slug: p for slug, p in result.modelos_persistibles.items() if "data_extra" in p and "coding" in p["data_extra"]
     }
     if not persistibles_con_coding:
         print("[FAIL G2] Ningún persistible tiene data_extra.coding poblado")
@@ -88,16 +88,18 @@ async def main() -> int:
     if g3_failures:
         print(f"[FAIL G3] Persistibles sin overfit_suspected válido: {g3_failures}")
         return 3
-    print(f"[OK  G3] Todos los persistibles con coding tienen overfit_suspected (bool)")
+    print("[OK  G3] Todos los persistibles con coding tienen overfit_suspected (bool)")
 
     if g4_failures:
         print(f"[FAIL G4] Persistibles sin overfit_evidence válido: {g4_failures}")
         return 4
-    print(f"[OK  G4] Todos los persistibles con coding tienen overfit_evidence (dict 3-keys)")
+    print("[OK  G4] Todos los persistibles con coding tienen overfit_evidence (dict 3-keys)")
 
     print("=" * 72)
-    print(f"OVERFIT DETECTADOS EN DRY-RUN: {overfit_detected if overfit_detected else 'ninguno (esperado: dry-run sano)'}")
-    print(f"5/5 GATES PASSED · Sprint 86.6 production-ready")
+    print(
+        f"OVERFIT DETECTADOS EN DRY-RUN: {overfit_detected if overfit_detected else 'ninguno (esperado: dry-run sano)'}"
+    )
+    print("5/5 GATES PASSED · Sprint 86.6 production-ready")
     print("=" * 72)
     return 0
 

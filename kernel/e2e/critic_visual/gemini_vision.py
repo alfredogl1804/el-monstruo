@@ -18,10 +18,10 @@ Brand DNA: critic_visual_evaluate_*_failed.
 
 PUENTE hasta sovereign_browser (Capa 1 Manos magna post-v1.0).
 """
+
 from __future__ import annotations
 
 import asyncio
-import base64
 import json
 import os
 import time
@@ -139,15 +139,11 @@ class CriticVisualReport(BaseModel):
 # ── Heuristic fallback determinístico ────────────────────────────────────────
 
 
-def _heuristic_fallback(
-    *, deploy_url: str, modelo: str, reason: str, started: float
-) -> CriticVisualReport:
+def _heuristic_fallback(*, deploy_url: str, modelo: str, reason: str, started: float) -> CriticVisualReport:
     """Score conservador 60 cuando Gemini Vision no se puede usar."""
     return CriticVisualReport(
         score=60,
-        sub_scores=CriticVisualSubScores(
-            estetica=60, cta_claridad=60, jerarquia_visual=60, profesionalismo=60
-        ),
+        sub_scores=CriticVisualSubScores(estetica=60, cta_claridad=60, jerarquia_visual=60, profesionalismo=60),
         razones_aprobacion=[
             "Pipeline completo sin errores. Estructura HTML válida según renderer Brand DNA.",
         ],
@@ -196,14 +192,10 @@ Devuelve el JSON estructurado según el schema."""
 def _read_image_bytes(path: str) -> bytes:
     p = Path(path)
     if not p.exists():
-        raise GeminiVisionFailed(
-            f"critic_visual_evaluate_failed: screenshot no existe en {path}"
-        )
+        raise GeminiVisionFailed(f"critic_visual_evaluate_failed: screenshot no existe en {path}")
     size = p.stat().st_size
     if size > MAX_IMAGE_BYTES:
-        raise GeminiVisionImageTooLarge(
-            f"critic_visual_evaluate_image_too_large: {size} bytes > {MAX_IMAGE_BYTES} cap"
-        )
+        raise GeminiVisionImageTooLarge(f"critic_visual_evaluate_image_too_large: {size} bytes > {MAX_IMAGE_BYTES} cap")
     return p.read_bytes()
 
 
@@ -213,17 +205,13 @@ async def _call_gemini_vision(
     """Invoca Gemini Vision via google-genai. Retorna dict parseado del JSON."""
     api_key = (os.environ.get("GEMINI_API_KEY") or "").strip()
     if not api_key:
-        raise GeminiVisionMissingKey(
-            "critic_visual_evaluate_missing_key: GEMINI_API_KEY ausente"
-        )
+        raise GeminiVisionMissingKey("critic_visual_evaluate_missing_key: GEMINI_API_KEY ausente")
 
     try:
         from google import genai
         from google.genai import types as genai_types
     except ImportError as e:
-        raise GeminiVisionAPIFailed(
-            f"critic_visual_evaluate_api_failed: google-genai no instalado — {e!s}"
-        ) from e
+        raise GeminiVisionAPIFailed(f"critic_visual_evaluate_api_failed: google-genai no instalado — {e!s}") from e
 
     user_prompt = _PROMPT_USER_TEMPLATE.format(
         deploy_url=deploy_url,
@@ -244,9 +232,7 @@ async def _call_gemini_vision(
                 # Sprint 87.2 hotfix B3 v2: sanitizamos schema removiendo
                 # `additionalProperties`/`additional_properties` que el SDK inyecta
                 # desde Pydantic extra='forbid' y que Gemini API rechaza.
-                schema = _sanitize_gemini_schema(
-                    CriticVisualReport.model_json_schema()
-                )
+                schema = _sanitize_gemini_schema(CriticVisualReport.model_json_schema())
                 response = client.models.generate_content(
                     model=mid,
                     contents=[
@@ -265,18 +251,12 @@ async def _call_gemini_vision(
             except Exception as e:
                 last_err = e
                 continue
-        raise GeminiVisionAPIFailed(
-            f"critic_visual_evaluate_api_failed: todos los modelos fallaron — {last_err!s}"
-        )
+        raise GeminiVisionAPIFailed(f"critic_visual_evaluate_api_failed: todos los modelos fallaron — {last_err!s}")
 
     try:
-        return await asyncio.wait_for(
-            asyncio.to_thread(_sync_call), timeout=DEFAULT_TIMEOUT_S
-        )
+        return await asyncio.wait_for(asyncio.to_thread(_sync_call), timeout=DEFAULT_TIMEOUT_S)
     except asyncio.TimeoutError as e:
-        raise GeminiVisionAPIFailed(
-            f"critic_visual_evaluate_api_failed: timeout {DEFAULT_TIMEOUT_S}s"
-        ) from e
+        raise GeminiVisionAPIFailed(f"critic_visual_evaluate_api_failed: timeout {DEFAULT_TIMEOUT_S}s") from e
 
 
 # ── API pública ──────────────────────────────────────────────────────────────

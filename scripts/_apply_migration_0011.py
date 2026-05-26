@@ -9,6 +9,7 @@ la migración ya fue aplicada — exit 0 en ese caso si verificación post pasa.
 
 import os
 import sys
+
 import psycopg2
 
 DB_URL = os.environ.get("SUPABASE_DB_URL")

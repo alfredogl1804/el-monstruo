@@ -10,10 +10,10 @@ Endpoints:
 - POST /v1/traffic/ingest                — recibe evento desde tracking script
 - GET  /v1/traffic/summary/{run_id}      — métricas agregadas para un run
 """
+
 from __future__ import annotations
 
 import json
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import JSONResponse

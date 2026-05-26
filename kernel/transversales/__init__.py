@@ -25,6 +25,7 @@ Origen: Obj #9, AGENTS.md Regla Dura #2, DSC-G-002.
 Patron: mirror de kernel.brand (Sprint 82) con dimension de
 business-model-archetype + per-vertical hard constraints.
 """
+
 from kernel.transversales.base import (
     BusinessModelArchetype,
     GeoRegion,

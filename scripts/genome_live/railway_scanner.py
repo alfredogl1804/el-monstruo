@@ -63,7 +63,7 @@ def gql(query: str, variables: dict | None = None) -> dict:
             if "errors" in data:
                 raise RuntimeError(f"GraphQL errors: {data['errors']}")
             return data.get("data", {})
-        except requests.RequestException as e:
+        except requests.RequestException:
             if attempt == 2:
                 raise
             time.sleep(3 * (attempt + 1))
@@ -289,7 +289,7 @@ def main() -> int:
     result = scan()
     out_file.write_text(json.dumps(result, indent=2, ensure_ascii=False))
 
-    print(f"\nRAILWAY SCAN RESUMEN")
+    print("\nRAILWAY SCAN RESUMEN")
     print(f"  workspaces         : {result['workspaces_count']}")
     print(f"  proyectos          : {result['projects_count']}")
     print(f"  total_services     : {result['total_services']}")

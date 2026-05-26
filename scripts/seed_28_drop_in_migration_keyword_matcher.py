@@ -19,25 +19,29 @@ Variables de entorno:
 Sprint 85 cierre + 84.7 migration — Hilo Manus Catastro — 2026-05-04.
 Patrón seguido del Ejecutor: scripts/seed_sprint_84_5_via_endpoint.py
 """
+
 from __future__ import annotations
 
 import json
 import os
 import sys
-import urllib.request
 import urllib.error
+import urllib.request
 
 # Sprint Memento Bloque 5 Fase 1 — pre-flight via library Memento
 _MEMENTO_AVAILABLE = True
 try:
     sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     from tools.memento_preflight import (  # type: ignore
-        preflight_check,
         MementoPreflightError,
+        preflight_check,
     )
 except Exception as _import_exc:
     _MEMENTO_AVAILABLE = False
-    print(f"[seed-28] WARN: tools.memento_preflight no disponible ({_import_exc!r}); continuando sin preflight", file=sys.stderr)
+    print(
+        f"[seed-28] WARN: tools.memento_preflight no disponible ({_import_exc!r}); continuando sin preflight",
+        file=sys.stderr,
+    )
 
 
 KERNEL_URL = os.environ.get(

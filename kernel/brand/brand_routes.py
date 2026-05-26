@@ -33,6 +33,7 @@ brand_validator = BrandValidator(threshold=_default_threshold, mode="advisory")
 
 # ── Request Models ───────────────────────────────────────────────────
 
+
 class ValidateRequest(BaseModel):
     target: str = Field(..., min_length=1, max_length=500, description="Nombre, path o mensaje a validar")
     target_type: str = Field(
@@ -54,6 +55,7 @@ class AuditToolsRequest(BaseModel):
 
 
 # ── Routes ───────────────────────────────────────────────────────────
+
 
 @router.get("/dna")
 async def get_brand_dna():

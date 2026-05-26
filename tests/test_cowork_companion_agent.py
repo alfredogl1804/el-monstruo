@@ -3,6 +3,7 @@ tests/test_cowork_companion_agent.py — T4 Companion Agent (Sprint COWORK-RUNTI
 
 Verifica los 7 detectores semanticos + composicion con hook T1.
 """
+
 from __future__ import annotations
 
 import json
@@ -17,10 +18,10 @@ if str(REPO_ROOT) not in sys.path:
 from kernel.cowork_runtime.companion_agent import CompanionAgent
 from kernel.cowork_runtime.pre_response_hook import CoworkPreResponseHook
 
-
 # ============================================================================
 # D1. Repeticion sin avance (MAGNA)
 # ============================================================================
+
 
 class TestRepeticion:
     def test_output_repetido_es_bloqueado(self):
@@ -52,6 +53,7 @@ class TestRepeticion:
 # D2. Inflacion de scope (PREMIUM)
 # ============================================================================
 
+
 class TestInflacion:
     def test_spec_con_8_tareas_es_bloqueado(self):
         companion = CompanionAgent()
@@ -75,6 +77,7 @@ class TestInflacion:
 # D3. Router humano (PREMIUM)
 # ============================================================================
 
+
 class TestRouterHumano:
     def test_copy_paste_es_bloqueado(self):
         companion = CompanionAgent()
@@ -94,6 +97,7 @@ class TestRouterHumano:
 # D4. Tres opciones A/B/C (PREMIUM)
 # ============================================================================
 
+
 class TestTresOpciones:
     def test_opcion_a_b_c_es_bloqueado(self):
         companion = CompanionAgent()
@@ -111,6 +115,7 @@ class TestTresOpciones:
 # ============================================================================
 # D5. Reactividad inversa (PREMIUM)
 # ============================================================================
+
 
 class TestReactividadInversa:
     def test_queres_que_verifique_sin_pregunta_alfredo_bloqueado(self):
@@ -131,6 +136,7 @@ class TestReactividadInversa:
 # ============================================================================
 # D6. Claim sin evidencia (PREMIUM)
 # ============================================================================
+
 
 class TestClaimSinEvidencia:
     def test_claim_sin_evidencia_es_bloqueado(self):
@@ -157,6 +163,7 @@ class TestClaimSinEvidencia:
 # D7. Meta-meta (PREMIUM)
 # ============================================================================
 
+
 class TestMetaMeta:
     def test_audit_de_audit_es_bloqueado(self):
         companion = CompanionAgent()
@@ -175,6 +182,7 @@ class TestMetaMeta:
 # ============================================================================
 # Composicion: T4 sobre output que pasa T1 pero falla T4
 # ============================================================================
+
 
 class TestComposicionConHook:
     def test_hook_t1_aprueba_pero_companion_t4_bloquea(self):
@@ -206,14 +214,20 @@ class TestComposicionConHook:
 # CLI
 # ============================================================================
 
+
 class TestCLI:
     def test_cli_pasa_output_limpio(self):
         result = subprocess.run(
             [
-                sys.executable, "-m", "kernel.cowork_runtime.companion_agent",
-                "--output", "PR mergeado, kernel/ push exitoso",
+                sys.executable,
+                "-m",
+                "kernel.cowork_runtime.companion_agent",
+                "--output",
+                "PR mergeado, kernel/ push exitoso",
             ],
-            cwd=REPO_ROOT, capture_output=True, text=True,
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
         )
         assert result.returncode == 0
         assert "COWORK_COMPANION_PASS" in result.stdout
@@ -221,10 +235,15 @@ class TestCLI:
     def test_cli_bloquea_violacion(self):
         result = subprocess.run(
             [
-                sys.executable, "-m", "kernel.cowork_runtime.companion_agent",
-                "--output", "Opcion A: X. Opcion B: Y. Opcion C: Z.",
+                sys.executable,
+                "-m",
+                "kernel.cowork_runtime.companion_agent",
+                "--output",
+                "Opcion A: X. Opcion B: Y. Opcion C: Z.",
             ],
-            cwd=REPO_ROOT, capture_output=True, text=True,
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
         )
         assert result.returncode == 1
         assert "COWORK_COMPANION_BLOCK" in result.stdout
@@ -232,11 +251,16 @@ class TestCLI:
     def test_cli_json(self):
         result = subprocess.run(
             [
-                sys.executable, "-m", "kernel.cowork_runtime.companion_agent",
-                "--output", "Opcion A: X. Opcion B: Y. Opcion C: Z.",
+                sys.executable,
+                "-m",
+                "kernel.cowork_runtime.companion_agent",
+                "--output",
+                "Opcion A: X. Opcion B: Y. Opcion C: Z.",
                 "--json",
             ],
-            cwd=REPO_ROOT, capture_output=True, text=True,
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
         )
         assert result.returncode == 1
         data = json.loads(result.stdout)
@@ -246,4 +270,5 @@ class TestCLI:
 
 if __name__ == "__main__":
     import pytest
+
     pytest.main([__file__, "-v"])

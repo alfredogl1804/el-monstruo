@@ -25,6 +25,7 @@ Origen: AGENTS.md Regla Dura #2 (Capa 1 de las 7 Transversales),
 DSC-G-002, DSC-CIP-006 (CIP es el primer producto comercial completo —
 prioridad de implementacion correcta).
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -92,9 +93,7 @@ class VentasLayer(TransversalLayer):
                 rule_id="ventas.pricing.tiers.structural",
                 severity="must",
                 value={
-                    "tier_count_recommended": _tier_count_for_archetype(
-                        ctx.archetype
-                    ),
+                    "tier_count_recommended": _tier_count_for_archetype(ctx.archetype),
                     "min_ticket_usd": min_ticket_usd,
                     "max_ticket_usd": max_ticket_usd,
                     "pricing_basis": canonical.get("pricing_basis"),
@@ -105,20 +104,15 @@ class VentasLayer(TransversalLayer):
                     ][: _tier_count_for_archetype(ctx.archetype)],
                 },
                 rationale=(
-                    f"Tiers para archetype {ctx.archetype.value}. "
-                    f"Min ticket honrado per canonical_constraints."
+                    f"Tiers para archetype {ctx.archetype.value}. Min ticket honrado per canonical_constraints."
                 ),
                 needs_validation_tags=[
-                    f"[NEEDS_PERPLEXITY_VALIDATION] pricing_benchmark_2026:"
-                    f"{ctx.archetype.value}",
+                    f"[NEEDS_PERPLEXITY_VALIDATION] pricing_benchmark_2026:{ctx.archetype.value}",
                 ],
                 source_dsc=canonical.get("source_dscs", []),
             )
         )
-        validation_tags.append(
-            f"[NEEDS_PERPLEXITY_VALIDATION] pricing_benchmark_2026:"
-            f"{ctx.archetype.value}"
-        )
+        validation_tags.append(f"[NEEDS_PERPLEXITY_VALIDATION] pricing_benchmark_2026:{ctx.archetype.value}")
 
         funnel_stages = _funnel_stages_for_archetype(ctx.archetype)
         recs.append(
@@ -128,16 +122,10 @@ class VentasLayer(TransversalLayer):
                 severity="must",
                 value={
                     "stages": funnel_stages,
-                    "checkout_pattern": canonical.get(
-                        "checkout_pattern", "stripe_session_webhook_canonical"
-                    ),
+                    "checkout_pattern": canonical.get("checkout_pattern", "stripe_session_webhook_canonical"),
                 },
-                rationale=(
-                    "Funnel stages estandar para archetype + checkout "
-                    "pattern canonico (DSC-LIKETICKETS-003)."
-                ),
-                source_dsc=["DSC-LIKETICKETS-003"]
-                + canonical.get("source_dscs", []),
+                rationale=("Funnel stages estandar para archetype + checkout pattern canonico (DSC-LIKETICKETS-003)."),
+                source_dsc=["DSC-LIKETICKETS-003"] + canonical.get("source_dscs", []),
             )
         )
 
@@ -149,9 +137,7 @@ class VentasLayer(TransversalLayer):
                     severity="must",
                     value={
                         "initial_markets": canonical["geo_initial_markets"],
-                        "expansion_phase_2_markets": canonical.get(
-                            "geo_expansion_phase_2", []
-                        ),
+                        "expansion_phase_2_markets": canonical.get("geo_expansion_phase_2", []),
                     },
                     rationale=(
                         "Restriccion geografica canonica del vertical. "
@@ -171,9 +157,7 @@ class VentasLayer(TransversalLayer):
             aggregated_validation_tags=validation_tags,
         )
 
-    def implement(
-        self, recommendations: TransversalRecommendations
-    ) -> dict[str, Any]:
+    def implement(self, recommendations: TransversalRecommendations) -> dict[str, Any]:
         """
         Genera payloads canonicos listos para inyectar en HubSpot CRM
         (Products + Pipeline + Deals) y Stripe (Products + Prices). NO ejecuta
@@ -236,45 +220,55 @@ class VentasLayer(TransversalLayer):
             currency_slot = f"{{{{{slot_upper}_CURRENCY_SLOT}}}}"
             period_slot = f"{{{{{slot_upper}_BILLING_PERIOD_SLOT}}}}"
 
-            hubspot_products_payload.append({
-                "vertical": vertical_slug,
-                "tier_idx": idx,
-                "tier_label_slot": tier_label_slot,
-                "endpoint": "POST /crm/v3/objects/products",
-                "properties": {
-                    "name": name_slot,
-                    "price": price_slot,
-                    "description": desc_slot,
-                    "hs_recurring_billing_period": period_slot,
-                    "hs_sku": f"{vertical_slug}-{tier_label_slot}",
-                },
-                "slots_required": [
-                    name_slot, price_slot, desc_slot, period_slot,
-                ],
-            })
-
-            stripe_products_payload.append({
-                "vertical": vertical_slug,
-                "tier_idx": idx,
-                "tier_label_slot": tier_label_slot,
-                "product": {
-                    "name": name_slot,
-                    "description": desc_slot,
-                    "metadata": {
-                        "vertical": vertical_slug,
-                        "tier_label_slot": tier_label_slot,
+            hubspot_products_payload.append(
+                {
+                    "vertical": vertical_slug,
+                    "tier_idx": idx,
+                    "tier_label_slot": tier_label_slot,
+                    "endpoint": "POST /crm/v3/objects/products",
+                    "properties": {
+                        "name": name_slot,
+                        "price": price_slot,
+                        "description": desc_slot,
+                        "hs_recurring_billing_period": period_slot,
+                        "hs_sku": f"{vertical_slug}-{tier_label_slot}",
                     },
-                },
-                "price": {
-                    "unit_amount_slot": price_slot,
-                    "currency_slot": currency_slot,
-                    "recurring_interval_slot": period_slot,
-                },
-                "slots_required": [
-                    name_slot, price_slot, currency_slot,
-                    desc_slot, period_slot,
-                ],
-            })
+                    "slots_required": [
+                        name_slot,
+                        price_slot,
+                        desc_slot,
+                        period_slot,
+                    ],
+                }
+            )
+
+            stripe_products_payload.append(
+                {
+                    "vertical": vertical_slug,
+                    "tier_idx": idx,
+                    "tier_label_slot": tier_label_slot,
+                    "product": {
+                        "name": name_slot,
+                        "description": desc_slot,
+                        "metadata": {
+                            "vertical": vertical_slug,
+                            "tier_label_slot": tier_label_slot,
+                        },
+                    },
+                    "price": {
+                        "unit_amount_slot": price_slot,
+                        "currency_slot": currency_slot,
+                        "recurring_interval_slot": period_slot,
+                    },
+                    "slots_required": [
+                        name_slot,
+                        price_slot,
+                        currency_slot,
+                        desc_slot,
+                        period_slot,
+                    ],
+                }
+            )
 
         pricing_envelope = {
             "tier_count_recommended": tier_count,
@@ -286,9 +280,7 @@ class VentasLayer(TransversalLayer):
         # 2. Funnel pipeline stages → HubSpot deal pipeline.
         funnel_rule = rules.get("ventas.funnel.stages", {})
         funnel_pipeline_stages = funnel_rule.get("stages", [])
-        checkout_pattern = funnel_rule.get(
-            "checkout_pattern", "stripe_session_webhook_canonical"
-        )
+        checkout_pattern = funnel_rule.get("checkout_pattern", "stripe_session_webhook_canonical")
 
         # 3. Credenciales pendientes (no las leemos como valores — solo presencia).
         pending_credentials: list[str] = []
@@ -308,8 +300,7 @@ class VentasLayer(TransversalLayer):
             "checkout_pattern": checkout_pattern,
             "dry_run": True,
             "dry_run_reason": (
-                "Push real requiere firma de Alfredo via DSC-G-002 "
-                "(HITL para operaciones write-risky)."
+                "Push real requiere firma de Alfredo via DSC-G-002 (HITL para operaciones write-risky)."
             ),
             "pending_credentials": pending_credentials,
             "validation_log_anchor": {
@@ -319,9 +310,7 @@ class VentasLayer(TransversalLayer):
                 "ttl_seconds": 7776000,
                 "valid_until_iso": "2026-08-09T16:14:05Z",
             },
-            "validation_tags_pending": list(
-                recommendations.aggregated_validation_tags
-            ),
+            "validation_tags_pending": list(recommendations.aggregated_validation_tags),
         }
 
     def monitor(self, ctx: TransversalContext) -> dict[str, Any]:
@@ -344,13 +333,9 @@ class VentasLayer(TransversalLayer):
         blockers: list[str] = []
 
         if not impl_artifacts["hubspot_products_payload"]:
-            blockers.append(
-                "No hay pricing tiers en payload — imposible push a HubSpot."
-            )
+            blockers.append("No hay pricing tiers en payload — imposible push a HubSpot.")
         if not impl_artifacts["funnel_pipeline_stages"]:
-            warnings.append(
-                "Funnel pipeline stages vacios — no se puede crear deal pipeline."
-            )
+            warnings.append("Funnel pipeline stages vacios — no se puede crear deal pipeline.")
         if impl_artifacts["pending_credentials"]:
             warnings.append(
                 f"Credenciales pendientes: "
@@ -366,15 +351,9 @@ class VentasLayer(TransversalLayer):
         return {
             "vertical": ctx.vertical.value,
             "structural_health": {
-                "hubspot_products_count": len(
-                    impl_artifacts["hubspot_products_payload"]
-                ),
-                "stripe_products_count": len(
-                    impl_artifacts["stripe_products_payload"]
-                ),
-                "funnel_stages_count": len(
-                    impl_artifacts["funnel_pipeline_stages"]
-                ),
+                "hubspot_products_count": len(impl_artifacts["hubspot_products_payload"]),
+                "stripe_products_count": len(impl_artifacts["stripe_products_payload"]),
+                "funnel_stages_count": len(impl_artifacts["funnel_pipeline_stages"]),
                 "checkout_pattern": impl_artifacts["checkout_pattern"],
                 "dry_run": impl_artifacts["dry_run"],
             },
@@ -383,8 +362,10 @@ class VentasLayer(TransversalLayer):
             "cac_ltv_health": {
                 "status": "pending_credentials",
                 "required_envs": [
-                    "HUBSPOT_ACCESS_TOKEN", "STRIPE_SECRET_KEY",
-                    "AMPLITUDE_API_KEY", "POSTHOG_API_KEY",
+                    "HUBSPOT_ACCESS_TOKEN",
+                    "STRIPE_SECRET_KEY",
+                    "AMPLITUDE_API_KEY",
+                    "POSTHOG_API_KEY",
                 ],
                 "note": (
                     "CAC/LTV calculation requiere event source real (Amplitude o"
@@ -418,28 +399,48 @@ def _tier_count_for_archetype(arch: BusinessModelArchetype) -> int:
 
 _FUNNEL_STAGES_BY_ARCHETYPE: dict[BusinessModelArchetype, list[str]] = {
     BusinessModelArchetype.SAAS_B2B: [
-        "awareness", "consideration", "trial", "activation",
-        "expansion", "retention",
+        "awareness",
+        "consideration",
+        "trial",
+        "activation",
+        "expansion",
+        "retention",
     ],
     BusinessModelArchetype.MARKETPLACE_SERVICES: [
-        "discovery_search", "match_request", "trust_check",
-        "transaction", "review_loop",
+        "discovery_search",
+        "match_request",
+        "trust_check",
+        "transaction",
+        "review_loop",
     ],
     BusinessModelArchetype.ECOMMERCE_ARTISANAL: [
-        "discovery", "product_view", "cart", "checkout",
+        "discovery",
+        "product_view",
+        "cart",
+        "checkout",
         "post_purchase",
     ],
     BusinessModelArchetype.TOKENIZED_REAL_ESTATE: [
-        "kyc_lite", "explorar_proyectos", "mini_inversion",
-        "primera_distribucion", "reinversion_loop",
+        "kyc_lite",
+        "explorar_proyectos",
+        "mini_inversion",
+        "primera_distribucion",
+        "reinversion_loop",
     ],
     BusinessModelArchetype.TICKETING_LIMITED_INVENTORY: [
-        "scarcity_alert", "select_seat", "checkout_stripe_canonical",
-        "delivery_email_qr", "post_event_loop",
+        "scarcity_alert",
+        "select_seat",
+        "checkout_stripe_canonical",
+        "delivery_email_qr",
+        "post_event_loop",
     ],
     BusinessModelArchetype.IOT_B2B_REGULATED: [
-        "lead_b2b", "qualification_regulatory", "demo_field",
-        "pilot_program", "deployment", "expansion_seats",
+        "lead_b2b",
+        "qualification_regulatory",
+        "demo_field",
+        "pilot_program",
+        "deployment",
+        "expansion_seats",
     ],
 }
 

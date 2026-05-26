@@ -29,6 +29,7 @@ Uso:
 Variable opcional:
     KERNEL_URL (default: https://el-monstruo-kernel-production.up.railway.app)
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -39,14 +40,11 @@ import sys
 import urllib.error
 import urllib.request
 from pathlib import Path
-from typing import Any
 
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS_DIR = ROOT / "scripts"
 
-KERNEL_URL = os.environ.get(
-    "KERNEL_URL", "https://el-monstruo-kernel-production.up.railway.app"
-).rstrip("/")
+KERNEL_URL = os.environ.get("KERNEL_URL", "https://el-monstruo-kernel-production.up.railway.app").rstrip("/")
 API_KEY = os.environ.get("MONSTRUO_API_KEY", "")
 
 
@@ -75,8 +73,7 @@ def _extract_payload(mod) -> dict | None:
             "id": "seed_36_dashboard_visibilidad_obligatoria_sprint86",
             "categoria": "patron_arquitectonico",
             "titulo": (
-                "Dashboard de Salud como visibilidad obligatoria de cualquier "
-                "dominio del Monstruo (Catastro Bloque 7)"
+                "Dashboard de Salud como visibilidad obligatoria de cualquier dominio del Monstruo (Catastro Bloque 7)"
             ),
             "leccion": (mod.__doc__ or "").strip(),
             "sprint": "86",

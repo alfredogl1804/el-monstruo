@@ -8,6 +8,7 @@ Sin DB ni red en tests: el sensor es inyectable con un `db_query_fn` callable
 que retorna lista de pulses. En producción se inyecta una función real que
 consulta Supabase REST. En tests se mockea.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

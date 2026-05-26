@@ -7,6 +7,7 @@ y el test de integridad en tests/test_sprint86_schema.py.
 
 Sprint 86 Bloque 1 — [Hilo Manus Catastro] — 2026-05-04.
 """
+
 from __future__ import annotations
 
 from datetime import date, datetime
@@ -16,10 +17,10 @@ from uuid import UUID, uuid4
 
 from pydantic import BaseModel, Field, field_validator
 
-
 # ============================================================================
 # ENUMS — espejo de los CHECK CONSTRAINTS del SQL
 # ============================================================================
+
 
 class EstadoModelo(str, Enum):
     PRODUCTION = "production"
@@ -42,14 +43,16 @@ class Macroarea(str, Enum):
     """
     Sprint 86 = solo INTELIGENCIA. Sprints 87+ amplían.
     """
+
     INTELIGENCIA = "inteligencia"
     VISION_GENERATIVA = "vision_generativa"  # Sprint 87
-    AGENTES = "agentes"                      # Sprint 88
+    AGENTES = "agentes"  # Sprint 88
     # macroáreas futuras: voz, datos, infraestructura, seguridad, etc.
 
 
 class DominioInteligencia(str, Enum):
     """Dominios dentro de Macroarea INTELIGENCIA (Sprint 86)."""
+
     LLM_FRONTIER = "llm_frontier"
     LLM_OPEN_SOURCE = "llm_open_source"
     CODING_LLMS = "coding_llms"
@@ -74,9 +77,9 @@ class TipoEvento(str, Enum):
 
 
 class RolCurador(str, Enum):
-    CURADOR = "curador"      # propone valores
+    CURADOR = "curador"  # propone valores
     VALIDADOR = "validador"  # confirma o rechaza valores propuestos
-    ARBITRO = "arbitro"      # desempata cuando 2 validadores discrepan
+    ARBITRO = "arbitro"  # desempata cuando 2 validadores discrepan
 
 
 class ConfidentialityTier(str, Enum):
@@ -89,32 +92,38 @@ class ConfidentialityTier(str, Enum):
 
     Spec: bridge/sprint_86_8_preinvestigation/spec_catastro_confidentiality_tier.md
     """
-    LOCAL_ONLY = "local_only"                    # corre on-device
-    TEE_CAPABLE = "tee_capable"                  # confidential computing
+
+    LOCAL_ONLY = "local_only"  # corre on-device
+    TEE_CAPABLE = "tee_capable"  # confidential computing
     CLOUD_ANONYMIZED_OK = "cloud_anonymized_ok"  # acepta prompts anonimizados
-    CLOUD_ONLY = "cloud_only"                    # default conservador
+    CLOUD_ONLY = "cloud_only"  # default conservador
 
 
 # ============================================================================
 # MODELOS DE DATOS
 # ============================================================================
 
+
 class FuenteEvidencia(BaseModel):
     """
     Una entrada del array `fuentes_evidencia` JSONB.
     Citation tracking obligatorio anti-alucinación (Addendum 001 cambio 1).
     """
+
     url: str
     fetched_at: datetime
     payload_hash: str = Field(..., min_length=8, description="SHA-256 truncado del payload original")
     curador: str = Field(..., description="ID del curador que extrajo el dato (ej. 'claude-opus-4.7-inteligencia')")
-    tipo_dato: str = Field(..., description="Qué dato específico extrajo de esta fuente (ej. 'precio_input', 'quality_score')")
+    tipo_dato: str = Field(
+        ..., description="Qué dato específico extrajo de esta fuente (ej. 'precio_input', 'quality_score')"
+    )
 
 
 class CatastroModelo(BaseModel):
     """
     Tabla 1: catastro_modelos — fuente de verdad viva.
     """
+
     # Identidad
     id: str = Field(..., min_length=2, max_length=100, description="slug ej. 'gpt-5-5-mini'")
     nombre: str
@@ -203,6 +212,7 @@ class CatastroModelo(BaseModel):
 
 class CatastroHistorial(BaseModel):
     """Tabla 2: catastro_historial — snapshots diarios."""
+
     fecha: date
     modelo_id: str
     snapshot: dict[str, Any]
@@ -212,6 +222,7 @@ class CatastroHistorial(BaseModel):
 
 class CatastroEvento(BaseModel):
     """Tabla 3: catastro_eventos — alertas y feed."""
+
     id: UUID = Field(default_factory=uuid4)
     fecha: datetime = Field(default_factory=datetime.utcnow)
     tipo: TipoEvento
@@ -225,6 +236,7 @@ class CatastroEvento(BaseModel):
 
 class CatastroNota(BaseModel):
     """Tabla 4: catastro_notas — anotaciones humanas / agentes."""
+
     id: UUID = Field(default_factory=uuid4)
     modelo_id: str
     autor: str
@@ -236,6 +248,7 @@ class CatastroNota(BaseModel):
 
 class CatastroCurador(BaseModel):
     """Tabla 5: catastro_curadores — Trust Score por LLM curador."""
+
     id: str = Field(..., description="ej. 'claude-opus-4.7-inteligencia'")
     macroarea: Macroarea
     modelo_llm: str
@@ -268,6 +281,7 @@ class CatastroCurador(BaseModel):
 # Migraciones SQL: 030_sprint88_catastro_agentes.sql + 031_sprint88_dominios_expandidos.sql
 # ============================================================================
 
+
 class DominioAgentes(str, Enum):
     """
     9 dominios canonicos dentro de Macroarea AGENTES.
@@ -285,6 +299,7 @@ class DominioAgentes(str, Enum):
     - AGENTES_BRANDING_DISENO: logos/marca/identidad visual (Ideogram, Recraft, Looka, Kittl...)
     - AGENTES_MARKETING_VENTAS: pauta/leads/copy/outreach (Apollo, Clay, Agentforce, Sierra, Harvey, Jasper...)
     """
+
     # Originales
     AGENTES_DESARROLLO = "agentes_desarrollo"
     AGENTES_INVESTIGACION = "agentes_investigacion"
@@ -304,6 +319,7 @@ class DominioAgentes(str, Enum):
 
 class PersistenciaMemoria(str, Enum):
     """Capacidad de persistencia entre sesiones del agente."""
+
     NONE = "none"
     SESSION = "session"
     PERSISTENT = "persistent"
@@ -312,10 +328,11 @@ class PersistenciaMemoria(str, Enum):
 
 class CostoPorUsoTipico(str, Enum):
     """Bucket de costo por uso tipico (subjetivo, snapshot 2026-05-10)."""
+
     GRATIS = "gratis"
-    BAJO = "bajo"          # < $20/mes o < $0.50/run
-    MEDIO = "medio"        # $20-100/mes o $0.50-5/run
-    ALTO = "alto"          # $100-500/mes o $5-50/run
+    BAJO = "bajo"  # < $20/mes o < $0.50/run
+    MEDIO = "medio"  # $20-100/mes o $0.50-5/run
+    ALTO = "alto"  # $100-500/mes o $5-50/run
     ENTERPRISE = "enterprise"  # > $500/mes o pricing on-demand
 
 
@@ -330,6 +347,7 @@ class CatastroAgente(BaseModel):
     Cruza con DSC-MO-009 (arsenal seleccionable por Catastro) y
     DSC-G-007.2 (Macroarea AGENTES con 9 dominios canonizados).
     """
+
     # Identidad
     id: str = Field(..., min_length=2, max_length=100, description="slug ej. 'manus', 'claude-cowork'")
     nombre: str
@@ -400,7 +418,9 @@ class CatastroAgente(BaseModel):
     tier_seed: int = Field(1, ge=1, le=2, description="1=validacion profunda 3 sabios, 2=validacion ligera 1 sabio")
 
     # Bonus curador (DSC-G-007.4 + DSC-G-007.5 - desempates documentados, rango 0-50)
-    bonus_curador: int = Field(0, ge=0, le=50, description="Bonus aditivo (0-50) en desempates de tronos. Requiere bonus_curador_razon.")
+    bonus_curador: int = Field(
+        0, ge=0, le=50, description="Bonus aditivo (0-50) en desempates de tronos. Requiere bonus_curador_razon."
+    )
     bonus_curador_razon: Optional[str] = None
 
     # Extensibilidad
@@ -429,11 +449,8 @@ class CatastroAgente(BaseModel):
         if v:
             multi_step = info.data.get("multi_step_capable") if info.data else None
             if multi_step is False:
-                raise ValueError(
-                    "Invariante violado: multi_swarm_capable=True requiere multi_step_capable=True"
-                )
+                raise ValueError("Invariante violado: multi_swarm_capable=True requiere multi_step_capable=True")
         return v
-
 
 
 # ============================================================================
@@ -441,8 +458,10 @@ class CatastroAgente(BaseModel):
 # Migraciones SQL: 040..045 (catastro_vision_generativa + 12 subdominios + 38 seeds)
 # ============================================================================
 
+
 class SubdominioVisionGenerativa(str, Enum):
     """12 subdominios canonicos VISION_GENERATIVA validados por Perplexity."""
+
     IMAGEN_ESTATICA_PREMIUM = "imagen_estatica_premium"
     VIDEO_CLIP_GENERATIVO = "video_clip_generativo"
     VIDEO_NARRATIVO_CINEMATICO = "video_narrativo_cinematico"
@@ -459,6 +478,7 @@ class SubdominioVisionGenerativa(str, Enum):
 
 class LicensingRisk(str, Enum):
     """Riesgo de licenciamiento de outputs (DSC-G-007.5)."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -469,6 +489,7 @@ class CatastroVisionGenerativa(BaseModel):
     Tabla: catastro_vision_generativa - macroarea VISION_GENERATIVA (Sprint 88.3).
     Espejo Pydantic de migracion 040 + 12 subdominios + 38 seeds.
     """
+
     # Identidad
     id: str = Field(..., min_length=2, max_length=100)
     nombre: str

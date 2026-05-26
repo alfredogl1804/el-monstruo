@@ -3,9 +3,9 @@ Test Suite: Provider Risk Local Blocker v0.1
 Sprint: SPR-R0PLUS-PRODUCTION-SURGE-003
 13 tests.
 """
-import sys
+
 import os
-import json
+import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from provider_risk_local_blocker_v0_1 import ProviderRiskLocalBlocker
@@ -32,37 +32,86 @@ print("=" * 60)
 blocker = ProviderRiskLocalBlocker()
 
 # 1. Local operation is ALLOWED
-local_op = {"type": "local_python", "provider": "", "estimated_cost_usd": 0.0, "requires_network": False, "requires_secret": False, "modifies_state": []}
+local_op = {
+    "type": "local_python",
+    "provider": "",
+    "estimated_cost_usd": 0.0,
+    "requires_network": False,
+    "requires_secret": False,
+    "modifies_state": [],
+}
 result = blocker.validate_operation(local_op)
 test("01. local operation is ALLOWED", result["decision"] == "ALLOW")
 
 # 2. Anthropic provider is BLOCKED
-anthropic_op = {"type": "provider_call", "provider": "anthropic", "estimated_cost_usd": 0.05, "requires_network": True, "requires_secret": True, "modifies_state": []}
+anthropic_op = {
+    "type": "provider_call",
+    "provider": "anthropic",
+    "estimated_cost_usd": 0.05,
+    "requires_network": True,
+    "requires_secret": True,
+    "modifies_state": [],
+}
 result = blocker.validate_operation(anthropic_op)
 test("02. anthropic provider is BLOCKED", result["decision"] == "BLOCK")
 
 # 3. Perplexity provider is BLOCKED
-perp_op = {"type": "api_call", "provider": "perplexity", "estimated_cost_usd": 0.01, "requires_network": True, "requires_secret": False, "modifies_state": []}
+perp_op = {
+    "type": "api_call",
+    "provider": "perplexity",
+    "estimated_cost_usd": 0.01,
+    "requires_network": True,
+    "requires_secret": False,
+    "modifies_state": [],
+}
 result = blocker.validate_operation(perp_op)
 test("03. perplexity provider is BLOCKED", result["decision"] == "BLOCK")
 
 # 4. Network operation in LOCAL_ONLY is BLOCKED
-net_op = {"type": "http_request", "provider": "", "estimated_cost_usd": 0.0, "requires_network": True, "requires_secret": False, "modifies_state": []}
+net_op = {
+    "type": "http_request",
+    "provider": "",
+    "estimated_cost_usd": 0.0,
+    "requires_network": True,
+    "requires_secret": False,
+    "modifies_state": [],
+}
 result = blocker.validate_operation(net_op)
 test("04. network operation in LOCAL_ONLY is BLOCKED", result["decision"] == "BLOCK")
 
 # 5. Cost exceeding budget is BLOCKED
-cost_op = {"type": "local_python", "provider": "", "estimated_cost_usd": 0.01, "requires_network": False, "requires_secret": False, "modifies_state": []}
+cost_op = {
+    "type": "local_python",
+    "provider": "",
+    "estimated_cost_usd": 0.01,
+    "requires_network": False,
+    "requires_secret": False,
+    "modifies_state": [],
+}
 result = blocker.validate_operation(cost_op)
 test("05. cost exceeding budget is BLOCKED", result["decision"] == "BLOCK")
 
 # 6. Secret access is BLOCKED
-secret_op = {"type": "local_python", "provider": "", "estimated_cost_usd": 0.0, "requires_network": False, "requires_secret": True, "modifies_state": []}
+secret_op = {
+    "type": "local_python",
+    "provider": "",
+    "estimated_cost_usd": 0.0,
+    "requires_network": False,
+    "requires_secret": True,
+    "modifies_state": [],
+}
 result = blocker.validate_operation(secret_op)
 test("06. secret access is BLOCKED", result["decision"] == "BLOCK")
 
 # 7. State modification (memento) is BLOCKED
-state_op = {"type": "local_python", "provider": "", "estimated_cost_usd": 0.0, "requires_network": False, "requires_secret": False, "modifies_state": ["memento"]}
+state_op = {
+    "type": "local_python",
+    "provider": "",
+    "estimated_cost_usd": 0.0,
+    "requires_network": False,
+    "requires_secret": False,
+    "modifies_state": ["memento"],
+}
 result = blocker.validate_operation(state_op)
 test("07. memento state modification is BLOCKED", result["decision"] == "BLOCK")
 
@@ -79,12 +128,22 @@ test("09. batch validation counts correct", batch["allowed"] == 1 and batch["blo
 test("10. batch decision BLOCK if any blocked", batch["batch_decision"] == "BLOCK")
 
 # 11. Sprint compliance check passes for local-only sprint
-sprint = {"operations": ["local_python", "unit_test"], "providers": [], "estimated_cost_usd": 0.0, "requires_network": False}
+sprint = {
+    "operations": ["local_python", "unit_test"],
+    "providers": [],
+    "estimated_cost_usd": 0.0,
+    "requires_network": False,
+}
 compliance = blocker.check_sprint_compliance(sprint)
 test("11. local-only sprint is compliant", compliance["compliant"] is True)
 
 # 12. Sprint with anthropic fails compliance
-bad_sprint = {"operations": ["provider_call"], "providers": ["anthropic"], "estimated_cost_usd": 0.05, "requires_network": True}
+bad_sprint = {
+    "operations": ["provider_call"],
+    "providers": ["anthropic"],
+    "estimated_cost_usd": 0.05,
+    "requires_network": True,
+}
 compliance2 = blocker.check_sprint_compliance(bad_sprint)
 test("12. anthropic sprint fails compliance", compliance2["compliant"] is False)
 

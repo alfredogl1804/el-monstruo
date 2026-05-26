@@ -3,8 +3,9 @@
 Coverage Profiler — Evalúa disponibilidad de fuentes por sitio.
 Determina el semáforo (green/yellow/red) antes de recolectar.
 """
+
 import os
-import json
+
 import requests
 
 
@@ -27,7 +28,7 @@ async def profile_coverage(site_info: dict, user_photos_dir: str = None) -> dict
 
     # 1. Check user photos
     if user_photos_dir and os.path.isdir(user_photos_dir):
-        photo_exts = ('.jpg', '.jpeg', '.png', '.webp', '.heic')
+        photo_exts = (".jpg", ".jpeg", ".png", ".webp", ".heic")
         photos = [f for f in os.listdir(user_photos_dir) if f.lower().endswith(photo_exts)]
         coverage["user_photos_count"] = len(photos)
         coverage["sources"]["user_photos"] = {

@@ -18,6 +18,7 @@ the request payload in:
 Tests use AST inspection (no live network calls) to verify the source code
 correctly conditions `temperature` on the catalog flag.
 """
+
 from __future__ import annotations
 
 import ast
@@ -38,8 +39,7 @@ def test_catalog_marks_gpt55_no_temperature():
 
     assert "gpt-5.5" in MODELS
     assert MODELS["gpt-5.5"]["supports_temperature"] is False, (
-        "gpt-5.5 must have supports_temperature=False — OpenAI rejects "
-        "any non-default temperature with HTTP 400."
+        "gpt-5.5 must have supports_temperature=False — OpenAI rejects any non-default temperature with HTTP 400."
     )
 
 
@@ -48,22 +48,15 @@ def test_call_openai_respects_supports_temperature():
     src = _source()
     # Locate _call_openai body
     tree = ast.parse(src)
-    func = next(
-        n for n in ast.walk(tree)
-        if isinstance(n, ast.AsyncFunctionDef) and n.name == "_call_openai"
-    )
+    func = next(n for n in ast.walk(tree) if isinstance(n, ast.AsyncFunctionDef) and n.name == "_call_openai")
     body_src = ast.unparse(func)
 
     # The kwargs dict literal must NOT contain "temperature": temperature
     # as an unconditional entry — it must be inside an `if`.
     # We verify by checking that the function body contains a guarded assignment.
-    # ast.unparse normalizes quotes to  accept both forms.single 
-    assert (
-        'kwargs["temperature"] = temperature' in body_src
-        or "kwargs['temperature'] = temperature" in body_src
-    ), (
-        "_call_openai must add temperature inside an if-guard, "
-        "not directly in the kwargs literal."
+    # ast.unparse normalizes quotes to  accept both forms.single
+    assert 'kwargs["temperature"] = temperature' in body_src or "kwargs['temperature'] = temperature" in body_src, (
+        "_call_openai must add temperature inside an if-guard, not directly in the kwargs literal."
     )
 
     # And the unconditional literal pattern must be gone.
@@ -84,9 +77,7 @@ def test_stream_openai_respects_supports_temperature():
         "_stream_openai still has unconditional temperature in dict literal."
     )
     # But there must be a guarded assignment.
-    assert 'kwargs["temperature"] = temperature' in body, (
-        "_stream_openai must add temperature inside an if-guard."
-    )
+    assert 'kwargs["temperature"] = temperature' in body, "_stream_openai must add temperature inside an if-guard."
 
 
 def test_call_openai_compatible_respects_supports_temperature():
@@ -94,9 +85,7 @@ def test_call_openai_compatible_respects_supports_temperature():
     src = _source()
     after = src.split("def _call_openai_compatible(", 1)[1]
     body = after.split("\n    async def ", 1)[0]
-    assert '"temperature": temperature,' not in body, (
-        "_call_openai_compatible still has unconditional temperature."
-    )
+    assert '"temperature": temperature,' not in body, "_call_openai_compatible still has unconditional temperature."
     assert 'payload["temperature"] = temperature' in body, (
         "_call_openai_compatible must add temperature inside an if-guard."
     )
@@ -107,9 +96,7 @@ def test_stream_openai_compatible_respects_supports_temperature():
     src = _source()
     after = src.split("def _stream_openai_compatible(", 1)[1]
     body = after  # last function in file likely
-    assert '"temperature": temperature,' not in body, (
-        "_stream_openai_compatible still has unconditional temperature."
-    )
+    assert '"temperature": temperature,' not in body, "_stream_openai_compatible still has unconditional temperature."
     assert 'payload["temperature"] = temperature' in body, (
         "_stream_openai_compatible must add temperature inside an if-guard."
     )

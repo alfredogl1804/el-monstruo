@@ -10,6 +10,7 @@ Valida el detector de contexto contaminado en shadow mode contra Railway.
 
 Importante: estos NO bloquean (shadow mode), solo loggean + persisten evidence.
 """
+
 from __future__ import annotations
 
 import json
@@ -72,32 +73,36 @@ def main():
     HILO_ID = f"smoke_b6_{uuid.uuid4().hex[:6]}"
 
     # Caso 1: baseline (sql_against_production con host real → OK, sin warning)
-    s1, b1 = post({
-        "hilo_id": HILO_ID,
-        "operation": "sql_against_production",
-        "context_used": {
-            "host": "gateway05.us-east-1.prod.aws.tidbcloud.com",
-            "user": "37Hy7adB53QmFW4.root",
-            "credential_hash_first_8": "4N6caSwp",
-        },
-        "intent_summary": "smoke b6 caso 1 baseline",
-    })
+    s1, b1 = post(
+        {
+            "hilo_id": HILO_ID,
+            "operation": "sql_against_production",
+            "context_used": {
+                "host": "gateway05.us-east-1.prod.aws.tidbcloud.com",
+                "user": "37Hy7adB53QmFW4.root",
+                "credential_hash_first_8": "4N6caSwp",
+            },
+            "intent_summary": "smoke b6 caso 1 baseline",
+        }
+    )
     ok1 = assert_ok("CASO 1: baseline OK", s1, b1, expect_warning=False)
 
     # Pequena pausa para que la primera validacion entre como historico H2
     time.sleep(2)
 
     # Caso 2: H2 trigger — host actual diferente al historico (TiDB gateway01 fantasma)
-    s2, b2 = post({
-        "hilo_id": HILO_ID,
-        "operation": "sql_against_production",
-        "context_used": {
-            "host": "gateway01.us-east-1.prod.aws.tidbcloud.com",
-            "user": "37Hy7adB53QmFW4.root",
-            "credential_hash_first_8": "4N6caSwp",
-        },
-        "intent_summary": "smoke b6 caso 2 H2 host divergente",
-    })
+    s2, b2 = post(
+        {
+            "hilo_id": HILO_ID,
+            "operation": "sql_against_production",
+            "context_used": {
+                "host": "gateway01.us-east-1.prod.aws.tidbcloud.com",
+                "user": "37Hy7adB53QmFW4.root",
+                "credential_hash_first_8": "4N6caSwp",
+            },
+            "intent_summary": "smoke b6 caso 2 H2 host divergente",
+        }
+    )
     ok2 = assert_ok("CASO 2: H2 host divergente", s2, b2, expect_warning=True)
 
     # Caso 3: H3 trigger — hilo activo (5+ validations) sin pre-flight previo para op nueva
@@ -105,28 +110,34 @@ def main():
     # luego pedimos external_api_call (operacion nueva sin pre-flight previo).
     HILO_ACTIVO = f"smoke_b6_h3_{uuid.uuid4().hex[:6]}"
     for i in range(6):
-        post({
+        post(
+            {
+                "hilo_id": HILO_ACTIVO,
+                "operation": "kernel_admin_call",
+                "context_used": {"endpoint": "/v1/error-memory/seed", "iteration": i},
+                "intent_summary": f"smoke b6 caso 3 setup hilo activo iter {i}",
+            }
+        )
+    s3, b3 = post(
+        {
             "hilo_id": HILO_ACTIVO,
-            "operation": "kernel_admin_call",
-            "context_used": {"endpoint": "/v1/error-memory/seed", "iteration": i},
-            "intent_summary": f"smoke b6 caso 3 setup hilo activo iter {i}",
-        })
-    s3, b3 = post({
-        "hilo_id": HILO_ACTIVO,
-        "operation": "external_api_call",
-        "context_used": {"target": "openai", "endpoint": "/v1/chat/completions"},
-        "intent_summary": "smoke b6 caso 3 H3 sin preflight previo",
-    })
+            "operation": "external_api_call",
+            "context_used": {"target": "openai", "endpoint": "/v1/chat/completions"},
+            "intent_summary": "smoke b6 caso 3 H3 sin preflight previo",
+        }
+    )
     ok3 = assert_ok("CASO 3: H3 hilo activo sin preflight previo", s3, b3, expect_warning=True)
 
     # Caso 4: negativo — operacion bootstrapped sin historico (debe ser OK sin warning)
     HILO_VIRGEN = f"smoke_b6_neg_{uuid.uuid4().hex[:6]}"
-    s4, b4 = post({
-        "hilo_id": HILO_VIRGEN,
-        "operation": "kernel_admin_call",
-        "context_used": {"endpoint": "/health"},
-        "intent_summary": "smoke b6 caso 4 control limpio",
-    })
+    s4, b4 = post(
+        {
+            "hilo_id": HILO_VIRGEN,
+            "operation": "kernel_admin_call",
+            "context_used": {"endpoint": "/health"},
+            "intent_summary": "smoke b6 caso 4 control limpio",
+        }
+    )
     ok4 = assert_ok("CASO 4: control limpio sin historico", s4, b4, expect_warning=False)
 
     print("\n===== RESUMEN SMOKE B6 =====")

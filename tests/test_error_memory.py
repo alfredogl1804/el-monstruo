@@ -11,9 +11,9 @@ Cubre:
 Tests de integración con Supabase real están fuera de este archivo
 (requieren conexión y van en tests/integration/).
 """
+
 from __future__ import annotations
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -21,13 +21,11 @@ import pytest
 from kernel.error_memory import (
     ErrorMemory,
     ErrorRule,
-    ErrorPattern,
     build_embedding_client,
-    DEFAULT_EMBEDDING_DIMS,
 )
 
-
 # ── Sanitización ──────────────────────────────────────────────────────
+
 
 def test_sanitize_strips_uuid():
     em = ErrorMemory()
@@ -92,6 +90,7 @@ def test_signature_changes_with_module():
 
 # ── ErrorRule ─────────────────────────────────────────────────────────
 
+
 def test_rule_to_prompt_hint_includes_confidence():
     rule = ErrorRule(
         error_signature="abc123",
@@ -122,6 +121,7 @@ def test_rule_without_resolution_omits_resolution_line():
 
 # ── Modo degradado ────────────────────────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_initialize_returns_false_without_db():
     em = ErrorMemory(db=None)
@@ -145,13 +145,16 @@ async def test_consult_returns_empty_when_not_initialized():
 
 # ── Truncación ────────────────────────────────────────────────────────
 
+
 def test_truncate_context_drops_module_and_action():
     em = ErrorMemory()
-    out = em._truncate_context({
-        "module": "kernel.x",
-        "action": "do_something",
-        "run_id": "abc",
-    })
+    out = em._truncate_context(
+        {
+            "module": "kernel.x",
+            "action": "do_something",
+            "run_id": "abc",
+        }
+    )
     assert "module" not in out
     assert "action" not in out
     assert out["run_id"] == "abc"
@@ -167,6 +170,7 @@ def test_truncate_context_truncates_long_strings():
 
 # ── Bootstrap helper ──────────────────────────────────────────────────
 
+
 def test_build_embedding_client_returns_none_without_key(monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     client = build_embedding_client()
@@ -175,15 +179,18 @@ def test_build_embedding_client_returns_none_without_key(monkeypatch):
 
 # ── Mock de DB para flujo end-to-end ──────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_record_dedupes_existing_signature():
     """Si el signature ya existe, debe incrementar occurrences sin insertar."""
     db = MagicMock()
     db.connected = True
-    db.select = AsyncMock(side_effect=[
-        [],  # initialize probe
-        [{"id": "uuid-1", "occurrences": 3}],  # record probe
-    ])
+    db.select = AsyncMock(
+        side_effect=[
+            [],  # initialize probe
+            [{"id": "uuid-1", "occurrences": 3}],  # record probe
+        ]
+    )
     db.update = AsyncMock(return_value={})
     db.insert = AsyncMock()
     db.rpc = AsyncMock(side_effect=Exception("pgvector no disponible"))
@@ -209,10 +216,12 @@ async def test_record_inserts_new_signature():
     """Si el signature no existe, debe insertar fila nueva."""
     db = MagicMock()
     db.connected = True
-    db.select = AsyncMock(side_effect=[
-        [],  # initialize probe
-        [],  # record probe — no existing
-    ])
+    db.select = AsyncMock(
+        side_effect=[
+            [],  # initialize probe
+            [],  # record probe — no existing
+        ]
+    )
     db.update = AsyncMock()
     db.insert = AsyncMock(return_value={"id": "new-uuid"})
     db.rpc = AsyncMock(side_effect=Exception("pgvector no disponible"))
@@ -240,29 +249,31 @@ async def test_consult_degraded_filters_by_module():
     """Sin pgvector, consult filtra por module exacto."""
     db = MagicMock()
     db.connected = True
-    db.select = AsyncMock(side_effect=[
-        [],  # initialize probe
-        [  # consult exact
-            {
-                "error_signature": "sig1",
-                "sanitized_message": "Tool not found: github",
-                "resolution": "Check tool_specs",
-                "confidence": 0.8,
-                "occurrences": 2,
-                "module": "kernel.tool_dispatch",
-                "action": "_execute_tool",
-            },
-            {
-                "error_signature": "sig2",
-                "sanitized_message": "low confidence error",
-                "resolution": None,
-                "confidence": 0.4,  # below threshold
-                "occurrences": 1,
-                "module": "kernel.tool_dispatch",
-                "action": "other",
-            },
-        ],
-    ])
+    db.select = AsyncMock(
+        side_effect=[
+            [],  # initialize probe
+            [  # consult exact
+                {
+                    "error_signature": "sig1",
+                    "sanitized_message": "Tool not found: github",
+                    "resolution": "Check tool_specs",
+                    "confidence": 0.8,
+                    "occurrences": 2,
+                    "module": "kernel.tool_dispatch",
+                    "action": "_execute_tool",
+                },
+                {
+                    "error_signature": "sig2",
+                    "sanitized_message": "low confidence error",
+                    "resolution": None,
+                    "confidence": 0.4,  # below threshold
+                    "occurrences": 1,
+                    "module": "kernel.tool_dispatch",
+                    "action": "other",
+                },
+            ],
+        ]
+    )
     db.rpc = AsyncMock(side_effect=Exception("no pgvector"))
 
     em = ErrorMemory(db=db)
@@ -282,13 +293,9 @@ async def test_aggregate_patterns_promotes_clusters_with_min_size():
     db = MagicMock()
     db.connected = True
     rows = [
-        {"error_signature": f"s{i}", "error_type": "TimeoutError",
-         "module": "kernel.task_planner", "occurrences": 2}
+        {"error_signature": f"s{i}", "error_type": "TimeoutError", "module": "kernel.task_planner", "occurrences": 2}
         for i in range(4)
-    ] + [
-        {"error_signature": "lonely", "error_type": "RareError",
-         "module": "kernel.weird", "occurrences": 1}
-    ]
+    ] + [{"error_signature": "lonely", "error_type": "RareError", "module": "kernel.weird", "occurrences": 1}]
     db.select = AsyncMock(side_effect=[[], rows])
     db.rpc = AsyncMock(side_effect=Exception("no pgvector"))
     db.upsert = AsyncMock()

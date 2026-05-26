@@ -11,7 +11,6 @@ Reglas estrictas:
 """
 
 import json
-import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -22,6 +21,7 @@ REACTOR = BASE.parent
 M2_DIR = REACTOR / "oracle_ai_m2"
 RISK_DIR = REACTOR / "oracle_risk_classification"
 OUTPUT_DIR = BASE
+
 
 # --- Step 1: Verify Inputs ---
 def verify_inputs():
@@ -72,43 +72,47 @@ def reclassify_capabilities(catalog):
         evidence = cap["evidence_status"]
 
         if evidence != "REALTIME_VERIFIED":
-            results.append({
-                "capability_id": cap["capability_id"],
-                "provider_id": cap["provider_id"],
-                "capability_type": cap_type,
-                "evidence_status": evidence,
-                "risk_class_before": "R0",
-                "risk_class_after": "BLOCKED_FOR_AUTOMATION",
-                "required_autonomy_level": "N/A",
-                "external_api_required": True,
-                "secrets_required": True,
-                "user_data_touch": False,
-                "prompt_injection_surface": "NONE",
-                "recurring_status": "BLOCKED",
-                "allowed_next_action": "OBTAIN_CREDENTIALS_OR_DEFER",
-                "t1_required": True,
-                "reclassification_reason": f"Provider {cap['provider_id']} is ACCESS_BLOCKED."
-            })
+            results.append(
+                {
+                    "capability_id": cap["capability_id"],
+                    "provider_id": cap["provider_id"],
+                    "capability_type": cap_type,
+                    "evidence_status": evidence,
+                    "risk_class_before": "R0",
+                    "risk_class_after": "BLOCKED_FOR_AUTOMATION",
+                    "required_autonomy_level": "N/A",
+                    "external_api_required": True,
+                    "secrets_required": True,
+                    "user_data_touch": False,
+                    "prompt_injection_surface": "NONE",
+                    "recurring_status": "BLOCKED",
+                    "allowed_next_action": "OBTAIN_CREDENTIALS_OR_DEFER",
+                    "t1_required": True,
+                    "reclassification_reason": f"Provider {cap['provider_id']} is ACCESS_BLOCKED.",
+                }
+            )
             continue
 
         rules = RISK_RULES.get(cap_type, {"risk": "R1", "autonomy": "A2", "injection": "LOW"})
-        results.append({
-            "capability_id": cap["capability_id"],
-            "provider_id": cap["provider_id"],
-            "capability_type": cap_type,
-            "evidence_status": "REALTIME_VERIFIED",
-            "risk_class_before": "R0",
-            "risk_class_after": rules["risk"],
-            "required_autonomy_level": rules["autonomy"],
-            "external_api_required": True,
-            "secrets_required": True,
-            "user_data_touch": False,
-            "prompt_injection_surface": rules["injection"],
-            "recurring_status": "T1_PENDING",
-            "allowed_next_action": "MANUAL_RUN_OR_R0_REPORT",
-            "t1_required": True,
-            "reclassification_reason": f"Capability type '{cap_type}' verified via M2 probe."
-        })
+        results.append(
+            {
+                "capability_id": cap["capability_id"],
+                "provider_id": cap["provider_id"],
+                "capability_type": cap_type,
+                "evidence_status": "REALTIME_VERIFIED",
+                "risk_class_before": "R0",
+                "risk_class_after": rules["risk"],
+                "required_autonomy_level": rules["autonomy"],
+                "external_api_required": True,
+                "secrets_required": True,
+                "user_data_touch": False,
+                "prompt_injection_surface": rules["injection"],
+                "recurring_status": "T1_PENDING",
+                "allowed_next_action": "MANUAL_RUN_OR_R0_REPORT",
+                "t1_required": True,
+                "reclassification_reason": f"Capability type '{cap_type}' verified via M2 probe.",
+            }
+        )
     return results
 
 
@@ -121,12 +125,7 @@ def derive_provider_risk(capability_overlay, m2_overlay):
     for cap in capability_overlay:
         pid = cap["provider_id"]
         if pid not in providers:
-            providers[pid] = {
-                "provider_id": pid,
-                "capabilities": [],
-                "max_risk_idx": 0,
-                "highest_risk_cap": None
-            }
+            providers[pid] = {"provider_id": pid, "capabilities": [], "max_risk_idx": 0, "highest_risk_cap": None}
         risk_idx = RISK_ORDER.index(cap["risk_class_after"])
         providers[pid]["capabilities"].append(cap)
         if risk_idx > providers[pid]["max_risk_idx"]:
@@ -150,10 +149,12 @@ def derive_provider_risk(capability_overlay, m2_overlay):
         if access == "REALTIME_VERIFIED":
             if pid in CORE_CRITERIA:
                 category = "CORE_CANDIDATE"
-                justification = f"Verified, broad capabilities ({len(data['capabilities'])}), essential for Oracle operations."
+                justification = (
+                    f"Verified, broad capabilities ({len(data['capabilities'])}), essential for Oracle operations."
+                )
             elif pid in OPTIONAL_CRITERIA:
                 category = "OPTIONAL_CANDIDATE"
-                justification = f"Verified, capabilities covered by Core providers. Useful for redundancy."
+                justification = "Verified, capabilities covered by Core providers. Useful for redundancy."
             else:
                 category = "OPTIONAL_CANDIDATE"
                 justification = "Verified but not in primary criteria."
@@ -161,16 +162,18 @@ def derive_provider_risk(capability_overlay, m2_overlay):
             category = "BLOCKED_PENDING_CREDENTIALS"
             justification = f"Access status: {access}. Cannot be Core until M2 verifies."
 
-        results.append({
-            "provider_id": pid,
-            "access_status": access,
-            "max_capability_risk": max_risk,
-            "aggregate_risk_class": max_risk,
-            "capabilities_count": len(data["capabilities"]),
-            "highest_risk_capability": data["highest_risk_cap"],
-            "core_optional_status": category,
-            "core_justification": justification
-        })
+        results.append(
+            {
+                "provider_id": pid,
+                "access_status": access,
+                "max_capability_risk": max_risk,
+                "aggregate_risk_class": max_risk,
+                "capabilities_count": len(data["capabilities"]),
+                "highest_risk_capability": data["highest_risk_cap"],
+                "core_optional_status": category,
+                "core_justification": justification,
+            }
+        )
     return results
 
 
@@ -232,7 +235,12 @@ def derive_power_stack_risk(capability_overlay):
         else:
             # Side effect bonus: if stack mixes tool_use/code_exec with other caps
             has_tool_or_code = any(c["risk_class"] in ["R2", "R3"] for c in components)
-            has_multiple_providers = len(set(cap_map[c["capability_id"]]["provider_id"] for c in components if c["capability_id"] in cap_map)) > 1
+            has_multiple_providers = (
+                len(
+                    set(cap_map[c["capability_id"]]["provider_id"] for c in components if c["capability_id"] in cap_map)
+                )
+                > 1
+            )
             bonus = 1 if (has_tool_or_code and has_multiple_providers) else 0
 
             derived_idx = min(max_risk_idx + bonus, len(RISK_ORDER) - 2)  # Cap at R5
@@ -241,16 +249,18 @@ def derive_power_stack_risk(capability_overlay):
             autonomy = autonomy_map.get(derived, "A3")
             blocked_reason = None
 
-        results.append({
-            "stack_id": stack["stack_id"],
-            "stack_name": stack["stack_name"],
-            "components": components,
-            "max_component_risk": RISK_ORDER[max_risk_idx],
-            "side_effect_bonus": bonus,
-            "derived_risk_class": derived,
-            "required_autonomy_level": autonomy,
-            "blocked_reason": blocked_reason
-        })
+        results.append(
+            {
+                "stack_id": stack["stack_id"],
+                "stack_name": stack["stack_name"],
+                "components": components,
+                "max_component_risk": RISK_ORDER[max_risk_idx],
+                "side_effect_bonus": bonus,
+                "derived_risk_class": derived,
+                "required_autonomy_level": autonomy,
+                "blocked_reason": blocked_reason,
+            }
+        )
     return results
 
 
@@ -271,7 +281,7 @@ def derive_sprint_candidate_risk():
             "recurring_allowed": False,
             "recurring_status": "T1_PENDING",
             "allowed_next_action": "T1_APPROVE_THEN_EXECUTE",
-            "blocked_reason": None
+            "blocked_reason": None,
         },
         {
             "sprint_candidate_id": "SPR-REACTOR-HEARTBEAT-R0-001",
@@ -286,7 +296,7 @@ def derive_sprint_candidate_risk():
             "recurring_allowed": False,
             "recurring_status": "T1_PENDING",
             "allowed_next_action": "T1_APPROVE_THEN_EXECUTE",
-            "blocked_reason": None
+            "blocked_reason": None,
         },
         {
             "sprint_candidate_id": "SPR-DEEP-RESEARCH-INTEGRATION-001",
@@ -301,7 +311,7 @@ def derive_sprint_candidate_risk():
             "recurring_allowed": False,
             "recurring_status": "BLOCKED_BY_DEPENDENCY",
             "allowed_next_action": "OBTAIN_CREDENTIALS_FIRST",
-            "blocked_reason": "Perplexity is ACCESS_BLOCKED_API_ERROR."
+            "blocked_reason": "Perplexity is ACCESS_BLOCKED_API_ERROR.",
         },
         {
             "sprint_candidate_id": "SPR-CODE-ARCHITECT-EVAL-001",
@@ -316,7 +326,7 @@ def derive_sprint_candidate_risk():
             "recurring_allowed": False,
             "recurring_status": "T1_PENDING",
             "allowed_next_action": "T1_APPROVE_THEN_EXECUTE",
-            "blocked_reason": None
+            "blocked_reason": None,
         },
     ]
 
@@ -336,11 +346,11 @@ def generate_core_optional_matrix(provider_risk):
                 "proposed_category": p["core_optional_status"],
                 "justification": p["core_justification"],
                 "capabilities_verified": p["capabilities_count"],
-                "max_risk_class": p["max_capability_risk"]
+                "max_risk_class": p["max_capability_risk"],
             }
             for p in provider_risk
         ],
-        "decision_status": "T1_PENDING"
+        "decision_status": "T1_PENDING",
     }
 
 
@@ -359,7 +369,7 @@ def generate_t1_decision_pack():
                 "description": "Designate OpenAI, Anthropic, Google Gemini as CORE for the Monstruo.",
                 "options": ["Approve as proposed", "Modify list", "Defer"],
                 "status": "T1_PENDING",
-                "t1_response": None
+                "t1_response": None,
             },
             {
                 "decision_id": 2,
@@ -367,7 +377,7 @@ def generate_t1_decision_pack():
                 "description": "Designate xAI Grok as OPTIONAL_CANDIDATE.",
                 "options": ["Approve as Optional", "Elevate to Core", "Retire"],
                 "status": "T1_PENDING",
-                "t1_response": None
+                "t1_response": None,
             },
             {
                 "decision_id": 3,
@@ -375,7 +385,7 @@ def generate_t1_decision_pack():
                 "description": "Perplexity (403) and DeepSeek (no key) are blocked.",
                 "options": ["Provide credentials next sprint", "Defer indefinitely"],
                 "status": "T1_PENDING",
-                "t1_response": None
+                "t1_response": None,
             },
             {
                 "decision_id": 4,
@@ -383,7 +393,7 @@ def generate_t1_decision_pack():
                 "description": "Enable recurring execution via SPR-REACTOR-HEARTBEAT-R0-001.",
                 "options": ["Authorize heartbeat sprint", "Keep manual execution only"],
                 "status": "T1_PENDING",
-                "t1_response": None
+                "t1_response": None,
             },
             {
                 "decision_id": 5,
@@ -391,7 +401,7 @@ def generate_t1_decision_pack():
                 "description": "Move catalogs/overlays from JSON to Supabase Postgres.",
                 "options": ["Authorize migration sprint", "Keep JSON local"],
                 "status": "T1_PENDING",
-                "t1_response": None
+                "t1_response": None,
             },
             {
                 "decision_id": 6,
@@ -400,18 +410,18 @@ def generate_t1_decision_pack():
                 "options": [
                     "SPR-REACTOR-HEARTBEAT-R0-001",
                     "SPR-ORACLE-AI-M3-CORE-PROVIDERS-001",
-                    "SPR-CREDENTIAL-RECOVERY-001"
+                    "SPR-CREDENTIAL-RECOVERY-001",
                 ],
                 "status": "T1_PENDING",
-                "t1_response": None
+                "t1_response": None,
             },
         ],
         "recommendation": "SPR-REACTOR-HEARTBEAT-R0-001 — the Monstruo has eyes (APIs) and brain (Policy). It needs a heartbeat (scheduler) to become autonomous.",
         "next_sprint_options": [
             "SPR-REACTOR-HEARTBEAT-R0-001",
             "SPR-ORACLE-AI-M3-CORE-PROVIDERS-001",
-            "SPR-CREDENTIAL-RECOVERY-001"
-        ]
+            "SPR-CREDENTIAL-RECOVERY-001",
+        ],
     }
 
 
@@ -431,7 +441,7 @@ def generate_manifest(inputs_verified, outputs_generated):
         "new_api_calls_made": False,
         "secrets_accessed": False,
         "scheduler_enabled": False,
-        "supabase_moved": False
+        "supabase_moved": False,
     }
 
 
@@ -495,40 +505,52 @@ def main():
         outputs.append(filename)
         print(f"  -> {filename}")
 
-    write_output("post_m2_capability_risk_overlay.v0_1.json", {
-        "overlay_id": "post-m2-cap-risk-overlay-001",
-        "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-        "capabilities": capability_overlay,
-        "summary": {
-            "total": len(capability_overlay),
-            "elevated_to_R1": len([c for c in capability_overlay if c["risk_class_after"] == "R1"]),
-            "elevated_to_R2": len([c for c in capability_overlay if c["risk_class_after"] == "R2"]),
-            "elevated_to_R3": len([c for c in capability_overlay if c["risk_class_after"] == "R3"]),
-            "blocked": len([c for c in capability_overlay if c["risk_class_after"] == "BLOCKED_FOR_AUTOMATION"]),
-        }
-    })
+    write_output(
+        "post_m2_capability_risk_overlay.v0_1.json",
+        {
+            "overlay_id": "post-m2-cap-risk-overlay-001",
+            "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "capabilities": capability_overlay,
+            "summary": {
+                "total": len(capability_overlay),
+                "elevated_to_R1": len([c for c in capability_overlay if c["risk_class_after"] == "R1"]),
+                "elevated_to_R2": len([c for c in capability_overlay if c["risk_class_after"] == "R2"]),
+                "elevated_to_R3": len([c for c in capability_overlay if c["risk_class_after"] == "R3"]),
+                "blocked": len([c for c in capability_overlay if c["risk_class_after"] == "BLOCKED_FOR_AUTOMATION"]),
+            },
+        },
+    )
 
-    write_output("post_m2_provider_risk_matrix.v0_1.json", {
-        "matrix_id": "post-m2-provider-risk-001",
-        "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-        "providers": provider_risk
-    })
+    write_output(
+        "post_m2_provider_risk_matrix.v0_1.json",
+        {
+            "matrix_id": "post-m2-provider-risk-001",
+            "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "providers": provider_risk,
+        },
+    )
 
-    write_output("post_m2_power_stack_risk_overlay.v0_1.json", {
-        "overlay_id": "post-m2-stack-risk-overlay-001",
-        "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-        "stacks": power_stack_risk
-    })
+    write_output(
+        "post_m2_power_stack_risk_overlay.v0_1.json",
+        {
+            "overlay_id": "post-m2-stack-risk-overlay-001",
+            "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "stacks": power_stack_risk,
+        },
+    )
 
-    write_output("post_m2_sprint_candidate_risk_overlay.v0_1.json", {
-        "overlay_id": "post-m2-sprint-risk-overlay-001",
-        "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
-        "timestamp_utc": datetime.now(timezone.utc).isoformat(),
-        "candidates": sprint_candidate_risk
-    })
+    write_output(
+        "post_m2_sprint_candidate_risk_overlay.v0_1.json",
+        {
+            "overlay_id": "post-m2-sprint-risk-overlay-001",
+            "sprint_id": "SPR-ORACLE-POST-M2-RISK-RECLASSIFICATION-001",
+            "timestamp_utc": datetime.now(timezone.utc).isoformat(),
+            "candidates": sprint_candidate_risk,
+        },
+    )
 
     write_output("provider_core_optional_matrix.v0_1.json", core_optional)
     write_output("post_m2_t1_decision_pack.v0_1.json", decision_pack)
@@ -548,15 +570,19 @@ def main():
     print(f"    BLOCKED: {len([c for c in capability_overlay if c['risk_class_after'] == 'BLOCKED_FOR_AUTOMATION'])}")
     print(f"  Providers: {len(provider_risk)}")
     print(f"    CORE_CANDIDATE: {len([p for p in provider_risk if p['core_optional_status'] == 'CORE_CANDIDATE'])}")
-    print(f"    OPTIONAL_CANDIDATE: {len([p for p in provider_risk if p['core_optional_status'] == 'OPTIONAL_CANDIDATE'])}")
-    print(f"    BLOCKED: {len([p for p in provider_risk if p['core_optional_status'] == 'BLOCKED_PENDING_CREDENTIALS'])}")
+    print(
+        f"    OPTIONAL_CANDIDATE: {len([p for p in provider_risk if p['core_optional_status'] == 'OPTIONAL_CANDIDATE'])}"
+    )
+    print(
+        f"    BLOCKED: {len([p for p in provider_risk if p['core_optional_status'] == 'BLOCKED_PENDING_CREDENTIALS'])}"
+    )
     print(f"  Power Stacks: {len(power_stack_risk)}")
     print(f"  Sprint Candidates: {len(sprint_candidate_risk)}")
     print(f"  Outputs: {len(outputs)} files")
-    print(f"  New API calls: NO")
-    print(f"  Secrets accessed: NO")
-    print(f"  Scheduler enabled: NO")
-    print(f"  Supabase moved: NO")
+    print("  New API calls: NO")
+    print("  Secrets accessed: NO")
+    print("  Scheduler enabled: NO")
+    print("  Supabase moved: NO")
 
 
 if __name__ == "__main__":

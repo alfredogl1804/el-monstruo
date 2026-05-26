@@ -631,9 +631,7 @@ class ConversationMemory(MemoryInterface):
                 "match_threshold": float(threshold),
                 "match_count": int(limit),
                 "p_user_id": user_id,
-                "p_memory_types": (
-                    [mt.value for mt in memory_types] if memory_types else None
-                ),
+                "p_memory_types": ([mt.value for mt in memory_types] if memory_types else None),
             }
             rows = await self._db.rpc("match_memory_events", params)
             if rows is None:
@@ -641,9 +639,7 @@ class ConversationMemory(MemoryInterface):
                     "semantic_search_rpc_returned_none",
                     fallback="local",
                 )
-                return self._search_semantic_local(
-                    query_embedding, user_id, memory_types, limit, threshold
-                )
+                return self._search_semantic_local(query_embedding, user_id, memory_types, limit, threshold)
 
             results: list[SearchResult] = []
             for row in rows:
@@ -651,12 +647,8 @@ class ConversationMemory(MemoryInterface):
                     eid = row.get("event_id")
                     event = MemoryEvent(
                         event_id=UUID(eid) if eid else uuid4(),
-                        memory_type=MemoryType(
-                            row.get("memory_type", "episodic")
-                        ),
-                        run_id=(
-                            UUID(row["run_id"]) if row.get("run_id") else None
-                        ),
+                        memory_type=MemoryType(row.get("memory_type", "episodic")),
+                        run_id=(UUID(row["run_id"]) if row.get("run_id") else None),
                         user_id=row.get("user_id"),
                         channel=row.get("channel"),
                         content=row.get("content", "") or "",
@@ -692,9 +684,7 @@ class ConversationMemory(MemoryInterface):
                 error=str(e),
                 fallback="local",
             )
-            return self._search_semantic_local(
-                query_embedding, user_id, memory_types, limit, threshold
-            )
+            return self._search_semantic_local(query_embedding, user_id, memory_types, limit, threshold)
 
     @staticmethod
     def _cosine_similarity(a: list[float], b: list[float]) -> float:

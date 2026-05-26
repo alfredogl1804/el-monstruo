@@ -8,11 +8,11 @@ si ya existen, las actualiza con los valores actuales del YAML.
 Uso:
     python3 scripts/_upsert_memento_ops_b5_fase1.py
 """
+
 from __future__ import annotations
 
 import os
 import sys
-import json
 
 import psycopg2
 from psycopg2.extras import Json
@@ -49,7 +49,7 @@ def main() -> int:
         },
     ]
 
-    print(f"Conectando a Supabase production...")
+    print("Conectando a Supabase production...")
     conn = psycopg2.connect(db_url)
     conn.autocommit = False
 
@@ -75,17 +75,20 @@ def main() -> int:
     try:
         with conn.cursor() as cur:
             for op in new_ops:
-                cur.execute(upsert_sql, (
-                    op["id"],
-                    op["nombre"],
-                    op["descripcion"],
-                    Json(op["triggers"]),
-                    op["requires_validation"],
-                    op["requires_confirmation"],
-                    op["source_of_truth_ids"],
-                    op["activo"],
-                    op["version"],
-                ))
+                cur.execute(
+                    upsert_sql,
+                    (
+                        op["id"],
+                        op["nombre"],
+                        op["descripcion"],
+                        Json(op["triggers"]),
+                        op["requires_validation"],
+                        op["requires_confirmation"],
+                        op["source_of_truth_ids"],
+                        op["activo"],
+                        op["version"],
+                    ),
+                )
                 row = cur.fetchone()
                 print(f"  UPSERT OK: id={row[0]} version={row[1]} activo={row[2]}")
 

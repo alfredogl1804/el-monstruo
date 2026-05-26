@@ -33,6 +33,7 @@ USO:
 
 CODE REVIEW: cualquier PR con `kw in text` raw es BLOQUEANTE.
 """
+
 from __future__ import annotations
 
 import re

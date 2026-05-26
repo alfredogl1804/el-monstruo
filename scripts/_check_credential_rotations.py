@@ -17,7 +17,6 @@ Sprint origen: S-003.A (DSC-S-008)
 
 import argparse
 import datetime
-import os
 import re
 import sys
 from pathlib import Path
@@ -94,15 +93,17 @@ def evaluate(rows: list[dict], today: datetime.date, threshold_pct: float, basel
         days_since = (today - effective_baseline).days
         pct = (days_since / freq) * 100
         if pct >= threshold_pct:
-            alerts.append({
-                "name": name,
-                "freq_days": freq,
-                "days_since": days_since,
-                "pct_consumed": round(pct, 1),
-                "last_rotated_at": last.isoformat() if last else "unknown",
-                "responsable": row.get("responsable", "?"),
-                "runbook": row.get("runbook", "pendiente"),
-            })
+            alerts.append(
+                {
+                    "name": name,
+                    "freq_days": freq,
+                    "days_since": days_since,
+                    "pct_consumed": round(pct, 1),
+                    "last_rotated_at": last.isoformat() if last else "unknown",
+                    "responsable": row.get("responsable", "?"),
+                    "runbook": row.get("runbook", "pendiente"),
+                }
+            )
     return alerts
 
 
@@ -137,8 +138,9 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Check credential rotations against DSC-S-008.")
     parser.add_argument("--inventory", default="bridge/credentials_inventory.md")
     parser.add_argument("--threshold-pct", type=float, default=80.0)
-    parser.add_argument("--baseline", default="2026-05-10",
-                        help="Fecha conservadora si last_rotated_at es unknown (DSC-S-008).")
+    parser.add_argument(
+        "--baseline", default="2026-05-10", help="Fecha conservadora si last_rotated_at es unknown (DSC-S-008)."
+    )
     parser.add_argument("--output", default="reports/rotation_alerts.md")
     parser.add_argument("--today", default=None, help="Override today (YYYY-MM-DD) for testing.")
     args = parser.parse_args()

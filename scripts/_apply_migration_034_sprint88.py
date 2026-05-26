@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Apply migration 034 (bonus_curador + refresh tronos) to Supabase prod."""
+
 import os
 import sys
 from pathlib import Path
+
 import psycopg
 
 

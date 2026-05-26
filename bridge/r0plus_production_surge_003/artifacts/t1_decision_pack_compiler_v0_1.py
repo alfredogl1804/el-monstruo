@@ -26,6 +26,7 @@ Constraints:
   - No network
   - Pure local computation
 """
+
 import json
 import os
 from datetime import datetime, timezone
@@ -57,7 +58,9 @@ class T1DecisionPackCompiler:
             "version": snapshot.get("snapshot_version", snapshot.get("version", "unknown")),
             "pilot_health": snapshot.get("pilot_health", "UNKNOWN"),
             "artifact_count": snapshot.get("artifact_count", snapshot.get("artifacts", {}).get("total", 0)),
-            "coverage_pct": snapshot.get("artifact_test_coverage", snapshot.get("artifacts", {}).get("coverage_pct", 0)),
+            "coverage_pct": snapshot.get(
+                "artifact_test_coverage", snapshot.get("artifacts", {}).get("coverage_pct", 0)
+            ),
             "epochs_completed": snapshot.get("epoch_current", 0),
         }
 
@@ -69,7 +72,11 @@ class T1DecisionPackCompiler:
             "overall_severity": regression_output.get("overall_severity", "UNKNOWN"),
             "investigation_count": len(investigations),
             "false_positives": sum(1 for i in investigations if i.get("classification") == "FALSE_POSITIVE"),
-            "real_regressions": sum(1 for i in investigations if i.get("classification") in ["REAL_REGRESSION_NEEDS_FIX", "BLOCKER_BEFORE_SURGE_003"]),
+            "real_regressions": sum(
+                1
+                for i in investigations
+                if i.get("classification") in ["REAL_REGRESSION_NEEDS_FIX", "BLOCKER_BEFORE_SURGE_003"]
+            ),
             "blocks_next_surge": any(i.get("classification") == "BLOCKER_BEFORE_SURGE_003" for i in investigations),
         }
 
@@ -156,7 +163,11 @@ class T1DecisionPackCompiler:
         if provider.get("local_only_mode"):
             blocked.extend(["ENABLE_PROVIDER_CALLS", "RUN_ANTHROPIC_MIGRATION_PATCH", "ACTIVATE_R1"])
 
-        sections_count = sum(1 for s in ["snapshot", "regression", "cost", "diversity", "ranker", "audit_ledger", "provider_risk"] if s in self.signals)
+        sections_count = sum(
+            1
+            for s in ["snapshot", "regression", "cost", "diversity", "ranker", "audit_ledger", "provider_risk"]
+            if s in self.signals
+        )
 
         pack = {
             "version": "0.1",
@@ -194,7 +205,11 @@ class T1DecisionPackCompiler:
     def _calculate_confidence(self) -> float:
         """Calculate decision confidence based on signal completeness."""
         total_sections = len(self.REQUIRED_SECTIONS)
-        populated = sum(1 for s in ["snapshot", "regression", "cost", "diversity", "ranker", "audit_ledger", "provider_risk"] if s in self.signals)
+        populated = sum(
+            1
+            for s in ["snapshot", "regression", "cost", "diversity", "ranker", "audit_ledger", "provider_risk"]
+            if s in self.signals
+        )
         return round(populated / total_sections, 2) if total_sections > 0 else 0.0
 
 
@@ -211,57 +226,69 @@ def run_from_files(base_path: str = None) -> dict:
         compiler.ingest_snapshot(json.load(open(snapshot_path)))
 
     # Ingest regression
-    reg_path = os.path.join(base_path, "bridge", "r0plus_regression_investigation_001", "REGRESSION_INVESTIGATION_OUTPUT.json")
+    reg_path = os.path.join(
+        base_path, "bridge", "r0plus_regression_investigation_001", "REGRESSION_INVESTIGATION_OUTPUT.json"
+    )
     if os.path.exists(reg_path):
         compiler.ingest_regression(json.load(open(reg_path)))
 
     # Ingest provider risk
-    compiler.ingest_provider_risk({
-        "anthropic_risk": "VERIFIED_REAL",
-        "local_only_mode": True,
-        "migration_required": True,
-        "provider_calls_allowed": False,
-    })
+    compiler.ingest_provider_risk(
+        {
+            "anthropic_risk": "VERIFIED_REAL",
+            "local_only_mode": True,
+            "migration_required": True,
+            "provider_calls_allowed": False,
+        }
+    )
 
     # Ingest audit ledger
-    compiler.ingest_audit_ledger({
-        "p0_open": 0,
-        "p1_blocking": 0,
-        "track_items": 6,
-        "escalated_to_p0": 0,
-    })
+    compiler.ingest_audit_ledger(
+        {
+            "p0_open": 0,
+            "p1_blocking": 0,
+            "track_items": 6,
+            "escalated_to_p0": 0,
+        }
+    )
 
     # Ingest cost (from snapshot consolidated)
-    compiler.ingest_cost_guard({
-        "guard_status": "GREEN",
-        "anomaly_count": 0,
-        "total_cost_usd": 0.0,
-        "drift_detected": False,
-        "recommendation": "No action needed",
-    })
+    compiler.ingest_cost_guard(
+        {
+            "guard_status": "GREEN",
+            "anomaly_count": 0,
+            "total_cost_usd": 0.0,
+            "drift_detected": False,
+            "recommendation": "No action needed",
+        }
+    )
 
     # Ingest diversity
-    compiler.ingest_diversity({
-        "status": "YELLOW",
-        "entropy_normalized": 0.65,
-        "gini_coefficient": 0.35,
-        "overspecialized": False,
-        "dominant_task": "testing",
-        "recommendations": ["Introduce investigation and production tasks"],
-    })
+    compiler.ingest_diversity(
+        {
+            "status": "YELLOW",
+            "entropy_normalized": 0.65,
+            "gini_coefficient": 0.35,
+            "overspecialized": False,
+            "dominant_task": "testing",
+            "recommendations": ["Introduce investigation and production tasks"],
+        }
+    )
 
     # Ingest ranker
-    compiler.ingest_ranker({
-        "top_actions": [
-            {"action_id": "PRODUCE_NEXT_SURGE", "composite_score": 0.42},
-            {"action_id": "DIVERSIFY_TASKS", "composite_score": 0.38},
-            {"action_id": "UPGRADE_OPS_LAYER", "composite_score": 0.35},
-            {"action_id": "RUN_ANTHROPIC_MIGRATION_PATCH", "composite_score": 0.32},
-            {"action_id": "ADDRESS_COST_DRIFT", "composite_score": 0.28},
-        ],
-        "blockers": [],
-        "total_candidates": 10,
-    })
+    compiler.ingest_ranker(
+        {
+            "top_actions": [
+                {"action_id": "PRODUCE_NEXT_SURGE", "composite_score": 0.42},
+                {"action_id": "DIVERSIFY_TASKS", "composite_score": 0.38},
+                {"action_id": "UPGRADE_OPS_LAYER", "composite_score": 0.35},
+                {"action_id": "RUN_ANTHROPIC_MIGRATION_PATCH", "composite_score": 0.32},
+                {"action_id": "ADDRESS_COST_DRIFT", "composite_score": 0.28},
+            ],
+            "blockers": [],
+            "total_candidates": 10,
+        }
+    )
 
     return compiler.compile()
 

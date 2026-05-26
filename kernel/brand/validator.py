@@ -15,7 +15,7 @@ from __future__ import annotations
 import re
 import time
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 
@@ -23,13 +23,13 @@ from kernel.brand.brand_dna import (
     BRAND_DNA,
     get_forbidden_matches,
     is_generic_error,
-    validate_output_name as _dna_validate_output_name,
 )
 
 logger = structlog.get_logger("brand.validator")
 
 
 # ── Result Types ─────────────────────────────────────────────────────
+
 
 @dataclass
 class BrandValidationResult:
@@ -80,6 +80,7 @@ class BrandAuditReport:
 
 
 # ── Brand Validator ──────────────────────────────────────────────────
+
 
 class BrandValidator:
     """
@@ -143,8 +144,7 @@ class BrandValidator:
             score -= 25
             issues.append(f"Término prohibido detectado: '{f}'")
             suggestions.append(
-                f"Reemplazar '{f}' con un nombre con identidad "
-                f"(ej: forja, guardian, colmena, magna, vigía)"
+                f"Reemplazar '{f}' con un nombre con identidad (ej: forja, guardian, colmena, magna, vigía)"
             )
 
         # Check readability
@@ -200,9 +200,7 @@ class BrandValidator:
             for f in forbidden:
                 score -= 25
                 issues.append(f"Término prohibido en endpoint: '{f}'")
-                suggestions.append(
-                    f"Renombrar segmento '{segment}' con identidad de marca"
-                )
+                suggestions.append(f"Renombrar segmento '{segment}' con identidad de marca")
 
         # Check versioning
         has_version = bool(re.search(r"/v\d+/", path))
@@ -259,9 +257,7 @@ class BrandValidator:
             for f in forbidden:
                 score -= 20
                 issues.append(f"Nombre de tool contiene término prohibido: '{f}'")
-                suggestions.append(
-                    f"Renombrar '{tool_name}' — evitar '{f}'"
-                )
+                suggestions.append(f"Renombrar '{tool_name}' — evitar '{f}'")
 
         # Validate description
         if not description:
@@ -325,10 +321,7 @@ class BrandValidator:
         if is_generic_error(message):
             score -= 30
             issues.append(f"Error genérico detectado: '{message}'")
-            suggestions.append(
-                "Usar formato: {module}_{action}_{failure_type} "
-                "(ej: embrion_classify_timeout)"
-            )
+            suggestions.append("Usar formato: {module}_{action}_{failure_type} (ej: embrion_classify_timeout)")
 
         # Check format compliance (module_action_failure)
         has_brand_format = bool(re.match(r"^[a-z]+_[a-z]+_[a-z_]+$", message.strip()))
@@ -337,9 +330,7 @@ class BrandValidator:
             if "_" not in message:
                 score -= 15
                 issues.append("Error message sin formato de marca")
-                suggestions.append(
-                    "Formato esperado: {module}_{action}_{failure_type}"
-                )
+                suggestions.append("Formato esperado: {module}_{action}_{failure_type}")
 
         score = max(0, score)
         passes = score >= self.threshold
@@ -358,9 +349,7 @@ class BrandValidator:
 
     # ── Batch Audit ──────────────────────────────────────────────────
 
-    def audit_tool_specs(
-        self, specs: list[dict[str, Any]]
-    ) -> BrandAuditReport:
+    def audit_tool_specs(self, specs: list[dict[str, Any]]) -> BrandAuditReport:
         """
         Audita una lista completa de ToolSpecs contra el Brand DNA.
 

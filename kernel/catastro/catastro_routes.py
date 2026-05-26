@@ -22,38 +22,39 @@ Diseño (alineado con green light Cowork Bloque 5):
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 5 · 2026-05-04 · v0.86.5
 """
+
 from __future__ import annotations
 
 import os
-from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Optional
 
 import structlog
-from fastapi import APIRouter, HTTPException, Path, Query, Request, status
+from fastapi import APIRouter, HTTPException, Path, Query, Request
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
-from fastapi.responses import HTMLResponse
-
+from kernel.catastro.dashboard import (
+    DEFAULT_TIMELINE_DAYS,
+    MAX_TIMELINE_DAYS,
+    CatastroDashboardInvalidArgs,
+    CuradorsResponse,
+    DashboardEngine,
+    TimelineResponse,
+    dashboard_requires_auth,
+    render_html_dashboard,
+)
+from kernel.catastro.dashboard import (
+    SummarySnapshot as DashboardSummarySnapshot,
+)
 from kernel.catastro.recommendation import (
-    CatastroRecommendInvalidArgs,
     DEFAULT_TOP_N,
     MAX_TOP_N,
+    CatastroRecommendInvalidArgs,
     ListDominiosResponse,
     ModeloDetallado,
     RecommendationEngine,
     RecommendationResponse,
     StatusSnapshot,
-)
-from kernel.catastro.dashboard import (
-    CatastroDashboardInvalidArgs,
-    CuradorsResponse,
-    DEFAULT_TIMELINE_DAYS,
-    DashboardEngine,
-    MAX_TIMELINE_DAYS,
-    SummarySnapshot as DashboardSummarySnapshot,
-    TimelineResponse,
-    dashboard_requires_auth,
-    render_html_dashboard,
 )
 
 logger = structlog.get_logger("kernel.catastro.routes")
@@ -126,9 +127,9 @@ def require_catastro_admin_key(request: Request) -> None:
             status_code=503,
             detail="catastro_api_key_no_configurada",
         )
-    provided = request.headers.get("X-API-Key", "") or request.headers.get(
-        "Authorization", ""
-    ).replace("Bearer ", "").strip()
+    provided = (
+        request.headers.get("X-API-Key", "") or request.headers.get("Authorization", "").replace("Bearer ", "").strip()
+    )
     if not provided:
         raise HTTPException(
             status_code=401,

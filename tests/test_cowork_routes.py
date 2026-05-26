@@ -1,4 +1,5 @@
 """tests/test_cowork_routes.py — T8 endpoint /v1/cowork/memento/validate."""
+
 from __future__ import annotations
 
 import sys
@@ -33,6 +34,7 @@ def client(app):
 
 # ---- Health (sin auth) ----
 
+
 def test_health_sin_auth(client):
     r = client.get("/v1/cowork/health")
     assert r.status_code == 200
@@ -42,6 +44,7 @@ def test_health_sin_auth(client):
 
 
 # ---- Auth ----
+
 
 def test_validate_sin_api_key_401(client):
     r = client.post("/v1/cowork/memento/validate", json={"hilo_solicitante": "test"})
@@ -71,6 +74,7 @@ def test_validate_sin_monstruo_api_key_503(monkeypatch):
 
 
 # ---- Logica binaria fresco / no-fresco ----
+
 
 def test_validate_sin_sesiones_no_fresco(client):
     with patch("kernel.cowork_routes.SessionMemoryStore") as MockStore:

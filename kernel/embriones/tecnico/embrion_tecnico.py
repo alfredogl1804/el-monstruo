@@ -18,6 +18,7 @@ Capa Memento:
 
 [Hilo Manus Memento — Ejecutor] · Sprint 87.1 Bloque 1 · 2026-05-05
 """
+
 from __future__ import annotations
 
 import logging
@@ -25,8 +26,7 @@ import os
 from datetime import datetime, timezone
 from typing import Optional
 
-from pydantic import BaseModel, Field, ConfigDict
-
+from pydantic import BaseModel, ConfigDict, Field
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 # ============================================================================
 # ERRORES CON IDENTIDAD DE MARCA (Brand DNA)
 # ============================================================================
+
 
 class EMBRION_TECNICO_LLM_INVALIDO(ValueError):
     """El LLM retornó output que no satisface el schema EmbrionTecnicoReport.
@@ -45,6 +46,7 @@ class EMBRION_TECNICO_LLM_INVALIDO(ValueError):
 # ============================================================================
 # DOMAIN MODELS — STRUCTURED OUTPUT SCHEMA (39va semilla)
 # ============================================================================
+
 
 class StackRecomendado(BaseModel):
     """Stack tech recomendado para implementar el producto."""
@@ -219,9 +221,7 @@ class EmbrionTecnico:
         try:
             from openai import OpenAI
         except ImportError as exc:  # pragma: no cover - sdk presente en prod
-            raise EMBRION_TECNICO_LLM_INVALIDO(
-                f"openai SDK no instalado: {exc}"
-            ) from exc
+            raise EMBRION_TECNICO_LLM_INVALIDO(f"openai SDK no instalado: {exc}") from exc
 
         client = OpenAI()
         prompt = self._build_prompt(frase_input, brief)
@@ -245,9 +245,7 @@ class EmbrionTecnico:
         )
         parsed = response.choices[0].message.parsed
         if parsed is None:
-            raise EMBRION_TECNICO_LLM_INVALIDO(
-                "LLM devolvió None en structured parse"
-            )
+            raise EMBRION_TECNICO_LLM_INVALIDO("LLM devolvió None en structured parse")
         # Validar severidades de riesgos contra vocabulario controlado
         valid_riesgos = []
         for r in parsed.riesgos:
@@ -277,10 +275,7 @@ class EmbrionTecnico:
                 backend="API serverless (Vercel Functions)",
                 hosting="Vercel",
                 deploy_target="vercel",
-                razonamiento=(
-                    "Heurístico: landing premium → Next.js + Vercel "
-                    "es stack estándar para SEO+performance."
-                ),
+                razonamiento=("Heurístico: landing premium → Next.js + Vercel es stack estándar para SEO+performance."),
             )
             tiempo_mvp = 5
             complejidad = 2
@@ -291,8 +286,7 @@ class EmbrionTecnico:
                 hosting="Vercel + Railway",
                 deploy_target="vercel",
                 razonamiento=(
-                    "Heurístico: ecommerce → Next.js front + FastAPI/Stripe "
-                    "para checkout. Pago Stripe necesario."
+                    "Heurístico: ecommerce → Next.js front + FastAPI/Stripe para checkout. Pago Stripe necesario."
                 ),
             )
             tiempo_mvp = 14
@@ -303,9 +297,7 @@ class EmbrionTecnico:
                 backend="FastAPI + PostgreSQL",
                 hosting="EAS + Railway",
                 deploy_target="expo",
-                razonamiento=(
-                    "Heurístico: app móvil → Expo permite iOS+Android single codebase."
-                ),
+                razonamiento=("Heurístico: app móvil → Expo permite iOS+Android single codebase."),
             )
             tiempo_mvp = 21
             complejidad = 4
@@ -315,9 +307,7 @@ class EmbrionTecnico:
                 backend="FastAPI + PostgreSQL",
                 hosting="Vercel + Railway",
                 deploy_target="vercel",
-                razonamiento=(
-                    "Heurístico default: stack soberano El Monstruo."
-                ),
+                razonamiento=("Heurístico default: stack soberano El Monstruo."),
             )
             tiempo_mvp = 10
             complejidad = 3
@@ -332,24 +322,15 @@ class EmbrionTecnico:
                         "resolución y performance impecable (LCP < 1.5s)."
                     ),
                     severidad="media",
-                    mitigacion=(
-                        "Auditar Lighthouse, comprimir imágenes con AVIF, "
-                        "habilitar ISR en Vercel."
-                    ),
+                    mitigacion=("Auditar Lighthouse, comprimir imágenes con AVIF, habilitar ISR en Vercel."),
                 )
             )
         if "vender" in frase_lower or "tienda" in frase_lower:
             riesgos.append(
                 RiesgoTecnico(
-                    descripcion=(
-                        "Integración de pagos requiere compliance PCI y "
-                        "manejo seguro de webhooks Stripe."
-                    ),
+                    descripcion=("Integración de pagos requiere compliance PCI y manejo seguro de webhooks Stripe."),
                     severidad="alta",
-                    mitigacion=(
-                        "Usar Stripe Checkout hosted, validar webhooks con "
-                        "signature, NO almacenar PAN."
-                    ),
+                    mitigacion=("Usar Stripe Checkout hosted, validar webhooks con signature, NO almacenar PAN."),
                 )
             )
         if not riesgos:

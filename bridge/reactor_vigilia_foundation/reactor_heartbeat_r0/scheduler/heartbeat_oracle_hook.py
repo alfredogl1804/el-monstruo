@@ -16,10 +16,11 @@ Constraints:
 - Retries 0
 - No provider auto-replacement
 """
+
+import datetime
+import json
 import os
 import sys
-import json
-import datetime
 
 # Resolve paths
 HOOK_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -39,7 +40,7 @@ def write_event(event_type, payload):
         "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
         "source": HOOK_ID,
         "event_type": event_type,
-        "payload": payload
+        "payload": payload,
     }
     with open(EVENT_LOG_PATH, "a") as f:
         f.write(json.dumps(event) + "\n")
@@ -60,9 +61,9 @@ def run_once():
     Single heartbeat cycle that invokes the Oracle AI Embryo via adapter.
     """
     ts_start = datetime.datetime.utcnow().isoformat() + "Z"
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
     print(f"HOOK: {HOOK_ID} — run_once()")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     # Pre-check: kill-switch at hook level
     if check_kill_switch():
@@ -73,7 +74,7 @@ def run_once():
             "verdict": "ABORTED",
             "reason": "kill_switch_active",
             "timestamp_start": ts_start,
-            "timestamp_end": datetime.datetime.utcnow().isoformat() + "Z"
+            "timestamp_end": datetime.datetime.utcnow().isoformat() + "Z",
         }
 
     # Register hook start
@@ -84,6 +85,7 @@ def run_once():
     sys.path.insert(0, EMBRYO_DIR)
     try:
         from oracle_ai_scheduler_adapter import invoke_embryo
+
         print("  Invoking adapter...")
         adapter_result = invoke_embryo()
     except Exception as e:
@@ -95,7 +97,7 @@ def run_once():
             "verdict": "ERROR",
             "reason": error_msg,
             "timestamp_start": ts_start,
-            "timestamp_end": datetime.datetime.utcnow().isoformat() + "Z"
+            "timestamp_end": datetime.datetime.utcnow().isoformat() + "Z",
         }
 
     # Register hook completion
@@ -103,30 +105,34 @@ def run_once():
     verdict = adapter_result.get("verdict", "UNKNOWN")
     embryo_result = adapter_result.get("embryo_result", {})
 
-    write_event("HOOK_COMPLETED", {
-        "hook_id": HOOK_ID,
-        "adapter_verdict": verdict,
-        "embryo_task": embryo_result.get("task") if embryo_result else None,
-        "embryo_cost": embryo_result.get("cost") if embryo_result else None
-    })
+    write_event(
+        "HOOK_COMPLETED",
+        {
+            "hook_id": HOOK_ID,
+            "adapter_verdict": verdict,
+            "embryo_task": embryo_result.get("task") if embryo_result else None,
+            "embryo_cost": embryo_result.get("cost") if embryo_result else None,
+        },
+    )
 
     print(f"  Adapter verdict: {verdict}")
     if embryo_result:
         print(f"  Embryo task: {embryo_result.get('task', 'N/A')}")
         print(f"  Embryo cost: ${embryo_result.get('cost', 0):.6f}")
-    print(f"{'='*60}")
+    print(f"{'=' * 60}")
 
     return {
         "hook_id": HOOK_ID,
         "verdict": verdict,
         "adapter_result": adapter_result,
         "timestamp_start": ts_start,
-        "timestamp_end": ts_end
+        "timestamp_end": ts_end,
     }
 
 
 if __name__ == "__main__":
     import argparse
+
     parser = argparse.ArgumentParser(description="Heartbeat Oracle Hook R0")
     parser.add_argument("--run-once", action="store_true", help="Execute a single hook cycle")
     args = parser.parse_args()

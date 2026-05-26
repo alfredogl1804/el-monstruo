@@ -21,6 +21,7 @@ backend "soberano" se convierte en el único camino productivo.
 
 Sprint 85 — 2026-05-04
 """
+
 from __future__ import annotations
 
 import base64
@@ -174,9 +175,7 @@ class BrowserlessClient:
         try:
             import httpx
         except ImportError:
-            return BrowserResult(
-                success=False, error="httpx no instalado en el environment"
-            )
+            return BrowserResult(success=False, error="httpx no instalado en el environment")
 
         try:
             bl_url = self._get_url()
@@ -245,14 +244,13 @@ class BrowserlessClient:
                 # Parsing local
                 try:
                     from bs4 import BeautifulSoup
+
                     soup = BeautifulSoup(html, "html.parser")
                     elements = soup.select(selector)
                     text = "\n".join(el.get_text(strip=True) for el in elements)
                     return BrowserResult(success=True, data=text[:5000])
                 except ImportError:
-                    return BrowserResult(
-                        success=False, error="beautifulsoup4 no instalado"
-                    )
+                    return BrowserResult(success=False, error="beautifulsoup4 no instalado")
         except Exception as exc:
             return BrowserResult(success=False, error=f"extract_text_failed: {exc}")
 

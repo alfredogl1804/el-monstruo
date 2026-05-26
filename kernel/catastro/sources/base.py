@@ -12,6 +12,7 @@ SIEMPRE en runtime, nunca cachea.
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 2 · 2026-05-04
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -22,10 +23,10 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Optional
 
-
 # ============================================================================
 # JERARQUÍA DE ERRORES
 # ============================================================================
+
 
 class FuenteError(Exception):
     """Error base de cualquier fuente del Catastro."""
@@ -57,6 +58,7 @@ class FuenteUnavailableError(FuenteError):
 # RAW SNAPSHOT — shape común de todas las fuentes
 # ============================================================================
 
+
 @dataclass(frozen=True)
 class RawSnapshot:
     """
@@ -65,6 +67,7 @@ class RawSnapshot:
     Inmutable y trazable. El payload se hashea para citation tracking
     (FuenteEvidencia.payload_hash).
     """
+
     fuente: str
     """Identificador de la fuente: 'artificial_analysis', 'openrouter', 'lmarena'."""
 
@@ -100,6 +103,7 @@ class RawSnapshot:
 # ============================================================================
 # BASE FUENTE
 # ============================================================================
+
 
 class BaseFuente(ABC):
     """

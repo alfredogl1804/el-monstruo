@@ -8,11 +8,10 @@ Coverage:
 4. Storage dir se crea
 5. Fallback cuando Playwright tira excepción → resultado con playwright_available=False
 """
+
 from __future__ import annotations
 
 import asyncio
-import os
-from pathlib import Path
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -26,7 +25,6 @@ from kernel.e2e.screenshot.capture import (
     _get_storage_dir,
     capture_screenshot,
 )
-
 
 # ── 1. Preview URL skip ─────────────────────────────────────────────────────
 
@@ -91,9 +89,7 @@ def test_storage_dir_created(tmp_path, monkeypatch):
 
 def test_fallback_when_playwright_fails():
     """Mock _capture_with_playwright para que tire ScreenshotCaptureFailed."""
-    fake = AsyncMock(
-        side_effect=ScreenshotCaptureFailed("e2e_screenshot_capture_failed: test")
-    )
+    fake = AsyncMock(side_effect=ScreenshotCaptureFailed("e2e_screenshot_capture_failed: test"))
     with patch(
         "kernel.e2e.screenshot.capture._capture_with_playwright",
         new=fake,
@@ -114,9 +110,7 @@ def test_fallback_when_playwright_fails():
 
 def test_fallback_when_playwright_unavailable():
     fake = AsyncMock(
-        side_effect=ScreenshotPlaywrightUnavailable(
-            "e2e_screenshot_playwright_unavailable: not installed"
-        )
+        side_effect=ScreenshotPlaywrightUnavailable("e2e_screenshot_playwright_unavailable: not installed")
     )
     with patch(
         "kernel.e2e.screenshot.capture._capture_with_playwright",

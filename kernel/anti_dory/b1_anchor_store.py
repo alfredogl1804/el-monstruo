@@ -25,6 +25,7 @@ class SupabaseClient(Protocol):
 @dataclass
 class Anchor:
     """Represents a single doctrinal anchor."""
+
     id: str
     concept: str
     definition: str
@@ -37,6 +38,7 @@ class Anchor:
 @dataclass
 class AnchorInsertRequest:
     """Request to insert a new anchor (requires T1 signature)."""
+
     concept: str
     definition: str
     canon_source: Optional[str]
@@ -45,21 +47,25 @@ class AnchorInsertRequest:
 
 class AnchorStoreError(Exception):
     """Base error for Anchor Store operations."""
+
     pass
 
 
 class AnchorNotFoundError(AnchorStoreError):
     """Raised when an anchor concept is not found."""
+
     pass
 
 
 class AnchorDuplicateError(AnchorStoreError):
     """Raised when attempting to insert a duplicate concept."""
+
     pass
 
 
 class AnchorSignatureError(AnchorStoreError):
     """Raised when T1 signature validation fails."""
+
     pass
 
 
@@ -106,13 +112,7 @@ class AnchorStoreAdapter:
         Raises:
             AnchorNotFoundError: If concept does not exist.
         """
-        response = (
-            self.client.table(self.TABLE_NAME)
-            .select("*")
-            .eq("concept", concept)
-            .limit(1)
-            .execute()
-        )
+        response = self.client.table(self.TABLE_NAME).select("*").eq("concept", concept).limit(1).execute()
 
         if not response.data:
             raise AnchorNotFoundError(f"Anchor '{concept}' not found")
@@ -187,16 +187,10 @@ class AnchorStoreAdapter:
         }
 
         try:
-            response = (
-                self.client.table(self.TABLE_NAME)
-                .insert(data)
-                .execute()
-            )
+            response = self.client.table(self.TABLE_NAME).insert(data).execute()
         except Exception as e:
             if "duplicate" in str(e).lower() or "unique" in str(e).lower():
-                raise AnchorDuplicateError(
-                    f"Anchor '{request.concept}' already exists (append-only)"
-                )
+                raise AnchorDuplicateError(f"Anchor '{request.concept}' already exists (append-only)")
             raise AnchorStoreError(f"Insert failed: {e}")
 
         if not response.data:
@@ -206,11 +200,7 @@ class AnchorStoreAdapter:
 
     def count_anchors(self) -> int:
         """Return total number of anchors in the store."""
-        response = (
-            self.client.table(self.TABLE_NAME)
-            .select("id", count="exact")
-            .execute()
-        )
+        response = self.client.table(self.TABLE_NAME).select("id", count="exact").execute()
         return response.count or 0
 
     @staticmethod

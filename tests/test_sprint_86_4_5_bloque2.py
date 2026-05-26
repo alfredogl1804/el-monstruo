@@ -14,27 +14,26 @@ Cubre:
 
 Disciplina anti-Dory: cada test es atómico y no comparte mutación.
 """
+
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 
 import pytest
 import yaml
 
 from kernel.catastro.persistence import build_modelo_from_pipeline_persistible
 from kernel.catastro.sources.field_mapping import (
-    DEFAULT_YAML_PATH,
     FieldMappingApplyError,
     FieldMappingLoadError,
     apply_field_mapping,
     load_field_mapping,
 )
 
-
 # ============================================================================
 # Fixtures
 # ============================================================================
+
 
 def _build_persistible(slug: str, confirming_sources: list[str]) -> dict:
     """Persistible mínimo (estilo _extract_persistible)."""
@@ -107,8 +106,8 @@ def _build_cache_full() -> dict:
 # 1. Carga del yaml
 # ============================================================================
 
-class TestLoadFieldMapping:
 
+class TestLoadFieldMapping:
     def test_carga_default_yaml_real(self):
         mapping = load_field_mapping()
         assert "fields" in mapping
@@ -140,8 +139,8 @@ class TestLoadFieldMapping:
 # 2. apply_field_mapping con cache sintético
 # ============================================================================
 
-class TestApplyFieldMapping:
 
+class TestApplyFieldMapping:
     def test_quality_score_passthrough_aa(self):
         cache = _build_cache_full()
         persistibles = {
@@ -255,8 +254,8 @@ class TestApplyFieldMapping:
 # 3. Memento preflight
 # ============================================================================
 
-class TestMementoPreflight:
 
+class TestMementoPreflight:
     def test_preflight_warning_cuando_aa_falta_quality_score(self, caplog):
         """Si AA reporta pero NO trae quality_score, preflight loggea warning."""
         cache = {
@@ -314,8 +313,8 @@ class TestMementoPreflight:
 # 4. Integración con build_modelo_from_pipeline_persistible
 # ============================================================================
 
-class TestBuildModeloIntegracion:
 
+class TestBuildModeloIntegracion:
     def test_modelo_construido_con_metricas_enriquecidas(self):
         cache = _build_cache_full()
         # 3 modelos en persistibles para que minmax tenga rango real
@@ -363,8 +362,8 @@ class TestBuildModeloIntegracion:
 # 5. Robustez: empty / edge cases
 # ============================================================================
 
-class TestEdgeCases:
 
+class TestEdgeCases:
     def test_persistibles_vacio(self):
         results = apply_field_mapping({}, {})
         assert results == {}

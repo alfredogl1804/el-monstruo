@@ -639,9 +639,7 @@ def get_tool_specs():
                     },
                     "files": {
                         "type": "object",
-                        "description": (
-                            "Dict de path → contenido. Ej: {'main.py': '...', 'requirements.txt': '...'}"
-                        ),
+                        "description": ("Dict de path → contenido. Ej: {'main.py': '...', 'requirements.txt': '...'}"),
                         "additionalProperties": {"type": "string"},
                     },
                     "description": {"type": "string"},
@@ -709,8 +707,7 @@ def get_tool_specs():
                     "files": {
                         "type": "object",
                         "description": (
-                            "Dict de path → contenido. "
-                            "Ej: {'index.html': '<html>...', 'style.css': '...'}"
+                            "Dict de path → contenido. Ej: {'index.html': '<html>...', 'style.css': '...'}"
                         ),
                         "additionalProperties": {"type": "string"},
                     },
@@ -749,14 +746,17 @@ def set_tool_broker(broker) -> None:
     global _tool_broker
     _tool_broker = broker
 
+
 def set_mcp_manager(manager) -> None:
     """Inject the MCPClientManager instance (set by main.py during startup, Sprint 17)."""
     global _tool_mcp_manager
     _tool_mcp_manager = manager
 
+
 def get_mcp_manager():
     """Get the current MCPClientManager instance."""
     return _tool_mcp_manager
+
 
 def get_tool_broker():
     """Get the current ToolBroker instance."""
@@ -852,7 +852,9 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             return await execute_schedule_task(
                 params=args,
                 context={
-                    "user_id": state.get("user_id", "anonymous"),  # Sprint 29 DT-8 FIX: was hardcoded "alfredo"
+                    "user_id": args.get(
+                        "user_id", "anonymous"
+                    ),  # Sprint 91 lint fix: state no era param de _execute_tool
                     "thread_id": "",
                     "db": _tool_db,  # Injected by main.py via set_tool_db()
                     "source": "user",
@@ -878,9 +880,10 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
                 install_packages=args.get("install_packages"),
             )
         elif tool_name == "sovereign_browser_render":
-            from tools.sovereign_browser import sovereign_browser_render
             import json as _json
-            
+
+            from tools.sovereign_browser import sovereign_browser_render
+
             result = await sovereign_browser_render(
                 url=args.get("url", ""),
                 viewport_preset=args.get("viewport_preset", "desktop"),
@@ -913,6 +916,7 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
         elif tool_name == "manus_bridge":
             # Sprint 38: handle_manus_bridge es síncrona — ejecutar en threadpool
             import asyncio
+
             from tools.manus_bridge import handle_manus_bridge
 
             params = {
@@ -928,11 +932,12 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             return await loop.run_in_executor(None, handle_manus_bridge, params)
         elif tool_name == "wide_research":
             # Sprint 81/55.1: WideResearchTool — Kimi K2.6 Swarm architecture
-            from tools.wide_research import get_wide_research_tool
             from tools.web_search import web_search as _web_search
+            from tools.wide_research import get_wide_research_tool
 
             def _sync_search(q: str) -> str:
                 import asyncio
+
                 try:
                     loop = asyncio.get_event_loop()
                     result = loop.run_until_complete(_web_search(query=q))
@@ -942,15 +947,15 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
 
             tool = get_wide_research_tool(web_search_fn=_sync_search)
             import asyncio
+
             result = await tool.research_async(
                 main_query=args.get("query", ""),
                 num_agents=args.get("num_agents", 5),
                 synthesize=True,
             )
             return {
-                "synthesis": result.synthesis or "\n\n".join(
-                    f"### {t.focus}\n{t.result}" for t in result.sub_tasks if t.completed
-                ),
+                "synthesis": result.synthesis
+                or "\n\n".join(f"### {t.focus}\n{t.result}" for t in result.sub_tasks if t.completed),
                 "success_rate": result.success_rate,
                 "sources_count": result.sources_count,
                 "sub_tasks_completed": sum(1 for t in result.sub_tasks if t.completed),
@@ -970,7 +975,7 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
             from tools.deploy_app import execute_deploy_app
 
             # Pasar embrion_loop si está disponible para tracking de Acto
-            embrion_loop = getattr(state, "_embrion_loop_ref", None) if hasattr(state, "_embrion_loop_ref") else None
+            embrion_loop = None  # Sprint 91 lint fix: state no era param de _execute_tool; embrion_loop tracking deshabilitado en este path
             return await execute_deploy_app(args, embrion_loop=embrion_loop)
         elif tool_name.startswith("mcp__"):
             # Route to MCP Client Manager (Sprint 17)

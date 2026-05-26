@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Apply migration 039 (Sprint 88.3 — documentar tronos definitivos AGENTES)."""
+
 import os
 import sys
 from pathlib import Path
+
 import psycopg
 
 

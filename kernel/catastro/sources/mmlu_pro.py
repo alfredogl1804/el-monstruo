@@ -10,10 +10,12 @@ más difícil), o cuando mucho Pro ~ Basic ± 5pp.
 
 [Hilo Manus Catastro] · Sprint 86.7 · 2026-05-05
 """
+
 from __future__ import annotations
 
+from typing import Any
+
 import httpx
-from typing import Any, Optional
 
 from kernel.catastro.sources.base import (
     BaseFuente,
@@ -49,9 +51,7 @@ class MMLUProFuente(BaseFuente):
                 if response.status_code == 429:
                     raise FuenteRateLimitError(self.nombre, "Rate limit en BenchLM MMLU-Pro")
                 if response.status_code >= 500:
-                    raise FuenteUnavailableError(
-                        self.nombre, f"Error {response.status_code} en BenchLM MMLU-Pro"
-                    )
+                    raise FuenteUnavailableError(self.nombre, f"Error {response.status_code} en BenchLM MMLU-Pro")
 
                 response.raise_for_status()
                 payload = response.json()

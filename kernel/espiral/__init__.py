@@ -23,8 +23,9 @@ Módulos:
 - sensor: observador pulse_rate ventana móvil
 - controller: P-controller (proportional only en v1, PID en v2)
 """
+
+from kernel.espiral.controller import ProportionalController
 from kernel.espiral.homeostasis import Hairspring
 from kernel.espiral.sensor import PulseRateSensor
-from kernel.espiral.controller import ProportionalController
 
 __all__ = ["Hairspring", "PulseRateSensor", "ProportionalController"]

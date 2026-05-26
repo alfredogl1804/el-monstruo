@@ -10,8 +10,13 @@ Uso:
         --dossier dossier.md --output architecture.yaml
 """
 
-import argparse, asyncio, json, os, sys, yaml
+import argparse
+import asyncio
+import json
+import sys
 from pathlib import Path
+
+import yaml
 
 sys.path.insert(0, "/home/ubuntu/skills/consulta-sabios/scripts")
 from conector_sabios import consultar_sabio
@@ -59,15 +64,15 @@ def load_ecosystem_state() -> str:
 
 async def design_architecture(spec: dict, classification: dict, dossier: str) -> dict:
     """Usa GPT-5.4 para diseñar la arquitectura de la skill."""
-    
+
     recipe = load_recipe(spec.get("domain", "general"))
     api_matrix = load_api_matrix()
     ecosystem_state = load_ecosystem_state()
-    
+
     # Truncar dossier si es muy largo
     if len(dossier) > 30000:
         dossier = dossier[:30000] + "\n\n[... truncado por longitud ...]"
-    
+
     prompt = f"""Eres el arquitecto principal de skill-factory. Diseña la arquitectura completa
 para construir esta skill.
 
@@ -143,50 +148,51 @@ Diseña la arquitectura como un JSON con esta estructura exacta:
 }}
 
 Sé concreto y práctico. Cada script debe tener un propósito claro y único.
-No sobrediseñes — ajusta la complejidad al nivel clasificado ({classification.get('complexity_level', 'standard')}).
+No sobrediseñes — ajusta la complejidad al nivel clasificado ({classification.get("complexity_level", "standard")}).
 Responde SOLO con el JSON, sin markdown ni explicaciones."""
 
     response = await consultar_sabio("gpt54", prompt, timeout=120)
     text = response.get("respuesta", "")
-    
+
     # Extraer JSON
     import re
-    json_match = re.search(r'\{[\s\S]*\}', text)
+
+    json_match = re.search(r"\{[\s\S]*\}", text)
     if json_match:
         try:
             return json.loads(json_match.group())
         except json.JSONDecodeError:
             pass
-    
+
     raise ValueError(f"No se pudo extraer la arquitectura del response:\n{text[:500]}")
 
 
 def validate_architecture(arch: dict, spec: dict) -> list:
     """Valida la arquitectura contra la spec y retorna warnings."""
     warnings = []
-    
+
     if not arch.get("scripts_detail"):
         warnings.append("CRITICAL: No hay scripts definidos")
-    
+
     if not arch.get("entrypoint"):
         warnings.append("WARNING: No hay entrypoint definido")
-    
+
     if not arch.get("execution_flow"):
         warnings.append("WARNING: No hay flujo de ejecución definido")
-    
+
     # Verificar que el entrypoint existe en los scripts
     entrypoint = arch.get("entrypoint", "")
     script_names = [s.get("filename", "") for s in arch.get("scripts_detail", [])]
     if entrypoint and entrypoint not in script_names:
         warnings.append(f"WARNING: Entrypoint '{entrypoint}' no está en la lista de scripts")
-    
+
     # Verificar dependencias circulares
     deps = {s["filename"]: s.get("dependencies", []) for s in arch.get("scripts_detail", [])}
     for script, script_deps in deps.items():
         for dep in script_deps:
             if dep in deps and script in deps.get(dep, []):
                 warnings.append(f"WARNING: Dependencia circular entre {script} y {dep}")
-    
+
     return warnings
 
 
@@ -197,48 +203,49 @@ async def main():
     parser.add_argument("--dossier", default=None, help="Path al dossier de dominio (opcional)")
     parser.add_argument("--output", required=True, help="Path de salida para architecture.yaml")
     args = parser.parse_args()
-    
+
     # Leer inputs
-    with open(args.spec, 'r', encoding='utf-8') as f:
+    with open(args.spec, "r", encoding="utf-8") as f:
         spec = yaml.safe_load(f)
-    
-    with open(args.classification, 'r', encoding='utf-8') as f:
+
+    with open(args.classification, "r", encoding="utf-8") as f:
         classification = yaml.safe_load(f)
-    
+
     dossier = ""
     if args.dossier and Path(args.dossier).exists():
         dossier = Path(args.dossier).read_text(encoding="utf-8")
         print(f"📚 Dossier cargado: {len(dossier):,} chars")
-    
+
     print(f"🏗️ Diseñando arquitectura para: {spec.get('name')}")
     print(f"   Nivel: {classification.get('complexity_level')}")
-    
+
     # Diseñar
     architecture = await design_architecture(spec, classification, dossier)
-    
+
     # Validar
     warnings = validate_architecture(architecture, spec)
     if warnings:
         print("⚠️ Warnings de validación:")
         for w in warnings:
             print(f"   {w}")
-    
+
     architecture["_warnings"] = warnings
     architecture["_spec_name"] = spec.get("name")
     architecture["_complexity"] = classification.get("complexity_level")
-    
+
     # Guardar
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, 'w', encoding='utf-8') as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         yaml.dump(architecture, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
-    
+
     scripts_count = len(architecture.get("scripts_detail", []))
     refs_count = len(architecture.get("references_detail", []))
     print(f"✅ Arquitectura diseñada: {scripts_count} scripts, {refs_count} referencias")
     print(f"   Entrypoint: {architecture.get('entrypoint', 'N/A')}")
     print(f"   Líneas estimadas: {architecture.get('estimated_total_lines', 'N/A')}")
     print(f"📁 Guardada en: {args.output}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

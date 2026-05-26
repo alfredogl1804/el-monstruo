@@ -115,7 +115,8 @@ async def moc_priorizar(request: Request, body: PriorizarRequest):
 async def get_cache_stats(request: Request):
     """Estadísticas del response cache y dossier cache (Sprint 39)."""
     try:
-        from kernel import response_cache, dossier_cache
+        from kernel import dossier_cache, response_cache
+
         return {
             "response_cache": response_cache.stats(),
             "dossier_cache": dossier_cache.stats(),
@@ -128,7 +129,8 @@ async def get_cache_stats(request: Request):
 async def clear_cache(request: Request):
     """Invalida el response cache. Útil tras cambios de prompt."""
     try:
-        from kernel import response_cache, dossier_cache
+        from kernel import dossier_cache, response_cache
+
         rc_cleared = response_cache.invalidate()
         dc_cleared = dossier_cache.invalidate()
         return {

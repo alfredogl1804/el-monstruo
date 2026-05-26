@@ -8,22 +8,22 @@ Verifica que el contrato ejecutable detecta correctamente:
 
 Origen: orden directa de Alfredo 2026-05-11 07:30 UTC.
 """
+
 import pytest
 
 from tools.cowork_guardian import (
+    alfredo_demands_advance,
     detect_push_to_pause,
     score_advance,
-    alfredo_demands_advance,
     validate_output,
 )
-
 
 # ============================================================================
 # Regla 1 — push_to_pause
 # ============================================================================
 
-class TestPushToPause:
 
+class TestPushToPause:
     def test_detecta_andate_a_dormir(self):
         violations = detect_push_to_pause("Andate a dormir tranquilo")
         assert len(violations) > 0
@@ -79,8 +79,8 @@ class TestPushToPause:
 # Regla 2 — score_advance
 # ============================================================================
 
-class TestScoreAdvance:
 
+class TestScoreAdvance:
     def test_avance_real(self):
         text = """
         Push a kernel/a2ui/schema.py via create_or_update_file.
@@ -113,8 +113,8 @@ class TestScoreAdvance:
 # Regla — Alfredo demands advance
 # ============================================================================
 
-class TestAlfredoDemandsAdvance:
 
+class TestAlfredoDemandsAdvance:
     def test_vamos_a_avanzar(self):
         assert alfredo_demands_advance("vamos a avanzar ahora")
 
@@ -132,8 +132,8 @@ class TestAlfredoDemandsAdvance:
 # Validador integrado
 # ============================================================================
 
-class TestValidateOutput:
 
+class TestValidateOutput:
     def test_magna_alfredo_exige_avance_cowork_sugiere_parar(self):
         user = "VAMOS A AVANZAR"
         output = "Andate a dormir, mañana retomamos"

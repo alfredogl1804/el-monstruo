@@ -21,20 +21,18 @@ Cobertura mock-based (sin red, sin Supabase):
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 6 · 2026-05-04
 """
+
 from __future__ import annotations
 
 import asyncio
 import importlib
 import io
-import json
 import os
 import sys
 from contextlib import redirect_stdout
-from typing import Any
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 
 # ============================================================================
 # IMPORTS DEL ORQUESTADOR
@@ -53,16 +51,22 @@ smoke = importlib.import_module("_smoke_catastro_first_run")
 # FIXTURES
 # ============================================================================
 
+
 @pytest.fixture(autouse=True)
 def _clean_env(monkeypatch):
     """Asegura entorno limpio para cada test (no leak entre tests)."""
     for var in (
-        "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY",
-        "ARTIFICIAL_ANALYSIS_API_KEY", "OPENROUTER_API_KEY", "HF_TOKEN",
-        "CATASTRO_DRY_RUN", "CATASTRO_SKIP_PERSIST",
+        "SUPABASE_URL",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "ARTIFICIAL_ANALYSIS_API_KEY",
+        "OPENROUTER_API_KEY",
+        "HF_TOKEN",
+        "CATASTRO_DRY_RUN",
+        "CATASTRO_SKIP_PERSIST",
         "CATASTRO_FAILURE_RATE_THRESHOLD",
         "CATASTRO_SKIP_MEMENTO_PREFLIGHT",
-        "MONSTRUO_API_KEY", "KERNEL_URL",
+        "MONSTRUO_API_KEY",
+        "KERNEL_URL",
     ):
         monkeypatch.delenv(var, raising=False)
 
@@ -70,6 +74,7 @@ def _clean_env(monkeypatch):
 # ============================================================================
 # 1. CHECK_ENV
 # ============================================================================
+
 
 class TestCheckEnv:
     def test_todo_missing_no_dry_run(self):
@@ -113,6 +118,7 @@ class TestCheckEnv:
 # 2. MEMENTO PREFLIGHT
 # ============================================================================
 
+
 class TestMementoPreflight:
     def test_skip_flag_returns_ok(self, monkeypatch):
         monkeypatch.setenv("CATASTRO_SKIP_MEMENTO_PREFLIGHT", "true")
@@ -123,7 +129,7 @@ class TestMementoPreflight:
     def test_import_error_graceful(self, monkeypatch):
         # Forzamos que el import falle simulando que la library no existe
         with patch.dict(sys.modules, {"tools.memento_preflight": None}):
-            with patch.object(orq, "memento_preflight") as mp:
+            with patch.object(orq, "memento_preflight"):
                 # No podemos parchear el import dentro del propio módulo fácilmente,
                 # validamos el path real cuando MEMENTO no está
                 pass
@@ -134,9 +140,13 @@ class TestMementoPreflight:
     def test_warning_policy_no_bloquea_si_endpoint_caido(self, monkeypatch):
         """Aunque preflight_check levante, el orquestador continúa (fallback warn)."""
         from unittest.mock import patch as ptch
+
         # Simular que preflight_check existe pero levanta MementoPreflightError
         fake_module = MagicMock()
-        class FakeError(Exception): pass
+
+        class FakeError(Exception):
+            pass
+
         fake_module.MementoPreflightError = FakeError
         fake_module.preflight_check = MagicMock(side_effect=FakeError("endpoint down"))
 
@@ -148,6 +158,7 @@ class TestMementoPreflight:
 # ============================================================================
 # 3. RECOMPUTE TRONO + VERIFY POST-RUN
 # ============================================================================
+
 
 class TestRecomputeTrono:
     def test_skipped_si_dry_run(self):
@@ -179,6 +190,7 @@ class TestVerifyPostRunCounts:
 # 4. RENDER FUNCTIONS — NO CRASHEAN CON DICTS VACÍOS
 # ============================================================================
 
+
 class TestRenderFunctions:
     def test_render_summary_table_vacio(self):
         buf = io.StringIO()
@@ -195,10 +207,12 @@ class TestRenderFunctions:
             "modelos_total": 10,
             "modelos_persistibles": 5,
             "trust_deltas": {"aa": 0.05, "or": -0.02},
-            "trono_summary": {"dominios": 2, "modelos_calculados": 5,
-                              "modos": {"z_score": 4, "neutral": 1}},
+            "trono_summary": {"dominios": 2, "modelos_calculados": 5, "modos": {"z_score": 4, "neutral": 1}},
             "persist_summary": {
-                "ok": 4, "dry_run": 0, "failed": 1, "skipped": False,
+                "ok": 4,
+                "dry_run": 0,
+                "failed": 1,
+                "skipped": False,
                 "failure_rate_observed": 0.20,
                 "error_categories": {"db_down": 1},
             },
@@ -266,6 +280,7 @@ class TestRenderFunctions:
 # 5. DETERMINE_EXIT_CODE
 # ============================================================================
 
+
 class TestDetermineExitCode:
     def test_exit_0_si_success_y_failure_rate_bajo(self):
         summary = {"is_success": True, "persist_summary": {"failure_rate_observed": 0.05}}
@@ -296,6 +311,7 @@ class TestDetermineExitCode:
 # 6. MAIN ASYNC E2E DRY_RUN
 # ============================================================================
 
+
 class TestMainE2E:
     def test_main_dry_run_skip_memento_exits_0(self, monkeypatch):
         """E2E: orquestador completo en dry_run debe terminar con exit code 0."""
@@ -316,6 +332,7 @@ class TestMainE2E:
 # 7. SMOKE E2E TESTS
 # ============================================================================
 
+
 class TestSmokeE2E:
     def test_main_sin_api_key_exits_2(self, monkeypatch, capsys):
         monkeypatch.delenv("MONSTRUO_API_KEY", raising=False)
@@ -327,8 +344,10 @@ class TestSmokeE2E:
     def test_http_call_url_error(self, monkeypatch):
         """Si urlopen falla con URLError, http_call retorna -1."""
         import urllib.error
+
         def fake_urlopen(*a, **kw):
             raise urllib.error.URLError("connection refused")
+
         monkeypatch.setattr(smoke.urllib.request, "urlopen", fake_urlopen)
         monkeypatch.setattr(smoke, "API_KEY", "fake-key")
         code, body = smoke.http_call("GET", "/test")
@@ -338,14 +357,17 @@ class TestSmokeE2E:
     def test_http_call_http_error(self, monkeypatch):
         """Si urlopen falla con HTTPError, retorna el código y body parseado."""
         import urllib.error
+
         class FakeError(urllib.error.HTTPError):
             def __init__(self):
                 self.code = 401
+
             def read(self):
                 return b'{"detail":"unauthorized"}'
 
         def fake_urlopen(*a, **kw):
             raise FakeError()
+
         monkeypatch.setattr(smoke.urllib.request, "urlopen", fake_urlopen)
         monkeypatch.setattr(smoke, "API_KEY", "fake-key")
         code, body = smoke.http_call("GET", "/test")
@@ -356,6 +378,7 @@ class TestSmokeE2E:
 # ============================================================================
 # 8. IDENTIDAD DE MARCA
 # ============================================================================
+
 
 class TestBrandIdentity:
     def test_orquestador_tiene_header_catastro(self):

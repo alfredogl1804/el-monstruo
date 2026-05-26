@@ -4,10 +4,12 @@ TA2 del Sprint MEGA-CIERRE-HOY (Hilo Catastro).
 
 Usar via: railway run --service el-monstruo-kernel python3 scripts/_apply_and_smoke_0023_rotor_activity_log.py
 """
+
 from __future__ import annotations
 
 import os
 import sys
+
 import psycopg2
 
 MIGRATION_PATH = "migrations/sql/0023_rotor_activity_log.sql"
@@ -70,7 +72,7 @@ def smoke_test(conn) -> str:
 
     cur.execute("DELETE FROM public.rotor_activity_log WHERE id = %s", (row_id,))
     conn.commit()
-    print(f"      Delete OK: cleanup completed.")
+    print("      Delete OK: cleanup completed.")
     cur.close()
     return str(row_id)
 

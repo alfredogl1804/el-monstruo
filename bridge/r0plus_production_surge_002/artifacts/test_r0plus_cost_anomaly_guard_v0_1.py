@@ -2,6 +2,7 @@
 Tests for R0+ Cost Anomaly Guard v0.1
 Minimum 12 tests required.
 """
+
 import json
 import sys
 from pathlib import Path
@@ -12,6 +13,7 @@ import r0plus_cost_anomaly_guard_v0_1 as guard
 passed = 0
 failed = 0
 
+
 def test(name, condition):
     global passed, failed
     if condition:
@@ -21,14 +23,17 @@ def test(name, condition):
         failed += 1
         print(f"  FAIL [{passed + failed:02d}] {name}")
 
+
 print("=" * 60)
 print("R0+ Cost Anomaly Guard v0.1 Tests")
 print("=" * 60)
 
 # Test 01: Happy path - run_guard returns valid structure
 result = guard.run_guard()
-test("happy path returns valid structure", 
-     "artifact" in result and "severity" in result and "recommended_action" in result)
+test(
+    "happy path returns valid structure",
+    "artifact" in result and "severity" in result and "recommended_action" in result,
+)
 
 # Test 02: Statistics calculation with normal data
 costs = [{"cost_usd": 0.001, "epoch": "e1"}, {"cost_usd": 0.001, "epoch": "e2"}, {"cost_usd": 0.001, "epoch": "e3"}]
@@ -41,8 +46,10 @@ test("statistics with empty data", stats_empty["mean"] == 0 and stats_empty["cou
 
 # Test 04: Anomaly detection with clear spike
 costs_spike = [
-    {"cost_usd": 0.001, "epoch": "e1"}, {"cost_usd": 0.001, "epoch": "e2"},
-    {"cost_usd": 0.001, "epoch": "e3"}, {"cost_usd": 0.001, "epoch": "e4"},
+    {"cost_usd": 0.001, "epoch": "e1"},
+    {"cost_usd": 0.001, "epoch": "e2"},
+    {"cost_usd": 0.001, "epoch": "e3"},
+    {"cost_usd": 0.001, "epoch": "e4"},
     {"cost_usd": 0.010, "epoch": "e5"},  # 10x spike
 ]
 stats_spike = guard.calculate_statistics(costs_spike)

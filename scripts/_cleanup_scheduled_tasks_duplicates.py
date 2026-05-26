@@ -28,6 +28,7 @@ Usage:
   # Apply real (requiere doble llave):
   EMBRION_D2_CLEANUP_AUTHORIZED=true python3 scripts/_cleanup_scheduled_tasks_duplicates.py --apply
 """
+
 import argparse
 import datetime as dt
 import os
@@ -245,10 +246,12 @@ def main():
 
     # 4) Snapshot post
     post = _count_state(cur)
-    _log(f"POST total_rows={post['total_rows']} unique_names={post['unique_names']} unique_pairs={post['unique_pairs']}")
+    _log(
+        f"POST total_rows={post['total_rows']} unique_names={post['unique_names']} unique_pairs={post['unique_pairs']}"
+    )
 
     print()
-    print(f"╔══ RESULTADO ══╗")
+    print("╔══ RESULTADO ══╗")
     print(f"  PRE  total_rows={pre['total_rows']}  unique_pairs={pre['unique_pairs']}")
     print(f"  POST total_rows={post['total_rows']}  unique_pairs={post['unique_pairs']}")
     print(f"  Filas borradas: {pre['total_rows'] - post['total_rows']}")

@@ -19,13 +19,14 @@ Acoplamiento controlado:
 Feature flag: si ANTI_DORY_ENABLED=false, hydrate_prompt() devuelve el prompt
 original sin modificación + flag attachment_ok=False (graceful degradation).
 """
+
 from __future__ import annotations
 
 import hashlib
 import json
 import logging
 import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Callable, Optional, Protocol
 
@@ -38,12 +39,12 @@ logger = logging.getLogger(__name__)
 # Tipos y protocolos
 # =============================================================================
 
+
 class SupabaseRPCClient(Protocol):
     """Protocolo para cliente RPC Supabase. v1 acepta cualquier implementación
     compatible (httpx-based, supabase-py, mock de tests)."""
 
-    def call_rpc(self, name: str, params: dict[str, Any]) -> Any:
-        ...
+    def call_rpc(self, name: str, params: dict[str, Any]) -> Any: ...
 
 
 @dataclass(frozen=True)
@@ -104,14 +105,13 @@ STALENESS_THRESHOLD_SECONDS: int = int(
 )
 
 # Confidence mínima para aceptar attachment sin recovery prompt.
-CONFIDENCE_MIN_AUTO: float = float(
-    os.environ.get("ANTI_DORY_CONFIDENCE_MIN", "0.75")
-)
+CONFIDENCE_MIN_AUTO: float = float(os.environ.get("ANTI_DORY_CONFIDENCE_MIN", "0.75"))
 
 
 # =============================================================================
 # Context Broker
 # =============================================================================
+
 
 class ContextBroker:
     """Hidratador externo del prompt. Externo al agente Manus por diseño.
@@ -302,6 +302,7 @@ class ContextBroker:
 # =============================================================================
 # Hash canónico (SPEC §A.7) — utilidad reusable por writers
 # =============================================================================
+
 
 def canonical_state_hash(payload: dict[str, Any]) -> str:
     """SHA-256 hex del JSON canónico (sort_keys=True, separators compactos).

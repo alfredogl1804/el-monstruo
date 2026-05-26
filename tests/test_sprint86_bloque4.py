@@ -14,11 +14,11 @@ Estilo: mock-based (sin tocar Supabase). 1 opt-in real con env var.
 
 [Hilo Manus Catastro] · Sprint 86 Bloque 4 · 2026-05-04
 """
+
 from __future__ import annotations
 
 import asyncio
 import os
-from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
 import pytest
@@ -38,11 +38,10 @@ from kernel.catastro import (
     PipelineRunResult,
     TronoCalculator,
     TronoResult,
-    apply_results_to_models,
     __bloque__,
     __version__,
+    apply_results_to_models,
 )
-
 
 # ============================================================================
 # FIXTURES
@@ -151,13 +150,15 @@ class TestTronoCalculatorInit:
 class TestTronoCalculatorValidacionPesos:
     def test_pesos_no_suman_uno_falla(self):
         with pytest.raises(CatastroTronoInvalidWeights) as exc:
-            TronoCalculator(weights={
-                "quality_score": 0.30,
-                "cost_efficiency": 0.20,
-                "speed_score": 0.15,
-                "reliability_score": 0.10,
-                "brand_fit": 0.10,  # suma 0.85
-            })
+            TronoCalculator(
+                weights={
+                    "quality_score": 0.30,
+                    "cost_efficiency": 0.20,
+                    "speed_score": 0.15,
+                    "reliability_score": 0.10,
+                    "brand_fit": 0.10,  # suma 0.85
+                }
+            )
         assert exc.value.code == "catastro_trono_invalid_weights"
         assert "Σ pesos" in str(exc.value)
 
@@ -213,10 +214,8 @@ class TestComputeForDomain:
     def test_alpha_mejor_que_beta_recibe_trono_mayor(self):
         calc = TronoCalculator()
         modelos = [
-            _make_modelo("alpha-model", quality=95.0, cost=90.0,
-                         speed=85.0, reliability=95.0, brand_fit=0.9),
-            _make_modelo("beta-model", quality=40.0, cost=30.0,
-                         speed=35.0, reliability=45.0, brand_fit=0.2),
+            _make_modelo("alpha-model", quality=95.0, cost=90.0, speed=85.0, reliability=95.0, brand_fit=0.9),
+            _make_modelo("beta-model", quality=40.0, cost=30.0, speed=35.0, reliability=45.0, brand_fit=0.2),
         ]
         results = calc.compute_for_domain(modelos, dominio="llm_frontier")
         by_id = {r.modelo_id: r for r in results}
@@ -232,8 +231,7 @@ class TestComputeForDomain:
         by_id = {r.modelo_id: r for r in results}
         # m1 con quality NULL debe tener z_score quality=0 + warning
         assert by_id["m1-test"].z_scores["quality_score"] == 0.0
-        assert any("quality_score_null_treated_as_zero_z" in w
-                   for w in by_id["m1-test"].warnings)
+        assert any("quality_score_null_treated_as_zero_z" in w for w in by_id["m1-test"].warnings)
 
     def test_filtra_modelos_fuera_del_dominio(self):
         calc = TronoCalculator()
@@ -335,20 +333,30 @@ class TestApplyResultsToModels:
         modelos = [_make_modelo("alpha-model"), _make_modelo("beta-model")]
         results = [
             TronoResult(
-                modelo_id="alpha-model", dominio="llm_frontier",
-                trono_old=None, trono_new=72.5, trono_delta=22.5,
-                trono_low=70.0, trono_high=75.0,
+                modelo_id="alpha-model",
+                dominio="llm_frontier",
+                trono_old=None,
+                trono_new=72.5,
+                trono_delta=22.5,
+                trono_low=70.0,
+                trono_high=75.0,
                 z_scores={k: 0.0 for k in METRIC_FIELDS},
                 contributions={k: 0.0 for k in METRIC_FIELDS},
-                confidence=0.8, mode="z_score",
+                confidence=0.8,
+                mode="z_score",
             ),
             TronoResult(
-                modelo_id="beta-model", dominio="llm_frontier",
-                trono_old=None, trono_new=27.5, trono_delta=-22.5,
-                trono_low=25.0, trono_high=30.0,
+                modelo_id="beta-model",
+                dominio="llm_frontier",
+                trono_old=None,
+                trono_new=27.5,
+                trono_delta=-22.5,
+                trono_low=25.0,
+                trono_high=30.0,
                 z_scores={k: 0.0 for k in METRIC_FIELDS},
                 contributions={k: 0.0 for k in METRIC_FIELDS},
-                confidence=0.8, mode="z_score",
+                confidence=0.8,
+                mode="z_score",
             ),
         ]
         updated = apply_results_to_models(modelos, results)
@@ -362,12 +370,17 @@ class TestApplyResultsToModels:
         modelos = [_make_modelo("alpha-model")]
         results = [
             TronoResult(
-                modelo_id="ghost-model", dominio="llm_frontier",
-                trono_old=None, trono_new=99.0, trono_delta=49.0,
-                trono_low=95.0, trono_high=100.0,
+                modelo_id="ghost-model",
+                dominio="llm_frontier",
+                trono_old=None,
+                trono_new=99.0,
+                trono_delta=49.0,
+                trono_low=95.0,
+                trono_high=100.0,
                 z_scores={k: 0.0 for k in METRIC_FIELDS},
                 contributions={k: 0.0 for k in METRIC_FIELDS},
-                confidence=0.8, mode="z_score",
+                confidence=0.8,
+                mode="z_score",
             ),
         ]
         updated = apply_results_to_models(modelos, results)
@@ -418,6 +431,7 @@ class TestCategorizeError:
     def test_categoriza_validation_postgrest(self):
         class APIError(Exception):
             pass
+
         p = CatastroPersistence(dry_run=True)
         cat = p._categorize_error(APIError("violates check constraint"))
         assert cat == "rpc_validation"
@@ -435,6 +449,7 @@ class TestPersistManyFailureRate:
 
         def fake_factory(url, key):
             client = MagicMock()
+
             def rpc(name, params):
                 idx = call_count["n"]
                 call_count["n"] += 1
@@ -442,12 +457,15 @@ class TestPersistManyFailureRate:
                 if idx == 1:
                     raise ConnectionError("simulated db down")
                 ex.execute.return_value = MagicMock(
-                    data={"modelo_id": params["p_modelo"]["id"],
-                          "evento_id": "00000000-0000-0000-0000-000000000001",
-                          "curadores_actualizados": 0,
-                          "aplicado_at": "2026-05-04T12:00:00Z"}
+                    data={
+                        "modelo_id": params["p_modelo"]["id"],
+                        "evento_id": "00000000-0000-0000-0000-000000000001",
+                        "curadores_actualizados": 0,
+                        "aplicado_at": "2026-05-04T12:00:00Z",
+                    }
                 )
                 return ex
+
             client.rpc = rpc
             return client
 
@@ -465,7 +483,7 @@ class TestPersistManyFailureRate:
         # 1 de 3 falló → failure_rate = 0.333...
         for r in results:
             assert r.failure_rate_observed is not None
-            assert abs(r.failure_rate_observed - 1/3) < 1e-6
+            assert abs(r.failure_rate_observed - 1 / 3) < 1e-6
         # El que falló debe tener categoría db_down
         assert results[1].success is False
         assert results[1].error_category == "db_down"

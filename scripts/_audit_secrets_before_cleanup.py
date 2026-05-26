@@ -5,6 +5,7 @@ Ejecuta `gh api repos/<owner>/<repo>/contents` para cada repo y reporta archivos
 Si detecta archivos sospechosos (.env, secrets.json, credentials.md, *.pem, etc.)
 imprime ALERT y devuelve exit 1.
 """
+
 from __future__ import annotations
 
 import json

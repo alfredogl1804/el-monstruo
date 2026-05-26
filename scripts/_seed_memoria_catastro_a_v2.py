@@ -57,34 +57,40 @@ def main() -> int:
         # Insert
         seed_id = str(uuid.uuid4())
         import json
-        contexto_json = json.dumps({
-            "sprint": "CATASTRO-A v2",
-            "fecha": "2026-05-12",
-            "estado": "DECLARADO_3_DE_3_VERDE",
-            "post": "S89 v2 Opción B",
-            "commits": ["90c1696", "55afc06"],
-            "reportes": [
-                "bridge/manus_to_cowork_REPORTE_CATASTRO_A_v2_2026_05_12.md",
-                "bridge/manus_to_cowork_CATASTRO_A_v2_TA_DONE_2026_05_12.md",
-                "bridge/manus_to_cowork_CATASTRO_A_v2_TB_PROPUESTA_SUPPLIERS_2026_05_12.md",
-            ],
-            "deuda_p2": "diversificar suppliers (arq/valuador/contratista)",
-        })
-        cur.execute("""
+
+        contexto_json = json.dumps(
+            {
+                "sprint": "CATASTRO-A v2",
+                "fecha": "2026-05-12",
+                "estado": "DECLARADO_3_DE_3_VERDE",
+                "post": "S89 v2 Opción B",
+                "commits": ["90c1696", "55afc06"],
+                "reportes": [
+                    "bridge/manus_to_cowork_REPORTE_CATASTRO_A_v2_2026_05_12.md",
+                    "bridge/manus_to_cowork_CATASTRO_A_v2_TA_DONE_2026_05_12.md",
+                    "bridge/manus_to_cowork_CATASTRO_A_v2_TB_PROPUESTA_SUPPLIERS_2026_05_12.md",
+                ],
+                "deuda_p2": "diversificar suppliers (arq/valuador/contratista)",
+            }
+        )
+        cur.execute(
+            """
             INSERT INTO public.embrion_memoria
               (id, tipo, importancia, hilo_origen, contenido, contexto, created_at)
             VALUES
               (%s, %s, %s, %s, %s, %s::jsonb, %s)
             RETURNING id
-        """, (
-            seed_id,
-            "decision",
-            8,
-            "manus-hilo-catastro",
-            RESUMEN,
-            contexto_json,
-            datetime.now(timezone.utc),
-        ))
+        """,
+            (
+                seed_id,
+                "decision",
+                8,
+                "manus-hilo-catastro",
+                RESUMEN,
+                contexto_json,
+                datetime.now(timezone.utc),
+            ),
+        )
         new_id = cur.fetchone()[0]
         conn.commit()
         print(f"\nSemilla insertada: id={new_id}")
@@ -96,7 +102,9 @@ def main() -> int:
         print(f"ERROR — rolled back: {exc}", file=sys.stderr)
         # Probablemente columna distinta; intentar con campos mínimos
         try:
-            cur.execute("SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='embrion_memoria'")
+            cur.execute(
+                "SELECT column_name FROM information_schema.columns WHERE table_schema='public' AND table_name='embrion_memoria'"
+            )
             print("Cols disponibles:", [r[0] for r in cur.fetchall()])
         except Exception:
             pass

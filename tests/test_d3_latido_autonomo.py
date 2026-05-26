@@ -8,6 +8,7 @@ Tests para el sistema de latido autónomo proactivo:
   - Extensión `_stub_handler_health_check` alerta latido stale > 12h
   - `register_default_tasks` incluye `latido_autonomo` con interval 6h
 """
+
 from __future__ import annotations
 
 import os
@@ -28,7 +29,6 @@ from kernel.embrion_scheduler import (
     register_default_tasks,
 )
 
-
 # ── 1. EmbrionLoop.trigger_reflexion_autonoma ────────────────────────────────
 
 
@@ -45,9 +45,7 @@ async def test_trigger_reflexion_autonoma_running_loop():
     fake_think_result = {"content": "ok-test-response", "tokens": 10}
     loop._think = AsyncMock(return_value=fake_think_result)
 
-    result = await loop.trigger_reflexion_autonoma(
-        source="scheduler", cycle_id="exec-abc-123"
-    )
+    result = await loop.trigger_reflexion_autonoma(source="scheduler", cycle_id="exec-abc-123")
 
     assert result["triggered"] is True
     assert result["source"] == "scheduler"
@@ -75,9 +73,7 @@ async def test_trigger_reflexion_autonoma_skips_when_not_running():
     loop._running = False
     loop._think = AsyncMock()  # no debe ser llamado
 
-    result = await loop.trigger_reflexion_autonoma(
-        source="manual", cycle_id="test-skip"
-    )
+    result = await loop.trigger_reflexion_autonoma(source="manual", cycle_id="test-skip")
 
     assert result["triggered"] is False
     assert result["reason"] == "embrion_loop_not_running"
@@ -139,9 +135,7 @@ async def test_handler_latido_autonomo_invokes_singleton():
     kernel_mock = MagicMock()
     loop = EmbrionLoop(db=db_mock, kernel=kernel_mock, notifier=None)
     loop._running = True
-    loop.trigger_reflexion_autonoma = AsyncMock(
-        return_value={"triggered": True, "result_chars": 42, "reason": None}
-    )
+    loop.trigger_reflexion_autonoma = AsyncMock(return_value={"triggered": True, "result_chars": 42, "reason": None})
 
     set_embrion_loop_singleton(loop)
     os.environ.pop("EMBRION_LATIDO_AUTONOMO_ENABLED", None)

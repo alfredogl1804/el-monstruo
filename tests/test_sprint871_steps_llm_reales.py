@@ -7,9 +7,9 @@ Valida que:
   3. Schemas Pydantic para los 7 outputs son estrictos (extra='forbid')
   4. Pipeline E2E orquestrador integra Embriones reales en VENTAS/TECNICO
 """
+
 from __future__ import annotations
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -25,10 +25,10 @@ from kernel.e2e.steps.llm_step import (
     run_llm_step,
 )
 
-
 # ─────────────────────────────────────────────────────────────────────────
 # Fixtures
 # ─────────────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def cat_mock():
@@ -54,6 +54,7 @@ def no_openai(monkeypatch):
 # ─────────────────────────────────────────────────────────────────────────
 # Test 1: run_llm_step con fallback heurístico produce contenido válido
 # ─────────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_run_llm_step_concept_fallback(cat_mock) -> None:
@@ -110,6 +111,7 @@ async def test_run_llm_step_branding_fallback(cat_mock) -> None:
 # Test 2: schemas estrictos extra='forbid'
 # ─────────────────────────────────────────────────────────────────────────
 
+
 def test_schemas_extra_forbid() -> None:
     """Todos los schemas Pydantic rechazan campos extra."""
     schemas = [
@@ -122,14 +124,13 @@ def test_schemas_extra_forbid() -> None:
         StepFinanzasOutput,
     ]
     for schema in schemas:
-        assert schema.model_config.get("extra") == "forbid", (
-            f"{schema.__name__} debe tener extra='forbid'"
-        )
+        assert schema.model_config.get("extra") == "forbid", f"{schema.__name__} debe tener extra='forbid'"
 
 
 # ─────────────────────────────────────────────────────────────────────────
 # Test 3: latency_ms y model_used están presentes
 # ─────────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_run_llm_step_metadata(cat_mock) -> None:
@@ -150,6 +151,7 @@ async def test_run_llm_step_metadata(cat_mock) -> None:
 # ─────────────────────────────────────────────────────────────────────────
 # Test 4: Pipeline integra Embriones reales en VENTAS y TECNICO
 # ─────────────────────────────────────────────────────────────────────────
+
 
 @pytest.mark.asyncio
 async def test_pipeline_step_llm_generic_invoca_embrion_ventas(cat_mock) -> None:

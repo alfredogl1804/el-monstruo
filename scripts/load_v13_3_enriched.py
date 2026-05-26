@@ -4,12 +4,11 @@ Cargar el snapshot v13.3_enriched a Supabase del Monstruo.
 
 Usa dollar-quoted strings de Postgres ($mq$...$mq$) para evitar escape issues.
 """
-import json
-import sys
+
 import argparse
+import json
 import subprocess
-import os
-import re
+import sys
 from pathlib import Path
 
 SNAPSHOT_VERSION = "v13.3_enriched"
@@ -18,6 +17,7 @@ TAG = "mq"  # dollar-quote tag
 
 # Tags alternos por si el contenido contiene "$mq$" literal (improbable)
 TAGS_FALLBACK = ["mq", "mq2", "mq3", "monstruo"]
+
 
 def safe_dollar_quote(s):
     """Devuelve un dollar-quoted literal seguro escogiendo un tag que no aparezca en s."""
@@ -31,6 +31,7 @@ def safe_dollar_quote(s):
     # Último recurso: escape clásico
     return "E'" + s.replace("\\", "\\\\").replace("'", "''") + "'"
 
+
 def sql_array(items):
     """ARRAY[$mq$...$mq$, ...]::text[]."""
     if not items:
@@ -41,13 +42,16 @@ def sql_array(items):
     parts = [safe_dollar_quote(x) for x in cleaned]
     return "ARRAY[" + ",".join(parts) + "]::text[]"
 
+
 def sql_str(s):
     return safe_dollar_quote(s)
+
 
 def sql_bool(b):
     if b is None:
         return "NULL"
     return "TRUE" if b else "FALSE"
+
 
 def sql_num(n):
     if n is None:
@@ -56,6 +60,7 @@ def sql_num(n):
         return str(float(n))
     except (TypeError, ValueError):
         return "NULL"
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -73,17 +78,35 @@ def main():
     print(f"Cargando {len(services)} servicios como snapshot {SNAPSHOT_VERSION} ({SNAPSHOT_DATE})")
 
     cols = [
-        "snapshot_version", "snapshot_date", "nombre", "nombre_canonico",
-        "categoria", "que_es", "para_que_sirve", "capacidades",
-        "tiene_api", "api_auth_method", "api_docs_url",
-        "tiene_ia", "tipo_ia", "monstruo_fit", "padre", "gratuito",
-        "alternativas", "url_oficial", "confidence", "razonamiento",
-        "costo_mxn", "estado", "notas", "fuentes",
+        "snapshot_version",
+        "snapshot_date",
+        "nombre",
+        "nombre_canonico",
+        "categoria",
+        "que_es",
+        "para_que_sirve",
+        "capacidades",
+        "tiene_api",
+        "api_auth_method",
+        "api_docs_url",
+        "tiene_ia",
+        "tipo_ia",
+        "monstruo_fit",
+        "padre",
+        "gratuito",
+        "alternativas",
+        "url_oficial",
+        "confidence",
+        "razonamiento",
+        "costo_mxn",
+        "estado",
+        "notas",
+        "fuentes",
     ]
 
     batches = []
     for i in range(0, len(services), args.batch):
-        batch = services[i:i + args.batch]
+        batch = services[i : i + args.batch]
         values = []
         for s in batch:
             row = (
@@ -116,26 +139,27 @@ def main():
 
         sql = (
             f"INSERT INTO public.monstruo_inventario_suscripciones "
-            f"({','.join(cols)}) VALUES " + ",\n".join(values) +
-            "\nON CONFLICT (snapshot_version, nombre) DO UPDATE SET "
-            f"nombre_canonico=EXCLUDED.nombre_canonico,"
-            f"categoria=EXCLUDED.categoria,"
-            f"que_es=EXCLUDED.que_es,"
-            f"para_que_sirve=EXCLUDED.para_que_sirve,"
-            f"capacidades=EXCLUDED.capacidades,"
-            f"tiene_api=EXCLUDED.tiene_api,"
-            f"api_auth_method=EXCLUDED.api_auth_method,"
-            f"api_docs_url=EXCLUDED.api_docs_url,"
-            f"tiene_ia=EXCLUDED.tiene_ia,"
-            f"tipo_ia=EXCLUDED.tipo_ia,"
-            f"monstruo_fit=EXCLUDED.monstruo_fit,"
-            f"padre=EXCLUDED.padre,"
-            f"gratuito=EXCLUDED.gratuito,"
-            f"alternativas=EXCLUDED.alternativas,"
-            f"url_oficial=EXCLUDED.url_oficial,"
-            f"confidence=EXCLUDED.confidence,"
-            f"razonamiento=EXCLUDED.razonamiento,"
-            f"updated_at=NOW();"
+            f"({','.join(cols)}) VALUES "
+            + ",\n".join(values)
+            + "\nON CONFLICT (snapshot_version, nombre) DO UPDATE SET "
+            "nombre_canonico=EXCLUDED.nombre_canonico,"
+            "categoria=EXCLUDED.categoria,"
+            "que_es=EXCLUDED.que_es,"
+            "para_que_sirve=EXCLUDED.para_que_sirve,"
+            "capacidades=EXCLUDED.capacidades,"
+            "tiene_api=EXCLUDED.tiene_api,"
+            "api_auth_method=EXCLUDED.api_auth_method,"
+            "api_docs_url=EXCLUDED.api_docs_url,"
+            "tiene_ia=EXCLUDED.tiene_ia,"
+            "tipo_ia=EXCLUDED.tipo_ia,"
+            "monstruo_fit=EXCLUDED.monstruo_fit,"
+            "padre=EXCLUDED.padre,"
+            "gratuito=EXCLUDED.gratuito,"
+            "alternativas=EXCLUDED.alternativas,"
+            "url_oficial=EXCLUDED.url_oficial,"
+            "confidence=EXCLUDED.confidence,"
+            "razonamiento=EXCLUDED.razonamiento,"
+            "updated_at=NOW();"
         )
         batches.append(sql)
 
@@ -148,7 +172,7 @@ def main():
             if "Apify" in sql:
                 print(f"Batch {i} (con Apify) primeros 600 chars:")
                 idx = sql.find("Apify")
-                print(sql[max(0, idx-100):idx+500])
+                print(sql[max(0, idx - 100) : idx + 500])
                 break
         return
 
@@ -158,9 +182,9 @@ def main():
         tmpfile.write_text(sql)
 
         result = subprocess.run(
-            ["python3", str(Path.home() / ".monstruo" / "sb_sql.py"),
-             "sql", "-f", str(tmpfile)],
-            capture_output=True, text=True
+            ["python3", str(Path.home() / ".monstruo" / "sb_sql.py"), "sql", "-f", str(tmpfile)],
+            capture_output=True,
+            text=True,
         )
         if result.returncode == 0 and "[HTTP 2" in result.stdout:
             total_ok += min(args.batch, len(services) - (i - 1) * args.batch)
@@ -174,6 +198,7 @@ def main():
         tmpfile.unlink()
 
     print(f"\n✅ Cargados {total_ok}/{len(services)} servicios como {SNAPSHOT_VERSION}")
+
 
 if __name__ == "__main__":
     main()

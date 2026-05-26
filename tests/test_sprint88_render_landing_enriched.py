@@ -13,16 +13,14 @@ Verifica que el render:
 DSC-G-008: tests codifican el contrato del HTML enriquecido para que el Critic Score
 real (Gemini Vision) pueda subir a >=80 con outputs LLM ricos.
 """
-from __future__ import annotations
 
-import re
+from __future__ import annotations
 
 from kernel.e2e.deploy.real_deploy import (
     _extract_brand_palette,
     _is_valid_hex,
     render_landing_html,
 )
-
 
 # ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -95,25 +93,19 @@ def _full_state_pintura():
 
 def test_render_uses_brief_nombre_proyecto():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     assert "Forja Pinturas" in files["index.html"]
 
 
 def test_render_uses_ventas_hero_headline():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     assert "Óleo artesanal de Mérida" in files["index.html"]
 
 
 def test_render_uses_ventas_cta_primary_y_secondary():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     html = files["index.html"]
     assert "Pedí tu kit inicial" in html  # cta_primary
     assert "Ver paleta completa" in html  # cta_secondary
@@ -121,9 +113,7 @@ def test_render_uses_ventas_cta_primary_y_secondary():
 
 def test_render_uses_creativo_elevator_pitch():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     assert "pigmentos puros" in files["index.html"]
 
 
@@ -132,9 +122,7 @@ def test_render_uses_creativo_elevator_pitch():
 
 def test_render_includes_header_with_navigation():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     html = files["index.html"]
     assert "<header" in html
     assert "site-header" in html
@@ -143,9 +131,7 @@ def test_render_includes_header_with_navigation():
 
 def test_render_includes_benefits_section():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     html = files["index.html"]
     assert 'class="benefits"' in html or 'id="beneficios"' in html
     assert "Por qué elegirnos" in html
@@ -154,24 +140,17 @@ def test_render_includes_benefits_section():
 
 def test_render_includes_features_section_from_estrategia():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     html = files["index.html"]
     # Sprint 88.3 Fix 2/4: title se adapta al vertical detectado.
     # 'pintura al óleo artesanal' → vertical = ecommerce → 'Cómo comprar'.
-    assert any(
-        title in html
-        for title in ["Nuestro plan", "Cómo comprar", "Cómo funciona", "Nuestro proceso"]
-    )
+    assert any(title in html for title in ["Nuestro plan", "Cómo comprar", "Cómo funciona", "Nuestro proceso"])
     assert "Fase 1" in html  # primera fase de estrategia
 
 
 def test_render_includes_insights_from_research():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     html = files["index.html"]
     assert "Lo que descubrimos" in html or "Contexto de mercado" in html
     assert "72%" in html or "Mérida concentra" in html  # un finding real
@@ -179,9 +158,7 @@ def test_render_includes_insights_from_research():
 
 def test_render_includes_footer_with_stack():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     html = files["index.html"]
     assert "<footer" in html
     assert "site-footer" in html
@@ -193,9 +170,7 @@ def test_render_includes_footer_with_stack():
 
 def test_render_includes_seo_meta_tags():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     html = files["index.html"]
     assert 'name="description"' in html
     assert 'property="og:title"' in html
@@ -205,9 +180,7 @@ def test_render_includes_seo_meta_tags():
 
 def test_render_includes_lang_es():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     assert '<html lang="es">' in files["index.html"]
 
 
@@ -216,9 +189,7 @@ def test_render_includes_lang_es():
 
 def test_palette_uses_creativo_colors():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     css = files["style.css"]
     assert "#8B4513" in css  # primer color del CREATIVO
     assert "#F5DEB3" in css  # segundo
@@ -230,9 +201,7 @@ def test_palette_falls_back_to_brand_dna_when_creativo_empty():
         "frase_input": "test",
         "creativo": {"output_payload": {}},  # sin colores_primarios
     }
-    files = render_landing_html(
-        state=state, run_id="e2e_88_002", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_002", ingest_url="https://api.test/ingest")
     css = files["style.css"]
     # Brand DNA del Monstruo: forge orange + graphite + steel
     assert "#f97316" in css
@@ -273,9 +242,7 @@ def test_is_valid_hex_function():
 
 def test_css_includes_media_query():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     css = files["style.css"]
     assert "@media" in css
     assert "max-width" in css
@@ -283,9 +250,7 @@ def test_css_includes_media_query():
 
 def test_css_uses_clamp_for_fluid_typography():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     assert "clamp(" in files["style.css"]
 
 
@@ -295,9 +260,7 @@ def test_css_uses_clamp_for_fluid_typography():
 def test_render_handles_empty_state():
     """Con state casi vacío, debe producir HTML válido sin crashear."""
     state = {"frase_input": "test mínimo"}
-    files = render_landing_html(
-        state=state, run_id="e2e_88_min", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_min", ingest_url="https://api.test/ingest")
     assert "<!DOCTYPE html>" in files["index.html"]
     assert "El Monstruo" in files["index.html"]  # nombre fallback
     assert "test mínimo" in files["index.html"]  # frase_input como body
@@ -306,9 +269,7 @@ def test_render_handles_empty_state():
 def test_render_no_legacy_template_strings():
     """Verifica que no quedaron strings del template viejo."""
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     html = files["index.html"]
     # Estos strings eran del template minimal viejo
     assert "Quiero saber más" not in html  # cta_text legacy fallback
@@ -324,9 +285,7 @@ def test_render_no_legacy_template_strings():
 def test_tracking_script_still_present():
     """Sprint 87.2 traffic soberano debe seguir funcionando."""
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     assert 'src="/monstruo-tracking.js"' in files["index.html"]
     assert 'window.__MONSTRUO_RUN_ID__ = "e2e_88_001"' in files["index.html"]
     assert len(files["monstruo-tracking.js"]) > 1000
@@ -337,9 +296,7 @@ def test_tracking_script_still_present():
 
 def test_html_is_well_formed():
     state = _full_state_pintura()
-    files = render_landing_html(
-        state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest"
-    )
+    files = render_landing_html(state=state, run_id="e2e_88_001", ingest_url="https://api.test/ingest")
     html = files["index.html"]
     # Tags esenciales presentes
     assert html.count("<html") == 1

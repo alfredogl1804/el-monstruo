@@ -93,7 +93,7 @@ class LangGraphKernel(KernelInterface):
         self._db = db  # Sprint 9: SupabaseClient for dossier injection
         self._usage_tracker = None  # Sprint 10: injected post-init
         self._tool_registry = None  # Sprint 10: injected post-init
-        self._error_memory = None    # Sprint 81: injected post-init
+        self._error_memory = None  # Sprint 81: injected post-init
         self._magna_classifier = None  # Sprint 81: injected post-init
         self._finops = None  # Sprint 15: FinOps controller
         self._hooks: dict[str, list[Callable[..., Any]]] = {}
@@ -269,6 +269,7 @@ class LangGraphKernel(KernelInterface):
         # Without this, input_hashes accumulate across runs and the
         # circuit breaker blocks legitimate tool calls after 2-3 attempts.
         from kernel.tool_dispatch import get_tool_broker
+
         broker = get_tool_broker()
         if broker:
             broker.reset_run_state()
@@ -302,7 +303,7 @@ class LangGraphKernel(KernelInterface):
                     "_event_store": self._event_store,
                     "_observability": self._observability,
                     "_db": self._db,  # Sprint 9: for dossier injection
-                    "_error_memory": self._error_memory,    # Sprint 81
+                    "_error_memory": self._error_memory,  # Sprint 81
                     "_magna_classifier": self._magna_classifier,  # Sprint 81
                 }
             }
@@ -532,8 +533,8 @@ class LangGraphKernel(KernelInterface):
                 "_event_store": self._event_store,
                 "_observability": self._observability,
                 "_db": self._db,
-                    "_error_memory": self._error_memory,    # Sprint 81
-                    "_magna_classifier": self._magna_classifier,  # Sprint 81
+                "_error_memory": self._error_memory,  # Sprint 81
+                "_magna_classifier": self._magna_classifier,  # Sprint 81
             }
         }
 
@@ -714,15 +715,23 @@ class LangGraphKernel(KernelInterface):
                 "_event_store": self._event_store,
                 "_observability": self._observability,
                 "_db": self._db,
-                    "_error_memory": self._error_memory,    # Sprint 81
-                    "_magna_classifier": self._magna_classifier,  # Sprint 81
+                "_error_memory": self._error_memory,  # Sprint 81
+                "_magna_classifier": self._magna_classifier,  # Sprint 81
             }
         }
 
         try:
             # ══ Phase 0: Immediate step event ═══════════════════════════════
             # Sprint 42+43: Structured step events for thinking indicator
-            yield _json.dumps({"type": "step", "id": "classify", "status": "in_progress", "label": "Analizando solicitud...", "icon": "brain"})
+            yield _json.dumps(
+                {
+                    "type": "step",
+                    "id": "classify",
+                    "status": "in_progress",
+                    "label": "Analizando solicitud...",
+                    "icon": "brain",
+                }
+            )
 
             # ══ Phase 1: Run pre-LLM nodes ══════════════════════════════════════════
             # Graph runs intake → classify_and_route → enrich, then STOPS before execute
@@ -735,7 +744,15 @@ class LangGraphKernel(KernelInterface):
 
                     if node_name == "classify_and_route":
                         # Step: classify completed
-                        yield _json.dumps({"type": "step", "id": "classify", "status": "completed", "label": "Solicitud analizada", "icon": "brain"})
+                        yield _json.dumps(
+                            {
+                                "type": "step",
+                                "id": "classify",
+                                "status": "completed",
+                                "label": "Solicitud analizada",
+                                "icon": "brain",
+                            }
+                        )
                         # Meta event for model/intent (backward compat)
                         yield _json.dumps(
                             {
@@ -746,11 +763,27 @@ class LangGraphKernel(KernelInterface):
                             }
                         )
                         # Step: enrich starting
-                        yield _json.dumps({"type": "step", "id": "enrich", "status": "in_progress", "label": "Buscando en tu memoria...", "icon": "memory"})
+                        yield _json.dumps(
+                            {
+                                "type": "step",
+                                "id": "enrich",
+                                "status": "in_progress",
+                                "label": "Buscando en tu memoria...",
+                                "icon": "memory",
+                            }
+                        )
 
                     elif node_name == "enrich":
                         # Step: enrich completed
-                        yield _json.dumps({"type": "step", "id": "enrich", "status": "completed", "label": "Contexto preparado", "icon": "memory"})
+                        yield _json.dumps(
+                            {
+                                "type": "step",
+                                "id": "enrich",
+                                "status": "completed",
+                                "label": "Contexto preparado",
+                                "icon": "memory",
+                            }
+                        )
                         # Meta event (backward compat)
                         yield _json.dumps(
                             {
@@ -797,6 +830,7 @@ class LangGraphKernel(KernelInterface):
             if intent == "execute":
                 try:
                     from kernel.task_planner import TaskPlanner
+
                     _planner = TaskPlanner(kernel=self, db=self._db)
                     if _planner.is_complex_objective(message):
                         logger.info(
@@ -804,7 +838,15 @@ class LangGraphKernel(KernelInterface):
                             run_id=str(run_id),
                             message_preview=message[:80],
                         )
-                        yield _json.dumps({"type": "step", "id": "generate", "status": "in_progress", "label": "Ejecutando tarea autónoma...", "icon": "build"})
+                        yield _json.dumps(
+                            {
+                                "type": "step",
+                                "id": "generate",
+                                "status": "in_progress",
+                                "label": "Ejecutando tarea autónoma...",
+                                "icon": "build",
+                            }
+                        )
 
                         async for event in _planner.stream_plan_and_execute(
                             objective=message,
@@ -845,11 +887,17 @@ class LangGraphKernel(KernelInterface):
                 except ImportError as ie:
                     logger.error("stream_planner_import_failed", error=str(ie))
                     # ImportError is fatal — report to user, don't fall through
-                    yield _json.dumps({"type": "chunk", "text": f"Error interno: módulo del Task Planner no disponible ({ie}). Contacta al desarrollador."})
+                    yield _json.dumps(
+                        {
+                            "type": "chunk",
+                            "text": f"Error interno: módulo del Task Planner no disponible ({ie}). Contacta al desarrollador.",
+                        }
+                    )
                     yield _json.dumps({"type": "done", "error": str(ie), "intent": intent})
                     return
                 except Exception as planner_err:
                     import traceback
+
                     tb = traceback.format_exc()
                     logger.error(
                         "stream_planner_bifurcation_failed",
@@ -858,12 +906,25 @@ class LangGraphKernel(KernelInterface):
                         run_id=str(run_id),
                     )
                     # Sprint 48: Report error to user instead of silent fallback
-                    yield _json.dumps({"type": "chunk", "text": f"Error en el Task Planner: {str(planner_err)[:200]}. Reintentando con flujo directo..."})
+                    yield _json.dumps(
+                        {
+                            "type": "chunk",
+                            "text": f"Error en el Task Planner: {str(planner_err)[:200]}. Reintentando con flujo directo...",
+                        }
+                    )
                     # Still fall through to normal LLM as graceful degradation,
                     # but now with full logging and user notification
 
             # Sprint 42+43: Step event — LLM generation starting
-            yield _json.dumps({"type": "step", "id": "generate", "status": "in_progress", "label": f"Pensando con {model}...", "icon": "sparkles"})
+            yield _json.dumps(
+                {
+                    "type": "step",
+                    "id": "generate",
+                    "status": "in_progress",
+                    "label": f"Pensando con {model}...",
+                    "icon": "sparkles",
+                }
+            )
 
             # ══ Phase 3: REAL LLM Streaming ═════════════════════════════════════
             # Call router.execute_stream() directly — yields real LLM tokens
@@ -880,13 +941,25 @@ class LangGraphKernel(KernelInterface):
             if dispatch_agent:
                 try:
                     from kernel.external_agents import ExternalAgentDispatcher
+
                     dispatcher = ExternalAgentDispatcher()
-                    history_context = "\n".join(
-                        f"{m.get('role', 'user')}: {m.get('content', '')}"
-                        for m in conversation_context[-10:]
-                    ) if conversation_context else ""
+                    history_context = (
+                        "\n".join(
+                            f"{m.get('role', 'user')}: {m.get('content', '')}" for m in conversation_context[-10:]
+                        )
+                        if conversation_context
+                        else ""
+                    )
                     logger.info("stream_dispatch_external", agent=dispatch_agent, run_id=str(run_id))
-                    yield _json.dumps({"type": "step", "id": "generate", "status": "in_progress", "label": f"Consultando {dispatch_agent}...", "icon": "sparkles"})
+                    yield _json.dumps(
+                        {
+                            "type": "step",
+                            "id": "generate",
+                            "status": "in_progress",
+                            "label": f"Consultando {dispatch_agent}...",
+                            "icon": "sparkles",
+                        }
+                    )
                     result = await dispatcher.dispatch(
                         agent_id=dispatch_agent,
                         message=message,
@@ -896,17 +969,27 @@ class LangGraphKernel(KernelInterface):
                     if result.get("success"):
                         accumulated_response = result["content"]
                         yield _json.dumps({"type": "chunk", "text": accumulated_response})
-                        yield _json.dumps({"type": "step", "id": "generate", "status": "completed", "label": f"{dispatch_agent} respondió", "icon": "sparkles"})
+                        yield _json.dumps(
+                            {
+                                "type": "step",
+                                "id": "generate",
+                                "status": "completed",
+                                "label": f"{dispatch_agent} respondió",
+                                "icon": "sparkles",
+                            }
+                        )
                         latency_ms = int((time.monotonic() - start_time) * 1000)
-                        yield _json.dumps({
-                            "type": "done",
-                            "latency_ms": latency_ms,
-                            "model_used": f"{dispatch_agent}:{result.get('model_used', 'unknown')}",
-                            "tokens_in": result.get("tokens_used", 0),
-                            "tokens_out": 0,
-                            "intent": intent,
-                            "streaming": True,
-                        })
+                        yield _json.dumps(
+                            {
+                                "type": "done",
+                                "latency_ms": latency_ms,
+                                "model_used": f"{dispatch_agent}:{result.get('model_used', 'unknown')}",
+                                "tokens_in": result.get("tokens_used", 0),
+                                "tokens_out": 0,
+                                "intent": intent,
+                                "streaming": True,
+                            }
+                        )
                         # Write memory
                         try:
                             await self._compiled_streaming.aupdate_state(
@@ -952,10 +1035,12 @@ class LangGraphKernel(KernelInterface):
                 else:
                     # Sprint 38: router no disponible — error real en lugar de stub silencioso
                     logger.error("stream_no_router", run_id=str(run_id), model=model)
-                    yield _json.dumps({
-                        "type": "error",
-                        "message": "Router no disponible. El sistema no puede procesar la solicitud en este momento.",
-                    })
+                    yield _json.dumps(
+                        {
+                            "type": "error",
+                            "message": "Router no disponible. El sistema no puede procesar la solicitud en este momento.",
+                        }
+                    )
                     return
 
             except Exception as llm_err:

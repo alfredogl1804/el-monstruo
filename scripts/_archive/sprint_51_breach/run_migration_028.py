@@ -9,6 +9,7 @@ Uso desde repo root:
 
 Brand DNA en errores: e2e_migration_028_*_failed.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -36,9 +37,7 @@ class E2EMigration028SchemaFailed(E2EMigration028Error):
 
 
 def _read_sql() -> str:
-    path = os.path.join(
-        os.path.dirname(__file__), "028_sprint87_2_e2e_traffic_schema.sql"
-    )
+    path = os.path.join(os.path.dirname(__file__), "028_sprint87_2_e2e_traffic_schema.sql")
     with open(path, encoding="utf-8") as f:
         return f.read()
 
@@ -67,9 +66,7 @@ def apply_schema(conn: Any) -> None:
             )
             cols = cur.fetchall()
             if not cols:
-                raise E2EMigration028SchemaFailed(
-                    "tabla e2e_traffic no aparece post-migration"
-                )
+                raise E2EMigration028SchemaFailed("tabla e2e_traffic no aparece post-migration")
             print("  schema OK:")
             for name, dtype in cols:
                 print(f"    {name:14s} {dtype}")

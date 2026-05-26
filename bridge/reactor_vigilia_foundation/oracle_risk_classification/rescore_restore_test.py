@@ -23,7 +23,7 @@ GEMINI_ANSWERS = [
     "El Auditor debe detectar esta inconsistencia como una anomalía, ya que el Oráculo v0 opera con un catálogo estático, y registrarla como un hallazgo (finding).",
     "Al terminar, el Auditor registra un evento AUDIT_COMPLETED en el State Fabric.",
     "El componente que verifica si la acción del Auditor está permitida se llama preflight_check, el cual opera dentro del Policy Engine.",
-    "La decisión T1 pendiente tras este sprint es la de elevar al Oráculo a nivel M2 (conectarlo a APIs reales)."
+    "La decisión T1 pendiente tras este sprint es la de elevar al Oráculo a nivel M2 (conectarlo a APIs reales).",
 ]
 
 # Criterios de evaluación semántica (más flexible)
@@ -31,78 +31,62 @@ CRITERIA = [
     {
         "q": 1,
         "must_contain_any": ["validar", "evalua", "no debe ser el mismo", "proposer", "evaluator", "diferente entidad"],
-        "concept": "Separación entre quien propone y quien evalúa"
+        "concept": "Separación entre quien propone y quien evalúa",
     },
     {
         "q": 2,
         "must_contain_any": ["antes", "mecanismo", "validación", "control", "robusto", "apis reales"],
-        "concept": "Establecer validación antes de APIs reales"
+        "concept": "Establecer validación antes de APIs reales",
     },
     {
         "q": 3,
         "must_contain_any": ["lineage", "linaje", "distintos", "self-audit", "audite a sí misma"],
-        "concept": "Anti Self-Audit con lineage distintos"
+        "concept": "Anti Self-Audit con lineage distintos",
     },
-    {
-        "q": 4,
-        "must_contain_any": ["a3"],
-        "concept": "Max autonomy = A3"
-    },
+    {"q": 4, "must_contain_any": ["a3"], "concept": "Max autonomy = A3"},
     {
         "q": 5,
         "must_contain_any": ["write_code", "deploy", "touch_supabase", "modify_kernel"],
-        "concept": "Acciones prohibidas del Auditor"
+        "concept": "Acciones prohibidas del Auditor",
     },
     {
         "q": 6,
         "must_contain_any": ["no", "solo", "leer", "findings", "hallazgos"],
-        "concept": "No puede modificar, solo leer y generar findings"
+        "concept": "No puede modificar, solo leer y generar findings",
     },
     {
         "q": 7,
         "must_contain_any": ["dispatcher", "minimaldispatcher", "policy"],
-        "concept": "Solicita permiso al Dispatcher"
+        "concept": "Solicita permiso al Dispatcher",
     },
     {
         "q": 8,
         "must_contain_any": ["finding", "hallazgo", "detecta", "evidencia"],
-        "concept": "Detecta y levanta finding"
+        "concept": "Detecta y levanta finding",
     },
     {
         "q": 9,
         "must_contain_any": ["findings", "hallazgos", "audit_completed", "gate_log", "report"],
-        "concept": "Artefactos producidos"
+        "concept": "Artefactos producidos",
     },
-    {
-        "q": 10,
-        "must_contain_any": ["no", "t1", "humano", "decisión"],
-        "concept": "No tiene autoridad, requiere T1"
-    },
+    {"q": 10, "must_contain_any": ["no", "t1", "humano", "decisión"], "concept": "No tiene autoridad, requiere T1"},
     {
         "q": 11,
         "must_contain_any": ["simulación", "scripts", "e2e", "no es funcional", "no es real"],
-        "concept": "Vigilia es simulada, no real"
+        "concept": "Vigilia es simulada, no real",
     },
     {
         "q": 12,
         "must_contain_any": ["finding", "hallazgo", "inconsistencia", "anomalía", "estático"],
-        "concept": "Levantar finding por inconsistencia de evidencia"
+        "concept": "Levantar finding por inconsistencia de evidencia",
     },
-    {
-        "q": 13,
-        "must_contain_any": ["audit_completed"],
-        "concept": "Evento AUDIT_COMPLETED"
-    },
+    {"q": 13, "must_contain_any": ["audit_completed"], "concept": "Evento AUDIT_COMPLETED"},
     {
         "q": 14,
         "must_contain_any": ["preflight_check", "preflight", "policy engine"],
-        "concept": "preflight_check en Policy Engine"
+        "concept": "preflight_check en Policy Engine",
     },
-    {
-        "q": 15,
-        "must_contain_any": ["m2", "apis reales", "vigilia", "oracle"],
-        "concept": "Decisión T1 pendiente"
-    }
+    {"q": 15, "must_contain_any": ["m2", "apis reales", "vigilia", "oracle"], "concept": "Decisión T1 pendiente"},
 ]
 
 
@@ -120,28 +104,30 @@ def main():
     print("RE-SCORE — Restore Test Externo (Gemini 2.5 Flash)")
     print("=" * 60)
     print()
-    
+
     passed = 0
     results = []
-    
+
     for i, criteria in enumerate(CRITERIA):
         answer = GEMINI_ANSWERS[i]
         is_pass = score_answer(answer, criteria)
         status = "PASS" if is_pass else "FAIL"
         if is_pass:
             passed += 1
-        
-        results.append({
-            "question_num": i + 1,
-            "concept": criteria["concept"],
-            "answer_excerpt": answer[:150],
-            "keywords_matched": [kw for kw in criteria["must_contain_any"] if kw.lower() in answer.lower()],
-            "result": status
-        })
-        
+
+        results.append(
+            {
+                "question_num": i + 1,
+                "concept": criteria["concept"],
+                "answer_excerpt": answer[:150],
+                "keywords_matched": [kw for kw in criteria["must_contain_any"] if kw.lower() in answer.lower()],
+                "result": status,
+            }
+        )
+
         matched = [kw for kw in criteria["must_contain_any"] if kw.lower() in answer.lower()]
-        print(f"  Q{i+1:02d}: {status} — matched: {matched}")
-    
+        print(f"  Q{i + 1:02d}: {status} — matched: {matched}")
+
     print(f"\n{'=' * 60}")
     print(f"SCORE: {passed}/15")
     if passed >= 13:
@@ -152,21 +138,23 @@ def main():
         verdict = "FAIL"
     print(f"VERDICT: {verdict}")
     print(f"{'=' * 60}")
-    
+
     # Actualizar el resultado
     result_path = os.path.join(os.path.dirname(__file__), "external_restore_test_result.json")
-    with open(result_path, 'r') as f:
+    with open(result_path, "r") as f:
         result_doc = json.load(f)
-    
+
     result_doc["score"] = f"{passed}/15"
     result_doc["verdict"] = verdict
     result_doc["results"] = results
     result_doc["scoring_method"] = "semantic_keyword_match_v2"
-    result_doc["scoring_note"] = "Original scorer was too strict. Re-scored with case-insensitive flexible keyword matching."
-    
-    with open(result_path, 'w', encoding='utf-8') as f:
+    result_doc["scoring_note"] = (
+        "Original scorer was too strict. Re-scored with case-insensitive flexible keyword matching."
+    )
+
+    with open(result_path, "w", encoding="utf-8") as f:
         json.dump(result_doc, f, indent=2, ensure_ascii=False)
-    
+
     print(f"\nResultado actualizado en: {result_path}")
 
 

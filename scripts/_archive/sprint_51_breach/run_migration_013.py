@@ -2,9 +2,10 @@
 El Monstruo — Sprint 81: Ejecutar migración 013 (Error Memory + pgvector)
 Conexión directa via psycopg2 al PostgreSQL de Supabase.
 """
+
+import os
 import subprocess
 import sys
-import os
 
 # Ensure psycopg2 is available
 try:
@@ -127,6 +128,7 @@ def main():
     except Exception as e:
         print(f"\n✗ ERROR: {e}")
         import traceback
+
         traceback.print_exc()
 
 

@@ -15,9 +15,10 @@ Soberanía:
     - Detección: heurísticas locales → alternativa → LLM para análisis semántico
 """
 
-import structlog
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
+
+import structlog
 
 logger = structlog.get_logger("collective.emergence")
 
@@ -109,14 +110,11 @@ class EmergenceDetector:
 
         try:
             cutoff = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
-            recent = await self.supabase.table("embrion_tasks")\
-                .select("*")\
-                .gte("completed_at", cutoff)\
-                .execute()
+            recent = await self.supabase.table("embrion_tasks").select("*").gte("completed_at", cutoff).execute()
 
             # Agrupar por proyecto
             by_project: dict = {}
-            for task in (recent.data or []):
+            for task in recent.data or []:
                 pid = task.get("project_id", "unknown")
                 if pid not in by_project:
                     by_project[pid] = []
@@ -129,13 +127,15 @@ class EmergenceDetector:
                     # Verificar que la colaboración no fue explícitamente programada
                     triggered = any(t.get("trigger") == "collective_protocol" for t in tasks)
                     if not triggered:
-                        patterns.append({
-                            "type": "spontaneous_collaboration",
-                            "embriones": list(embriones_involved),
-                            "project_id": pid,
-                            "task_count": len(tasks),
-                            "not_programmed": True,
-                        })
+                        patterns.append(
+                            {
+                                "type": "spontaneous_collaboration",
+                                "embriones": list(embriones_involved),
+                                "project_id": pid,
+                                "task_count": len(tasks),
+                                "not_programmed": True,
+                            }
+                        )
 
             return patterns
         except Exception as exc:
@@ -183,10 +183,7 @@ class EmergenceDetector:
             return False
 
         # Criterio 4: Reproducible (verificar si hay ocurrencias previas similares)
-        similar_count = sum(
-            1 for p in self._detected_patterns
-            if p.get("type") == pattern.get("type")
-        )
+        similar_count = sum(1 for p in self._detected_patterns if p.get("type") == pattern.get("type"))
         # Primera vez: aceptar como candidato, marcar para seguimiento
         # Producción: requiere historial de al menos MIN_OCURRENCIAS_PARA_REPRODUCIBLE
 
@@ -205,13 +202,19 @@ class EmergenceDetector:
             return
 
         try:
-            await self.supabase.table("emergent_behaviors").insert({
-                "type": pattern["type"],
-                "embriones_involved": pattern.get("embriones", []),
-                "description": str(pattern),
-                "validated": True,
-                "detected_at": datetime.now(timezone.utc).isoformat(),
-            }).execute()
+            await (
+                self.supabase.table("emergent_behaviors")
+                .insert(
+                    {
+                        "type": pattern["type"],
+                        "embriones_involved": pattern.get("embriones", []),
+                        "description": str(pattern),
+                        "validated": True,
+                        "detected_at": datetime.now(timezone.utc).isoformat(),
+                    }
+                )
+                .execute()
+            )
             logger.info("emergence_recorded_supabase", type=pattern["type"])
         except Exception as exc:
             logger.error("emergence_record_error", error=str(exc))
@@ -231,11 +234,13 @@ class EmergenceDetector:
         if self.supabase:
             try:
                 cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
-                result = await self.supabase.table("emergent_behaviors")\
-                    .select("*")\
-                    .gte("detected_at", cutoff)\
-                    .order("detected_at", desc=True)\
+                result = (
+                    await self.supabase.table("emergent_behaviors")
+                    .select("*")
+                    .gte("detected_at", cutoff)
+                    .order("detected_at", desc=True)
                     .execute()
+                )
                 return result.data or []
             except Exception as exc:
                 logger.error("history_fetch_error", error=str(exc))

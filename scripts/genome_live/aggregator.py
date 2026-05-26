@@ -18,7 +18,6 @@ Autor: Manus — Sprint 91 F5
 """
 
 import json
-import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -179,7 +178,7 @@ def main() -> int:
     result = aggregate()
     OUT_FILE.write_text(json.dumps(result, indent=2, ensure_ascii=False, default=str))
 
-    print(f"\nAGGREGATOR RESUMEN")
+    print("\nAGGREGATOR RESUMEN")
     print(f"  binario_100        : {result['meta']['binario_100']}")
     print(f"  github.match       : {result['summaries']['github']['match']}")
     print(f"  railway.match      : {result['summaries']['railway']['match']}")

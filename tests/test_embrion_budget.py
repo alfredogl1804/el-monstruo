@@ -26,8 +26,6 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid4
 
-import pytest
-
 # El módulo lee env al importar; seteamos antes del import.
 os.environ.setdefault("EMBRION_CAP_PER_LATIDO_USD", "0.25")
 os.environ.setdefault("EMBRION_DAILY_BUDGET", "30.0")
@@ -50,7 +48,7 @@ class FakeClient:
         # Filtro por created_at gte (parser muy básico, suficiente para tests)
         ca = params.get("created_at", "")
         if ca.startswith("gte."):
-            cutoff = ca[len("gte."):]
+            cutoff = ca[len("gte.") :]
             rows = [r for r in rows if (r.get("created_at") or "") >= cutoff]
 
         # Filtros de igualdad: cap_excedido=eq.true, tipo=eq.X, hilo_origen=eq.X
@@ -58,7 +56,7 @@ class FakeClient:
             if k in ("created_at", "select", "limit", "order"):
                 continue
             if isinstance(v, str) and v.startswith("eq."):
-                expected = v[len("eq."):]
+                expected = v[len("eq.") :]
                 if expected == "true":
                     rows = [r for r in rows if r.get(k) is True]
                 elif expected == "false":
@@ -71,7 +69,7 @@ class FakeClient:
         if lim:
             rows = rows[: int(lim)]
 
-        return rows, {"Content-Range": f"0-{max(0, len(rows)-1)}/{len(rows)}"}
+        return rows, {"Content-Range": f"0-{max(0, len(rows) - 1)}/{len(rows)}"}
 
     def insert(self, table: str, payload: Any):
         self.calls.append(("insert", table, payload))
@@ -86,6 +84,7 @@ class FakeClient:
 
 
 # ── 1) Estimación de costo
+
 
 def test_estimate_cost_gpt5():
     # gpt-5 input $2.50 / 1M, output $10 / 1M
@@ -109,6 +108,7 @@ def test_estimate_cost_gpt55_more_expensive():
 
 
 # ── 2) Pre-flight aborta cuando estimated > cap (REQUERIDO POR SPEC)
+
 
 def test_check_before_cycle_aborts_when_estimated_exceeds_cap():
     """Spec: 'latido proyectado a $0.30 se aborta antes de gastar'."""
@@ -143,11 +143,13 @@ def test_check_before_cycle_passes_when_estimated_under_cap():
 
 def test_check_before_cycle_aborts_when_daily_exhausted():
     today = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:01+00:00")
-    fake = FakeClient(prefilled={
-        "embrion_budget_state": [
-            {"cost_actual_usd": 29.95, "created_at": today, "cap_excedido": False},
-        ],
-    })
+    fake = FakeClient(
+        prefilled={
+            "embrion_budget_state": [
+                {"cost_actual_usd": 29.95, "created_at": today, "cap_excedido": False},
+            ],
+        }
+    )
     decision = eb.check_before_cycle(
         estimated_tokens_in=20000,
         estimated_tokens_out=10000,
@@ -162,11 +164,13 @@ def test_check_before_cycle_aborts_when_daily_exhausted():
 
 def test_check_before_cycle_warns_near_daily_limit():
     today = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:00:01+00:00")
-    fake = FakeClient(prefilled={
-        "embrion_budget_state": [
-            {"cost_actual_usd": 28.7, "created_at": today, "cap_excedido": False},
-        ],
-    })
+    fake = FakeClient(
+        prefilled={
+            "embrion_budget_state": [
+                {"cost_actual_usd": 28.7, "created_at": today, "cap_excedido": False},
+            ],
+        }
+    )
     # Estimado pequeño, pasa, pero >= 95% del cap diario
     decision = eb.check_before_cycle(
         estimated_tokens_in=10000,
@@ -179,6 +183,7 @@ def test_check_before_cycle_warns_near_daily_limit():
 
 
 # ── 3) record_after_cycle
+
 
 def test_record_after_cycle_marks_cap_excedido_when_actual_exceeds():
     fake = FakeClient()
@@ -209,14 +214,29 @@ def test_record_after_cycle_no_excedido_when_under_cap():
 
 # ── 4) HITL escalation (REQUERIDO POR SPEC)
 
+
 def test_maybe_escalate_hitl_no_escala_si_pocos_excedidos():
     today = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:01:00+00:00")
-    fake = FakeClient(prefilled={
-        "embrion_budget_state": [
-            {"cycle_id": 1, "cap_excedido": True, "created_at": today, "cost_estimated_usd": 0.30, "abort_reason": "estimated_exceeds_cap"},
-            {"cycle_id": 2, "cap_excedido": True, "created_at": today, "cost_estimated_usd": 0.32, "abort_reason": "estimated_exceeds_cap"},
-        ],
-    })
+    fake = FakeClient(
+        prefilled={
+            "embrion_budget_state": [
+                {
+                    "cycle_id": 1,
+                    "cap_excedido": True,
+                    "created_at": today,
+                    "cost_estimated_usd": 0.30,
+                    "abort_reason": "estimated_exceeds_cap",
+                },
+                {
+                    "cycle_id": 2,
+                    "cap_excedido": True,
+                    "created_at": today,
+                    "cost_estimated_usd": 0.32,
+                    "abort_reason": "estimated_exceeds_cap",
+                },
+            ],
+        }
+    )
     out = eb.maybe_escalate_hitl(supabase_client=fake)
     assert out is None
 
@@ -224,13 +244,33 @@ def test_maybe_escalate_hitl_no_escala_si_pocos_excedidos():
 def test_maybe_escalate_hitl_escala_al_3er_excedido():
     """Spec: 'escalación HITL se dispara al 3er latido excedido'."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:01:00+00:00")
-    fake = FakeClient(prefilled={
-        "embrion_budget_state": [
-            {"cycle_id": 1, "cap_excedido": True, "created_at": today, "cost_estimated_usd": 0.30, "abort_reason": "estimated_exceeds_cap"},
-            {"cycle_id": 2, "cap_excedido": True, "created_at": today, "cost_estimated_usd": 0.32, "abort_reason": "estimated_exceeds_cap"},
-            {"cycle_id": 3, "cap_excedido": True, "created_at": today, "cost_estimated_usd": 0.45, "abort_reason": "estimated_exceeds_cap"},
-        ],
-    })
+    fake = FakeClient(
+        prefilled={
+            "embrion_budget_state": [
+                {
+                    "cycle_id": 1,
+                    "cap_excedido": True,
+                    "created_at": today,
+                    "cost_estimated_usd": 0.30,
+                    "abort_reason": "estimated_exceeds_cap",
+                },
+                {
+                    "cycle_id": 2,
+                    "cap_excedido": True,
+                    "created_at": today,
+                    "cost_estimated_usd": 0.32,
+                    "abort_reason": "estimated_exceeds_cap",
+                },
+                {
+                    "cycle_id": 3,
+                    "cap_excedido": True,
+                    "created_at": today,
+                    "cost_estimated_usd": 0.45,
+                    "abort_reason": "estimated_exceeds_cap",
+                },
+            ],
+        }
+    )
     out = eb.maybe_escalate_hitl(supabase_client=fake)
     assert out is not None
     assert out["tipo"] == "respuesta_embrion"
@@ -244,20 +284,29 @@ def test_maybe_escalate_hitl_escala_al_3er_excedido():
 def test_maybe_escalate_hitl_idempotente():
     """Si ya escalamos hoy, no spameamos."""
     today = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:01:00+00:00")
-    fake = FakeClient(prefilled={
-        "embrion_budget_state": [
-            {"cycle_id": i, "cap_excedido": True, "created_at": today, "cost_estimated_usd": 0.30, "abort_reason": "estimated_exceeds_cap"}
-            for i in range(5)
-        ],
-        "embrion_memoria": [
-            {"id": "abc", "tipo": "respuesta_embrion", "hilo_origen": "embrion_budget", "created_at": today},
-        ],
-    })
+    fake = FakeClient(
+        prefilled={
+            "embrion_budget_state": [
+                {
+                    "cycle_id": i,
+                    "cap_excedido": True,
+                    "created_at": today,
+                    "cost_estimated_usd": 0.30,
+                    "abort_reason": "estimated_exceeds_cap",
+                }
+                for i in range(5)
+            ],
+            "embrion_memoria": [
+                {"id": "abc", "tipo": "respuesta_embrion", "hilo_origen": "embrion_budget", "created_at": today},
+            ],
+        }
+    )
     out = eb.maybe_escalate_hitl(supabase_client=fake)
     assert out is None
 
 
 # ── 5) record_aborted_cycle
+
 
 def test_record_aborted_cycle_persiste_telemetria():
     fake = FakeClient()
@@ -285,15 +334,37 @@ def test_record_aborted_cycle_persiste_telemetria():
 
 # ── 6) daily_summary
 
+
 def test_daily_summary_agrupa_por_modelo():
     today = datetime.now(timezone.utc).strftime("%Y-%m-%dT00:01:00+00:00")
-    fake = FakeClient(prefilled={
-        "embrion_budget_state": [
-            {"cycle_id": 1, "cost_actual_usd": 0.10, "model_used": "gpt-5",   "cap_excedido": False, "created_at": today},
-            {"cycle_id": 2, "cost_actual_usd": 0.20, "model_used": "gpt-5",   "cap_excedido": False, "created_at": today},
-            {"cycle_id": 3, "cost_actual_usd": 0.30, "model_used": "gpt-5.5", "cap_excedido": True,  "created_at": today, "abort_reason": "actual_exceeds_cap"},
-        ],
-    })
+    fake = FakeClient(
+        prefilled={
+            "embrion_budget_state": [
+                {
+                    "cycle_id": 1,
+                    "cost_actual_usd": 0.10,
+                    "model_used": "gpt-5",
+                    "cap_excedido": False,
+                    "created_at": today,
+                },
+                {
+                    "cycle_id": 2,
+                    "cost_actual_usd": 0.20,
+                    "model_used": "gpt-5",
+                    "cap_excedido": False,
+                    "created_at": today,
+                },
+                {
+                    "cycle_id": 3,
+                    "cost_actual_usd": 0.30,
+                    "model_used": "gpt-5.5",
+                    "cap_excedido": True,
+                    "created_at": today,
+                    "abort_reason": "actual_exceeds_cap",
+                },
+            ],
+        }
+    )
     s = eb.daily_summary(supabase_client=fake)
     assert s["cycles_total"] == 3
     assert s["cycles_excedidos"] == 1
@@ -304,6 +375,7 @@ def test_daily_summary_agrupa_por_modelo():
 
 
 # ── 7) integración: el bucle del 1 de mayo se hubiera frenado
+
 
 def test_caso_real_bucle_1_mayo_se_hubiera_frenado():
     """
@@ -326,7 +398,8 @@ def test_caso_real_bucle_1_mayo_se_hubiera_frenado():
         if not d.allow:
             aborts += 1
             eb.record_aborted_cycle(
-                cycle_id=i, decision=d,
+                cycle_id=i,
+                decision=d,
                 trigger_type="reflexion",
                 supabase_client=fake,
             )

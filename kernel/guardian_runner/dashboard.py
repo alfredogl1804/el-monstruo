@@ -23,6 +23,7 @@ Uso:
 Fuente de verdad: tabla `guardian_audit_log` (Sprint GUARDIAN-AUTONOMO-001 T5).
 Spec firmado: bridge/sprints_propuestos/sprint_GUARDIAN_AUTONOMO_001_activacion.md
 """
+
 from __future__ import annotations
 
 import argparse
@@ -32,7 +33,7 @@ import logging
 import os
 import sys
 import webbrowser
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Optional
 
@@ -62,11 +63,11 @@ OBJECTIVE_NAMES: dict[int, str] = {
 # Niveles segun spec: passing >= 80, warning 60-80, critical 40-60, emergency < 40
 LEVEL_COLORS: dict[str, tuple[str, str]] = {
     # (background, foreground) — colores accesibles WCAG AA
-    "passing":   ("#1f7a3a", "#ffffff"),  # verde oscuro
-    "warning":   ("#b88a00", "#ffffff"),  # amarillo oscuro
-    "critical":  ("#c2410c", "#ffffff"),  # naranja oscuro
+    "passing": ("#1f7a3a", "#ffffff"),  # verde oscuro
+    "warning": ("#b88a00", "#ffffff"),  # amarillo oscuro
+    "critical": ("#c2410c", "#ffffff"),  # naranja oscuro
     "emergency": ("#9b1c1c", "#ffffff"),  # rojo oscuro
-    "unknown":   ("#6b7280", "#ffffff"),  # gris
+    "unknown": ("#6b7280", "#ffffff"),  # gris
 }
 
 
@@ -257,13 +258,13 @@ def _render_history_row(row: dict[str, Any]) -> str:
     bg, fg = LEVEL_COLORS.get(level, LEVEL_COLORS["unknown"])
     return f"""
     <tr>
-        <td><code>{_html_escape(str(row.get('run_id', ''))[:8])}</code></td>
-        <td>{_html_escape(_fmt_ts(row.get('finished_at')))}</td>
+        <td><code>{_html_escape(str(row.get("run_id", ""))[:8])}</code></td>
+        <td>{_html_escape(_fmt_ts(row.get("finished_at")))}</td>
         <td><span class="badge" style="background:{bg};color:{fg};">{_fmt_pct(score)}</span></td>
-        <td class="cnt-passing">{row.get('passing_count', 0)}</td>
-        <td class="cnt-warning">{row.get('warning_count', 0)}</td>
-        <td class="cnt-critical">{row.get('critical_count', 0)}</td>
-        <td class="cnt-emergency">{row.get('emergency_count', 0)}</td>
+        <td class="cnt-passing">{row.get("passing_count", 0)}</td>
+        <td class="cnt-warning">{row.get("warning_count", 0)}</td>
+        <td class="cnt-critical">{row.get("critical_count", 0)}</td>
+        <td class="cnt-emergency">{row.get("emergency_count", 0)}</td>
     </tr>"""
 
 
@@ -344,8 +345,7 @@ def generate_html_report(
     deg_banner = ""
     if degradations:
         deg_items = "".join(
-            f"<li>Objetivo {k}: <strong>-{_html_escape(v)} pp</strong></li>"
-            for k, v in degradations.items()
+            f"<li>Objetivo {k}: <strong>-{_html_escape(v)} pp</strong></li>" for k, v in degradations.items()
         )
         deg_banner = f"""
         <div class="banner-warn">
@@ -522,7 +522,7 @@ def generate_html_report(
             </tr>
         </thead>
         <tbody>
-            {''.join(rows_objectives)}
+            {"".join(rows_objectives)}
         </tbody>
     </table>
 
@@ -540,7 +540,7 @@ def generate_html_report(
             </tr>
         </thead>
         <tbody>
-            {''.join(rows_history) if rows_history else '<tr><td colspan="7" style="text-align:center;color:var(--muted);">Sin corridas recientes</td></tr>'}
+            {"".join(rows_history) if rows_history else '<tr><td colspan="7" style="text-align:center;color:var(--muted);">Sin corridas recientes</td></tr>'}
         </tbody>
     </table>
 
@@ -564,6 +564,7 @@ async def _run_live_audit() -> dict[str, Any]:
     Lo corremos en un executor para no bloquear el event loop.
     """
     from kernel.guardian_runner.runner import run_audit
+
     loop = asyncio.get_event_loop()
     result = await loop.run_in_executor(
         None,
@@ -652,7 +653,8 @@ def main() -> int:
         description="Genera reporte HTML estatico del estado del Guardian (15 Objetivos Maestros).",
     )
     parser.add_argument(
-        "--output", "-o",
+        "--output",
+        "-o",
         default="/tmp/guardian_dashboard.html",
         help="Ruta de salida del HTML (default: /tmp/guardian_dashboard.html)",
     )

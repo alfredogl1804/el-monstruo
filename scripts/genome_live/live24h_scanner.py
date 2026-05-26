@@ -21,7 +21,7 @@ Autor: Manus — Sprint 91
 import json
 import os
 import sys
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -87,14 +87,16 @@ def scan() -> dict[str, Any]:
         last_commit = repo.get("last_commit") or {}
         ts = parse_iso(last_commit.get("date"))
         if ts and ts >= T24H:
-            gh_recent.append({
-                "repo": repo.get("full_name") or repo.get("name"),
-                "branch": last_commit.get("branch") or repo.get("default_branch"),
-                "sha": last_commit.get("sha"),
-                "message": (last_commit.get("message") or "")[:200],
-                "date": last_commit.get("date"),
-                "author": last_commit.get("author"),
-            })
+            gh_recent.append(
+                {
+                    "repo": repo.get("full_name") or repo.get("name"),
+                    "branch": last_commit.get("branch") or repo.get("default_branch"),
+                    "sha": last_commit.get("sha"),
+                    "message": (last_commit.get("message") or "")[:200],
+                    "date": last_commit.get("date"),
+                    "author": last_commit.get("author"),
+                }
+            )
     gh_recent.sort(key=lambda x: x["date"] or "", reverse=True)
     print(f"    {len(gh_recent)} commits en últimas 24h", flush=True)
 
@@ -123,10 +125,12 @@ def scan() -> dict[str, Any]:
                         rly_recent.append(entry)
                     # detectar drift: deploy > 7 días
                     if ts and ts < T7D:
-                        drift_warnings.append({
-                            **entry,
-                            "days_since_deploy": (NOW - ts).days,
-                        })
+                        drift_warnings.append(
+                            {
+                                **entry,
+                                "days_since_deploy": (NOW - ts).days,
+                            }
+                        )
     rly_recent.sort(key=lambda x: x["deployed_at"] or "", reverse=True)
     drift_warnings.sort(key=lambda x: x["days_since_deploy"], reverse=True)
     print(f"    {len(rly_recent)} deploys en últimas 24h", flush=True)
@@ -192,7 +196,7 @@ def main() -> int:
     result = scan()
     out_file.write_text(json.dumps(result, indent=2, ensure_ascii=False, default=str))
 
-    print(f"\nLIVE 24H SCAN RESUMEN")
+    print("\nLIVE 24H SCAN RESUMEN")
     print(f"  github_commits_24h    : {result['github_commits_24h_count']}")
     print(f"  railway_deploys_24h   : {result['railway_deploys_24h_count']}")
     print(f"  supabase_migrations   : {result['supabase_migrations_24h_count']}")

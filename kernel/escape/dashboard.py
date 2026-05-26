@@ -23,6 +23,7 @@ CI o en sandbox local sin acceso a Supabase.
 
 Patrón gemelo a kernel.rotor.dashboard (Sprint ROTOR-001 T5).
 """
+
 from __future__ import annotations
 
 import argparse
@@ -51,10 +52,7 @@ def _fetch_recent_pulses(limit: int = 100) -> Optional[list[dict[str, Any]]]:
         None si no hay credenciales o la query falló (fail-soft).
     """
     url = os.environ.get("SUPABASE_URL")
-    key = (
-        os.environ.get("SUPABASE_SERVICE_KEY")
-        or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
-    )
+    key = os.environ.get("SUPABASE_SERVICE_KEY") or os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
     if not url or not key:
         logger.info("escape_dashboard_no_credentials")
         return None
@@ -67,10 +65,7 @@ def _fetch_recent_pulses(limit: int = 100) -> Optional[list[dict[str, Any]]]:
 
     endpoint = f"{url.rstrip('/')}/rest/v1/escape_pulse_log"
     params = {
-        "select": (
-            "pulse_id,consumer,decision,reason,energy_consumed,"
-            "budget_consumed_usd,occurred_at,metadata"
-        ),
+        "select": ("pulse_id,consumer,decision,reason,energy_consumed,budget_consumed_usd,occurred_at,metadata"),
         "order": "occurred_at.desc",
         "limit": str(min(limit, 1000)),
     }
@@ -205,10 +200,7 @@ def _render_html(
         return _HTML_TEMPLATE.format(generated_at=generated_at, body=_NO_DATA_BODY)
 
     # Header agregados
-    allowed_pct = (
-        (agg["allowed_pulses"] / agg["total_pulses"] * 100)
-        if agg["total_pulses"] > 0 else 0
-    )
+    allowed_pct = (agg["allowed_pulses"] / agg["total_pulses"] * 100) if agg["total_pulses"] > 0 else 0
     cards = [
         ("Total pulsos", str(agg["total_pulses"]), ""),
         ("Allowed", str(agg["allowed_pulses"]), "green"),
@@ -260,16 +252,13 @@ def _render_html(
     recent_table = (
         f"<h2>Últimos {len(recent_rows_html)} pulsos</h2><table>"
         "<tr><th>ID</th><th>Consumer</th><th>Decision</th><th>Reason</th>"
-        "<th>Energy</th><th>Budget USD</th><th>Occurred at</th></tr>"
-        + "".join(recent_rows_html)
-        + "</table>"
+        "<th>Energy</th><th>Budget USD</th><th>Occurred at</th></tr>" + "".join(recent_rows_html) + "</table>"
     )
 
     window = ""
     if agg.get("oldest_at") and agg.get("newest_at"):
         window = (
-            f"<div class='subtitle'>Ventana: "
-            f"{html.escape(agg['oldest_at'])} → {html.escape(agg['newest_at'])}</div>"
+            f"<div class='subtitle'>Ventana: {html.escape(agg['oldest_at'])} → {html.escape(agg['newest_at'])}</div>"
         )
 
     body = f'<div class="grid">{cards_html}</div>{window}{consumers_table}{recent_table}'
@@ -308,19 +297,23 @@ def render(mode: str = "html", limit: int = 100) -> str:
 
 
 def main(argv: Optional[list[str]] = None) -> int:
-    parser = argparse.ArgumentParser(
-        description="Sprint ESCAPE-001 T5 — Escape History Dashboard"
-    )
+    parser = argparse.ArgumentParser(description="Sprint ESCAPE-001 T5 — Escape History Dashboard")
     parser.add_argument(
-        "--mode", choices=("html", "json"), default="html",
+        "--mode",
+        choices=("html", "json"),
+        default="html",
         help="Output format (html|json)",
     )
     parser.add_argument(
-        "--limit", type=int, default=100,
+        "--limit",
+        type=int,
+        default=100,
         help="Max filas a incluir (default 100, max 1000)",
     )
     parser.add_argument(
-        "--out", type=Path, default=None,
+        "--out",
+        type=Path,
+        default=None,
         help="Path de salida (default stdout)",
     )
     args = parser.parse_args(argv)

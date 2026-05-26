@@ -6,13 +6,14 @@ vía API para enriquecer decisiones de diseño del plan.
 Conexión REAL a cada API. Cero simulaciones.
 """
 
+import argparse
+import json
 import os
 import sys
-import json
-import argparse
 import time
 from datetime import datetime
-from colorama import init, Fore, Style
+
+from colorama import Fore, Style, init
 
 init(autoreset=True)
 
@@ -45,7 +46,9 @@ class ConsultaSabiosPlanificacion:
         self.sabios = credenciales
 
         if disponibles == 0:
-            print(f"{Fore.RED}❌ BLOQUEADO: No hay ningún sabio disponible. Configura al menos una API key.{Style.RESET_ALL}")
+            print(
+                f"{Fore.RED}❌ BLOQUEADO: No hay ningún sabio disponible. Configura al menos una API key.{Style.RESET_ALL}"
+            )
             sys.exit(1)
 
         print(f"\n{Fore.WHITE}  Sabios disponibles: {disponibles}/5{Style.RESET_ALL}")
@@ -64,12 +67,9 @@ class ConsultaSabiosPlanificacion:
         try:
             response = client.chat.completions.create(
                 model="gpt-4.1",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt}
-                ],
+                messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}],
                 temperature=0.7,
-                max_tokens=4000
+                max_tokens=4000,
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -86,7 +86,7 @@ class ConsultaSabiosPlanificacion:
                 model="claude-sonnet-4-20250514",  # Actualizar cuando haya nuevo modelo disponible
                 max_tokens=4000,
                 system=system_prompt,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt}],
             )
             return response.content[0].text
         except Exception as e:
@@ -100,10 +100,7 @@ class ConsultaSabiosPlanificacion:
             client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
             full_prompt = f"{system_prompt}\n\n{prompt}"
 
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=full_prompt
-            )
+            response = client.models.generate_content(model="gemini-2.5-flash", contents=full_prompt)
             return response.text
         except Exception as e:
             return f"ERROR Gemini: {e}"
@@ -112,20 +109,14 @@ class ConsultaSabiosPlanificacion:
         """Llama a Grok vía xAI API (compatible con OpenAI)."""
         import openai
 
-        client = openai.OpenAI(
-            api_key=os.environ["XAI_API_KEY"],
-            base_url="https://api.x.ai/v1"
-        )
+        client = openai.OpenAI(api_key=os.environ["XAI_API_KEY"], base_url="https://api.x.ai/v1")
 
         try:
             response = client.chat.completions.create(
                 model="grok-3",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt}
-                ],
+                messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}],
                 temperature=0.7,
-                max_tokens=4000
+                max_tokens=4000,
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -135,20 +126,14 @@ class ConsultaSabiosPlanificacion:
         """Llama a Perplexity Sonar Pro para validación en tiempo real."""
         import openai
 
-        client = openai.OpenAI(
-            api_key=os.environ["SONAR_API_KEY"],
-            base_url="https://api.perplexity.ai"
-        )
+        client = openai.OpenAI(api_key=os.environ["SONAR_API_KEY"], base_url="https://api.perplexity.ai")
 
         try:
             response = client.chat.completions.create(
                 model="sonar-pro",
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": prompt}
-                ],
+                messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": prompt}],
                 temperature=0.5,
-                max_tokens=4000
+                max_tokens=4000,
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -164,9 +149,9 @@ class ConsultaSabiosPlanificacion:
             sabios_a_consultar: Lista de sabios a consultar (None = todos los disponibles)
             rol_context: Contexto adicional del rol que debe asumir cada sabio
         """
-        print(f"\n{Fore.MAGENTA}{'='*60}{Style.RESET_ALL}")
+        print(f"\n{Fore.MAGENTA}{'=' * 60}{Style.RESET_ALL}")
         print(f"{Fore.MAGENTA}  CONSULTA A SABIOS PARA DISEÑO DE PLAN{Style.RESET_ALL}")
-        print(f"{Fore.MAGENTA}{'='*60}{Style.RESET_ALL}")
+        print(f"{Fore.MAGENTA}{'=' * 60}{Style.RESET_ALL}")
 
         os.makedirs(output_dir, exist_ok=True)
 
@@ -181,7 +166,9 @@ class ConsultaSabiosPlanificacion:
             print(f"{Fore.RED}❌ BLOQUEADO: Ninguno de los sabios solicitados está disponible.{Style.RESET_ALL}")
             return None
 
-        print(f"{Fore.CYAN}ℹ️ Consultando a: {', '.join([self.sabios[s]['nombre'] for s in sabios_a_consultar])}{Style.RESET_ALL}")
+        print(
+            f"{Fore.CYAN}ℹ️ Consultando a: {', '.join([self.sabios[s]['nombre'] for s in sabios_a_consultar])}{Style.RESET_ALL}"
+        )
 
         # System prompt base para planificación
         system_prompt = f"""Eres un experto consultor de planificación estratégica para producción de contenido audiovisual deportivo.
@@ -213,7 +200,7 @@ IMPORTANTE: Sé específico, concreto y accionable. No des respuestas genéricas
 
             # Guardar respuesta individual
             resp_file = os.path.join(output_dir, f"respuesta_{sabio_id}.md")
-            with open(resp_file, 'w', encoding='utf-8') as f:
+            with open(resp_file, "w", encoding="utf-8") as f:
                 f.write(f"# Respuesta de {nombre}\n\n")
                 f.write(f"**Fecha:** {datetime.now().isoformat()}\n")
                 f.write(f"**Tiempo de respuesta:** {elapsed:.1f}s\n\n")
@@ -225,7 +212,7 @@ IMPORTANTE: Sé específico, concreto y accionable. No des respuestas genéricas
                 "respuesta": respuesta,
                 "tiempo_segundos": round(elapsed, 1),
                 "archivo": resp_file,
-                "es_error": respuesta.startswith("ERROR")
+                "es_error": respuesta.startswith("ERROR"),
             }
 
             if respuesta.startswith("ERROR"):
@@ -237,7 +224,7 @@ IMPORTANTE: Sé específico, concreto y accionable. No des respuestas genéricas
         exitosos = {k: v for k, v in resultados.items() if not v["es_error"]}
 
         sintesis_file = os.path.join(output_dir, "SINTESIS_SABIOS.md")
-        with open(sintesis_file, 'w', encoding='utf-8') as f:
+        with open(sintesis_file, "w", encoding="utf-8") as f:
             f.write("# Síntesis de Consulta a los Sabios\n\n")
             f.write(f"**Fecha:** {datetime.now().isoformat()}\n")
             f.write(f"**Sabios consultados:** {len(sabios_a_consultar)}\n")
@@ -262,65 +249,50 @@ IMPORTANTE: Sé específico, concreto y accionable. No des respuestas genéricas
             "fecha": datetime.now().isoformat(),
             "prompt_length": len(prompt_text),
             "sabios_consultados": sabios_a_consultar,
-            "resultados": {k: {
-                "nombre": v["nombre"],
-                "tiempo_segundos": v["tiempo_segundos"],
-                "chars_respuesta": len(v["respuesta"]),
-                "es_error": v["es_error"],
-                "archivo": v["archivo"]
-            } for k, v in resultados.items()}
+            "resultados": {
+                k: {
+                    "nombre": v["nombre"],
+                    "tiempo_segundos": v["tiempo_segundos"],
+                    "chars_respuesta": len(v["respuesta"]),
+                    "es_error": v["es_error"],
+                    "archivo": v["archivo"],
+                }
+                for k, v in resultados.items()
+            },
         }
-        with open(meta_file, 'w', encoding='utf-8') as f:
+        with open(meta_file, "w", encoding="utf-8") as f:
             json.dump(meta, f, indent=2, ensure_ascii=False)
 
-        print(f"\n{Fore.GREEN}{'='*60}{Style.RESET_ALL}")
+        print(f"\n{Fore.GREEN}{'=' * 60}{Style.RESET_ALL}")
         print(f"{Fore.GREEN}✅ Consulta completada:{Style.RESET_ALL}")
         print(f"{Fore.GREEN}   Síntesis:  {sintesis_file}{Style.RESET_ALL}")
         print(f"{Fore.GREEN}   Metadata:  {meta_file}{Style.RESET_ALL}")
         print(f"{Fore.GREEN}   Exitosos:  {len(exitosos)}/{len(sabios_a_consultar)}{Style.RESET_ALL}")
-        print(f"{Fore.GREEN}{'='*60}{Style.RESET_ALL}")
+        print(f"{Fore.GREEN}{'=' * 60}{Style.RESET_ALL}")
 
-        return {
-            "sintesis": sintesis_file,
-            "metadata": meta_file,
-            "resultados": resultados
-        }
+        return {"sintesis": sintesis_file, "metadata": meta_file, "resultados": resultados}
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Consulta a los Sabios para enriquecer el diseño del plan"
-    )
+    parser = argparse.ArgumentParser(description="Consulta a los Sabios para enriquecer el diseño del plan")
+    parser.add_argument("--prompt", required=True, help="Texto del prompt o ruta a archivo .md con el prompt")
+    parser.add_argument("--output-dir", required=True, help="Directorio de salida para las respuestas")
     parser.add_argument(
-        "--prompt", required=True,
-        help="Texto del prompt o ruta a archivo .md con el prompt"
-    )
-    parser.add_argument(
-        "--output-dir", required=True,
-        help="Directorio de salida para las respuestas"
-    )
-    parser.add_argument(
-        "--sabios", nargs="+", default=None,
+        "--sabios",
+        nargs="+",
+        default=None,
         choices=["gpt54", "claude", "gemini", "grok", "perplexity"],
-        help="Sabios específicos a consultar (default: todos los disponibles)"
+        help="Sabios específicos a consultar (default: todos los disponibles)",
     )
-    parser.add_argument(
-        "--rol", default="",
-        help="Contexto adicional del rol que debe asumir cada sabio"
-    )
+    parser.add_argument("--rol", default="", help="Contexto adicional del rol que debe asumir cada sabio")
     args = parser.parse_args()
 
     # Si el prompt es una ruta a archivo, leer su contenido
     if os.path.isfile(args.prompt):
-        with open(args.prompt, 'r', encoding='utf-8') as f:
+        with open(args.prompt, "r", encoding="utf-8") as f:
             prompt_text = f.read()
     else:
         prompt_text = args.prompt
 
     consultor = ConsultaSabiosPlanificacion()
-    consultor.consultar(
-        prompt_text,
-        args.output_dir,
-        sabios_a_consultar=args.sabios,
-        rol_context=args.rol
-    )
+    consultor.consultar(prompt_text, args.output_dir, sabios_a_consultar=args.sabios, rol_context=args.rol)
