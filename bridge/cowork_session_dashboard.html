@@ -29,26 +29,26 @@
 
 <div class="grid">
   <div class="kpi" style="border-left-color:#3b82f6;">
-    <div class="v">3</div>
+    <div class="v">4</div>
     <div class="l">Sesiones totales</div>
   </div>
   <div class="kpi" style="border-left-color:#8b5cf6;">
-    <div class="v">0</div>
+    <div class="v">1</div>
     <div class="l">Ultimas 24h</div>
   </div>
   <div class="kpi" style="border-left-color:#06b6d4;">
-    <div class="v">1</div>
+    <div class="v">2</div>
     <div class="l">Ultimos 7 dias</div>
   </div>
-  <div class="kpi" style="border-left-color:#ef4444;">
-    <div class="v">33%</div>
+  <div class="kpi" style="border-left-color:#f59e0b;">
+    <div class="v">50%</div>
     <div class="l">Pre-flight Memento</div>
-    <div class="bar"><div style="width:33%; background:#ef4444;"></div></div>
+    <div class="bar"><div style="width:50%; background:#f59e0b;"></div></div>
   </div>
   <div class="kpi" style="border-left-color:#f59e0b;">
-    <div class="v">33%</div>
+    <div class="v">50%</div>
     <div class="l">Sesiones con commits</div>
-    <div class="bar"><div style="width:33%; background:#f59e0b;"></div></div>
+    <div class="bar"><div style="width:50%; background:#f59e0b;"></div></div>
   </div>
   <div class="kpi" style="border-left-color:#f59e0b;">
     <div class="v">0</div>
@@ -59,22 +59,22 @@
 
             <div class="card">
               <h2>Ultima sesion</h2>
-              <p><strong>ID:</strong> <code>c8b2b6e2-a650-4487-995c-8f0e76b3f8d4</code></p>
-              <p><strong>Sprint activo:</strong> EMBRION-DISPATCHER-FIX-001</p>
-              <p><strong>Fecha inicio:</strong> 2026-05-22T23:00:00+00:00</p>
-              <p><strong>Duracion:</strong> — min · <strong>Turnos:</strong> 0</p>
+              <p><strong>ID:</strong> <code>aafa62cf-9b7f-4ccc-acd3-d1407a80b13a</code></p>
+              <p><strong>Sprint activo:</strong> Handoff inter-hilo 2026-05-26 (Observatorio v1 veredicto + drift inyectores de contexto)</p>
+              <p><strong>Fecha inicio:</strong> 2026-05-26T06:56:57.095847+00:00</p>
+              <p><strong>Duracion:</strong> — min · <strong>Turnos:</strong> 5</p>
               <p><strong>Pre-flight ejecutado:</strong>
-                 <span class="fail">
-                   NO
+                 <span class="ok">
+                   SI
                  </span>
               </p>
-              <p><strong>Commits productivos:</strong> 0</p>
+              <p><strong>Commits productivos:</strong> 1</p>
               <p><strong>Violaciones detectadas:</strong> 0</p>
               <p><strong>Kernel version:</strong> <code>—</code></p>
               <p><strong>Embrion ultimo latido:</strong> <code>—</code></p>
-              <p><strong>Resumen lecciones:</strong> <em>Sesión 2026-05-22/23. Dos PRs mergeados bajo DSC-G-008 v2 (6/6 verde ambos). PR #195: bypass Self-Verifier para mensaje_alfredo en embrion_loop.py. PR #196: fix dispatcher loop — columns=&quot;id&quot; → &quot;id,created_at&quot; en _detect_trigger() L819. Root cause: string vacío &quot;&quot; nunca &gt; timestamp, already_responded nunca activado, bucle 12 días. Post-deploy validado binariamente por Manus E2: 20 cycles, 1 think, costo $0/h. Lección magna: falta de columna en select puede romper lógica comparativa silenciosamente. SMS endpoint muerto detectado: sms-production-ee6c.up.railway.app (404) — endpoint correcto es el-monstruo-kernel-production.up.railway.app/sms/sms/ingest.</em></p>
+              <p><strong>Resumen lecciones:</strong> <em>Sesion Cowork 2026-05-26. Entregables: (1) veredicto Sabio Observatorio v1 = APROBAR CON AJUSTES, 3 bloqueantes (DDL 3.2 a Postgres + topologia 2-DB, firma ed25519 eventos, contrato eventos cross-repo); (2) veredicto Forja OS v2 = REQUEST_CHANGES; (3) inventario de inyectores de contexto + HALLAZGO CRITICO drift dos generaciones (skills/biblias v7.0/6 Sabios vs cowork_runtime/8 Sabios). Handoff durable: memory/cowork/HANDOFF_COWORK_2026_05_26.md commit 8b9555f. Hilo nuevo: correr pre-flight + leer el boot prompt seccion 6 del handoff.</em></p>
               <p><strong>Correctivos recibidos:</strong><br><em>ninguno</em></p>
-              <p><strong>Deudas pendientes proxima sesion:</strong><br>Actualizar doctrina/skills que citen sms-production-ee6c.up.railway.app — dominio muerto, reemplazar con el-monstruo-kernel-production.up.railway.app/sms/sms/ingest<br>Sub-deuda embrion: añadir accion stand_by al action registry para cierre limpio post-rompe-bucle<br>EMBRION-DISPATCHER-FIX-001 Tareas 2/3 pendientes (consumed_at arquitectural fix) — baja prioridad por ahora<br>Cleanup respuesta_embrion previos del bucle de 12 dias para evitar ruido en recall — bug-debt baja prioridad<br>Revisar Quantum Realm genoma_core.yaml contra doctrina actual (sesion interrumpida antes de completar revision)</p>
+              <p><strong>Deudas pendientes proxima sesion:</strong><br>Extraer set literal de axiomas: leer skills/el-monstruo-core/SKILL.md + AGENTS.md completos<br>Decidir sprint para resolver drift de inyectores: biblias v7.0/6 Sabios vs cowork_runtime/8 Sabios doctrina viva<br>Extender verificacion de inyectores de contexto a tablero-campana (Forja)<br>Confirmar si docs/CLAUDE_OPUS_VEREDICTO_FORJA_OS_v2.md quedo commiteado en tablero-campana<br>Pasar los 3 bloqueantes del veredicto Observatorio v1 al hilo Manus tablero-campana antes de Hito A</p>
             </div>
             
 
@@ -82,7 +82,8 @@
   <h2>Palabras clave correctivas de Alfredo (ultimos 7 dias)</h2>
   <table>
     <thead><tr><th>Palabra clave</th><th>Veces</th></tr></thead>
-    <tbody><tr><td colspan='2'><em>Sin correctivos en los ultimos 7 dias</em></td></tr></tbody>
+    <tbody><tr><td><code>ejecutalo ahora</code></td><td>1</td></tr>
+</tbody>
   </table>
 </div>
 
@@ -95,7 +96,8 @@
         <th>Commits</th><th>Violaciones</th><th>Min</th>
       </tr>
     </thead>
-    <tbody><tr><td>2026-05-22 23:00</td><td>EMBRION-DISPATCHER-FIX-001</td><td class='fail'>✗</td><td>0</td><td>0</td><td>—</td></tr>
+    <tbody><tr><td>2026-05-26 06:56</td><td>Handoff inter-hilo 2026-05-26 (Observatorio v1 veredicto + drift inyectores de contexto)</td><td class='ok'>✓</td><td>1</td><td>0</td><td>—</td></tr>
+<tr><td>2026-05-22 23:00</td><td>EMBRION-DISPATCHER-FIX-001</td><td class='fail'>✗</td><td>0</td><td>0</td><td>—</td></tr>
 <tr><td>2026-05-12 01:00</td><td>COWORK-MEMORIA-AUTONOMA-001 (quick wins QW1+QW2+QW3 activables HOY sin sprint nuevo)</td><td class='ok'>✓</td><td>28</td><td>11</td><td>—</td></tr>
 <tr><td>2026-05-11 08:02</td><td>COWORK-RUNTIME-001</td><td class='fail'>✗</td><td>0</td><td>0</td><td>—</td></tr>
 </tbody>
@@ -103,7 +105,7 @@
 </div>
 
 <div class="footer">
-  Generado: 2026-05-26 02:09 UTC · Fuente: <code>cowork_sesiones</code> (Supabase) ·
+  Generado: 2026-05-26 09:35 UTC · Fuente: <code>cowork_sesiones</code> (Supabase) ·
   Lookback: 30d ·
   Refs: M6 de <code>AUDITORIA_PROFUNDA_COMPORTAMIENTO_2026_05_11.md</code>
 </div>
