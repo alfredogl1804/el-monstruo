@@ -1,6 +1,6 @@
 **Estado:** Aspiracional.
 
-No es un DSC firmado. Es articulación T1 pendiente de firma magna. La firma del operador (o de Cowork para el Anexo DSC-S-012) genera el contrato canónico al completar el bloque YAML correspondiente.
+No es un DSC firmado. Es articulación T1 pendiente de firma magna. La firma del operador (o de Cowork para el Anexo DSC-S-018) genera el contrato canónico al completar el bloque YAML correspondiente.
 
 ---
 id: T1-MAGNA-005
@@ -18,7 +18,7 @@ fuentes_verificadas:
   - bloquea:FORJA-OMEGA-VISUAL Bloque A paso 1
 cruza_con:
   - T1-MAGNA-006 (PR Drafts autónomos — depende de esta)
-  - DSC-S-012 (key rotation + auth fail-closed — Cowork debe firmar después de esta)
+  - DSC-S-018 (key rotation + auth fail-closed — Cowork debe firmar después de esta)
   - DSC-G-008 v2 (audit pre-cierre — aplica al sprint que ejecute el switch)
 ---
 
@@ -82,12 +82,12 @@ Esta no es una pregunta técnica. Es filosófica: **¿confío en que el Tablero 
 
 **Costos:**
 
-- **Riesgo P0 si la clave operador se compromete.** Sin DSC-S-012 (key rotation + auth fail-closed) firmado, una sola key leak ejecuta acciones arbitrarias hasta que se revoque manualmente.
+- **Riesgo P0 si la clave operador se compromete.** Sin DSC-S-018 (key rotation + auth fail-closed) firmado, una sola key leak ejecuta acciones arbitrarias hasta que se revoque manualmente.
 - **No hay segunda firma humana** entre la intención del Tablero y la ejecución del kernel. Si el frontend se hackea (XSS, supply chain de un paquete npm), el atacante puede generar UI que fuerce a Alfredo a firmar envelopes maliciosos.
 - Choca con el principio operativo actual: Manus pone los tokens, no el Tablero. Pasar a enforce traslada el peso de la autenticación del operador humano a una clave digital.
 - Difícil reversión: una vez que hay receipts Merkle reales en cadena, retroceder a shadow significa abandonar la cadena (tabla `evidenceReceipts` queda con prefijo "deprecated_*").
 
-**Ganadores:** velocidad y soberanía del Monstruo. **Perdedor:** seguridad operativa hasta que DSC-S-012 esté firmado.
+**Ganadores:** velocidad y soberanía del Monstruo. **Perdedor:** seguridad operativa hasta que DSC-S-018 esté firmado.
 
 ---
 
@@ -113,7 +113,7 @@ Esta no es una pregunta técnica. Es filosófica: **¿confío en que el Tablero 
 
 ---
 
-### Opción D — ENFORCE escalonado por Power Lane (L0–L3 enforce, L4–L6 requieren DSC-S-012)
+### Opción D — ENFORCE escalonado por Power Lane (L0–L3 enforce, L4–L6 requieren DSC-S-018)
 
 **Qué significa:** Activar enforce solo para las power lanes bajas (L0 dev local, L1 staging interno, L2 staging compartido, L3 staging prod-like sin efectos materiales irreversibles). Las lanes altas (L4 producción con efectos reversibles, L5 producción con efectos materiales irreversibles, L6 administrativo y key rotation) siguen exigiendo DSC firmado por Alfredo + auditoría Cowork antes de cada uso.
 
@@ -122,13 +122,13 @@ Esta no es una pregunta técnica. Es filosófica: **¿confío en que el Tablero 
 - Reversibilidad alta: cualquier acción L≤3 se puede deshacer sin daño material.
 - Permite empezar a llenar `evidenceReceipts` con receipts L0–L3 reales, validar el flujo end-to-end, detectar bugs del gateway antes de exponer L4–L6.
 - Compatible con la doctrina actual sin reescribirla: Manus/Cowork siguen siendo el doble factor para producción real.
-- Reduce el alcance del DSC-S-012: solo necesita cubrir L4–L6, no toda la superficie.
+- Reduce el alcance del DSC-S-018: solo necesita cubrir L4–L6, no toda la superficie.
 - El propio `types.ts` ya tiene el enum `PowerLaneLevel = 0 | 1 | 2 | 3 | 4 | 5 | 6`. Se aprovecha lo construido.
 
 **Costos:**
 
 - El gateway necesita lógica condicional por nivel. Aumenta cobertura de tests pero es ~100 líneas TS.
-- Algunos sprints (autonomy scheduler con jobs nightly que tocan producción) requieren L4 — quedan bloqueados hasta DSC-S-012.
+- Algunos sprints (autonomy scheduler con jobs nightly que tocan producción) requieren L4 — quedan bloqueados hasta DSC-S-018.
 - Requiere disciplina para no "subir un envelope a L4 sin pensar". Mitigable con CI check que falla si el envelope tiene `powerLane > 3` y no apunta a un DSC vigente.
 
 **Ganadores:** ejecución útil sin compromiso de seguridad inmediato. **Costos:** disciplina y un trabajo de gateway adicional.
@@ -139,7 +139,7 @@ Esta no es una pregunta técnica. Es filosófica: **¿confío en que el Tablero 
 
 | Criterio | A — Shadow | B — Enforce total | C — Dos llaves | D — Escalonado |
 |---|---|---|---|---|
-| Riesgo P0 si key leak | **0** | **alto** | **bajo** | **bajo** (L≤3) / alto (L≥4 sin DSC-S-012) |
+| Riesgo P0 si key leak | **0** | **alto** | **bajo** | **bajo** (L≤3) / alto (L≥4 sin DSC-S-018) |
 | Tiempo a primer receipt Merkle real | nunca | **24 horas** | 1 semana | **3–5 días** |
 | Sprints desbloqueados de inmediato | 0 | todos | la mitad | **6 de 8** del backlog Forja |
 | Compatibilidad doctrina actual (Manus ejecuta, Cowork canoniza) | **alta** | baja | **alta** | **alta** |
@@ -148,7 +148,7 @@ Esta no es una pregunta técnica. Es filosófica: **¿confío en que el Tablero 
 | Cumple SOP/EPIA Capa 2 (Inteligencia Emergente) | **no** | **sí** | sí | parcial |
 | Habilita Factory Mode con datos vivos | no | **sí** | sí | **sí** |
 | Costo de no firmar hoy | bloqueo permanente | inversión perdida | inversión perdida | inversión perdida |
-| Requiere DSC-S-012 firmado antes | no | **sí (crítico)** | sí (recomendado) | solo para L4–L6 |
+| Requiere DSC-S-018 firmado antes | no | **sí (crítico)** | sí (recomendado) | solo para L4–L6 |
 | Dependencia Cowork siempre disponible | no | no | **sí** | no |
 
 ---
@@ -161,10 +161,10 @@ No por consenso, sino por estos motivos verificables:
 
 1. **El `types.ts` ya canoniza Power Lanes L0–L6**. Aprovechar esa estructura es Obj #7 (No Inventar Rueda).
 2. **Reversibilidad real**: las acciones L≤3 son recuperables. Si una iteración del gateway tiene un bug, no se rompe producción.
-3. **Mitigación P0 sin bloqueo total**: el riesgo crítico de Opción B (key leak en L5 firma destructiva) queda fuera del alcance hasta que DSC-S-012 esté firmado. Mientras tanto, las 6 de 8 lanes ya útiles operan.
+3. **Mitigación P0 sin bloqueo total**: el riesgo crítico de Opción B (key leak en L5 firma destructiva) queda fuera del alcance hasta que DSC-S-018 esté firmado. Mientras tanto, las 6 de 8 lanes ya útiles operan.
 4. **Cumple la doctrina actual sin reescribirla**: la frontera "Manus/Cowork como dobles factores para producción" se preserva exactamente donde importa (L≥4). Para staging y dev (L≤3), el Tablero ejecuta solo, lo que es coherente con su rol como cockpit de observación + ejecución acotada.
-5. **Habilita Factory Mode con datos vivos parciales**: el panel muestra receipts reales para L0–L3 y receipts shadow para L4–L6 hasta que DSC-S-012 se firme. **No es Potemkin parcial; es transparencia total sobre qué está enforce y qué está shadow**.
-6. **Reduce el scope del DSC-S-012**: en lugar de cubrir toda la superficie Forja, cubre solo L4–L6 (key rotation, auth fail-closed para producción, revocación coordinada). Eso lo hace firmable en una sola jornada Cowork, no un sprint completo.
+5. **Habilita Factory Mode con datos vivos parciales**: el panel muestra receipts reales para L0–L3 y receipts shadow para L4–L6 hasta que DSC-S-018 se firme. **No es Potemkin parcial; es transparencia total sobre qué está enforce y qué está shadow**.
+6. **Reduce el scope del DSC-S-018**: en lugar de cubrir toda la superficie Forja, cubre solo L4–L6 (key rotation, auth fail-closed para producción, revocación coordinada). Eso lo hace firmable en una sola jornada Cowork, no un sprint completo.
 7. **Compatible con el embrion-down actual**: el embrion_loop está fallando con `kimi-k2-6` (issue separado). Opción D no toca esa zona; Opción B sí, porque al pasar a enforce el embrion empezaría a generar envelopes activos que fallan.
 
 Opciones A y B son extremos que la doctrina canon ya rechazó implícitamente cuando construyó Forja v4 con Power Lanes graduales. Opción C es defendible pero introduce una dependencia Cowork siempre-disponible que no escala con embriones autónomos. Opción D es el camino que el código mismo sugiere.
@@ -175,7 +175,7 @@ Opciones A y B son extremos que la doctrina canon ya rechazó implícitamente cu
 
 Si Alfredo firma Opción D:
 
-1. **Redactar y firmar DSC-S-012** (key rotation cadence + auth fail-closed para L4–L6 + procedimiento de revocación).
+1. **Redactar y firmar DSC-S-018** (key rotation cadence + auth fail-closed para L4–L6 + procedimiento de revocación).
 2. **Auditar el contenido del nuevo gateway condicional** antes de merge a main (DSC-G-008 v2).
 3. **Canonizar en `_dsc_contracts_index.yaml`** la nueva entrada `DSC-MO-FORJA-ENFORCE-D` con cruce a este T1.
 4. **Aprobar la matriz de Power Lanes** (qué tipo de acción cae en qué nivel) — esto debe quedar como tabla canónica, no como interpretación libre del gateway.
@@ -218,7 +218,7 @@ Al firmar:
 
 1. Se commitea como `T1_MAGNA_005_FORJA_SHADOW_A_ENFORCE_FIRMADA.md` en `discovery_forense/CAPILLA_DECISIONES/EL-MONSTRUO/`.
 2. Manus B abre PR al repo `tablero-campana` con el cambio del gateway condicional (si D) o del flujo de doble firma (si C).
-3. Cowork recibe la lista de DSCs derivados que debe firmar (DSC-S-012 obligatorio si B/D, opcional si C).
+3. Cowork recibe la lista de DSCs derivados que debe firmar (DSC-S-018 obligatorio si B/D, opcional si C).
 4. Se programa revisión a 30 días para evaluar si la separación L≤3/L≥4 (D) o el doble-factor (C) funcionan con tráfico real.
 5. Se actualiza `MONSTRUO_GENOME.yaml` con el campo `forja_mode: enforce_l0_l3` o equivalente.
 
@@ -227,7 +227,7 @@ Al firmar:
 ## 8. Bloqueos cruzados resueltos por esta firma
 
 - **T1-MAGNA-006** (PR Drafts autónomos del embrion): se desbloquea si firma B/C/D. Queda eternamente bloqueada si firma A.
-- **DSC-S-012** (key rotation + auth fail-closed): se vuelve obligatorio si firma B; recomendado si firma C/D parcial.
+- **DSC-S-018** (key rotation + auth fail-closed): se vuelve obligatorio si firma B; recomendado si firma C/D parcial.
 - **FORJA-OMEGA-VISUAL Bloque A paso 1**: se desbloquea con cualquier firma B/C/D.
 - **Sprint MOBILE_0_SMP** y **WHATSAPP_GATEWAY_P0**: indirectamente desbloqueados, ya que requieren un canal de ejecución material que hoy depende de Manus.
 - **Embrion_loop autónomo**: si firma D, las acciones nightly del embrion (que hoy fallan) se canalizan vía Forja L≤3 sin requerir L4.
@@ -240,7 +240,7 @@ Este documento NO firma por ti. Solo te entrega las cuatro opciones con criterio
 
 La firma es tuya, T1 magna, no delegable a Manus, ni a Cowork, ni a ChatGPT.
 
-Cuando firmes, responde en este hilo o agrega el bloque YAML al final del documento. Manus B aplica el cambio al repo `tablero-campana` en menos de 1 hora si la opción es D, en 1 día si es C. Cowork puede auditar en su próximo ciclo y firmar DSC-S-012 en paralelo.
+Cuando firmes, responde en este hilo o agrega el bloque YAML al final del documento. Manus B aplica el cambio al repo `tablero-campana` en menos de 1 hora si la opción es D, en 1 día si es C. Cowork puede auditar en su próximo ciclo y firmar DSC-S-018 en paralelo.
 
 **Atención especial:** la Opción A (quedarse en shadow) es el path de menor resistencia hoy pero es el path que más cuesta a futuro: tarde o temprano alguien (un hilo, un embrion, un sabio) construirá Factory Mode encima y descubrirá que es escaparate. Si vas a quedarte en shadow, **firmarlo explícitamente** es mejor que "no firmar nada" — al menos quedará canon que el switch fue considerado y rechazado conscientemente, no olvidado.
 

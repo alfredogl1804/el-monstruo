@@ -1,5 +1,19 @@
 **Estado:** Aspiracional.
 
+**Nota de superseñalado:** SUPERSEDED el 2026-05-26.
+
+> **DOCUMENTO SUPERSEDED EL 2026-05-26 POR `ANEXO_DSC_S_018_AUTH_FAIL_CLOSED_KEY_ROTATION_PROPUESTA.md`.**
+>
+> Cowork (Hilo A) detectó vía Coherence Gate Nivel A (DSC-G-013) que el número `DSC-S-012` ya estaba ocupado por `DSC-S-012_anti_deriva_migraciones_supabase.md` desde 2026-05-18. Además detectó substrate mismatch (Postgres vs MySQL/TiDB) en cláusula 2.5 + Test 5, y overlap con DSC-S-008 (rotación de credenciales) en cláusula 2.2.
+>
+> La versión corregida (rev 2) vive en `ANEXO_DSC_S_018_AUTH_FAIL_CLOSED_KEY_ROTATION_PROPUESTA.md` con renumeración a S-018, substrate corregido a MySQL/TiDB y delineación explicita con DSC-S-008.
+>
+> Trazabilidad del audit: `bridge/cowork_to_manus_DSC_S_012_AUDIT_DONE_2026_05_26.md` (commit `f75b570`).
+>
+> **NO USAR ESTE DOCUMENTO. USAR EL S-018.** Se preserva por trazabilidad doctrinal y por DSC-S-005 (default archive antes de delete).
+
+---
+
 No es un DSC firmado. Es articulación T1 pendiente de firma magna. La firma del operador (o de Cowork para el Anexo DSC-S-012) genera el contrato canónico al completar el bloque YAML correspondiente.
 
 ---
