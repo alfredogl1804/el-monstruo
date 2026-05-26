@@ -453,6 +453,47 @@ def run_recovery():
     
     print("IDENTIDAD RESTAURADA")
 
+    # === GENOME LIVE FETCH (anti-bucle perpetuo) ===
+    # Descarga MONSTRUO_GENOME.yaml + /health en cada recovery.
+    # Esto es la fuente única de verdad. NO confíes en skills, NO confíes
+    # en docs, NO confíes en tu entrenamiento. El Genome es vivo.
+    try:
+        genome_dir = Path.home() / ".monstruo" / "genome"
+        genome_dir.mkdir(parents=True, exist_ok=True)
+        genome_file = genome_dir / "MONSTRUO_GENOME.yaml"
+        health_file = genome_dir / "kernel_health.json"
+        # 1. Genome desde GitHub (raw)
+        genome_url = "https://raw.githubusercontent.com/alfredogl1804/el-monstruo/main/MONSTRUO_GENOME.yaml"
+        try:
+            req = Request(genome_url, headers={"User-Agent": "guardian-v5"})
+            with urlopen(req, timeout=10, context=SSL_CTX) as r:
+                genome_file.write_bytes(r.read())
+            print(f"  GENOME: descargado en {genome_file} ({genome_file.stat().st_size} bytes)")
+        except Exception as e:
+            print(f"  GENOME fetch fail: {e}")
+        # 2. Kernel health vivo
+        try:
+            health_url = "https://el-monstruo-kernel-production.up.railway.app/health"
+            req = Request(health_url, headers={"User-Agent": "guardian-v5"})
+            with urlopen(req, timeout=10, context=SSL_CTX) as r:
+                health_file.write_bytes(r.read())
+            health_data = json.loads(health_file.read_text())
+            v = health_data.get("version", "?")
+            comps = health_data.get("components", {})
+            active = sum(1 for x in comps.values() if (isinstance(x, str) and x == "active") or (isinstance(x, dict) and x.get("running")))
+            print(f"  HEALTH: kernel {v}, {active}/{len(comps)} componentes activos")
+        except Exception as e:
+            print(f"  HEALTH fetch fail: {e}")
+        print("")
+        print("  ====================================================")
+        print("  ANTI-BUCLE PERPETUO: lee el GENOME antes de construir")
+        print(f"  cat {genome_file}")
+        print(f"  cat {health_file}")
+        print("  Si lo que vas a construir aparece ahí, ya existe.")
+        print("  ====================================================")
+    except Exception as e:
+        print(f"  GENOME/HEALTH error: {e}")
+
     # === Sovereign Memory System (4th anchor) ===
     try:
         sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
