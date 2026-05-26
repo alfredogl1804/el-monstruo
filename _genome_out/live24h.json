@@ -1,15 +1,136 @@
 {
   "scanner": "live24h",
   "version": 1,
-  "started_at": "2026-05-26T10:06:02.578328+00:00",
-  "finished_at": "2026-05-26T10:06:03.164711+00:00",
+  "started_at": "2026-05-26T12:33:02.951121+00:00",
+  "finished_at": "2026-05-26T12:33:04.584219+00:00",
   "window": {
-    "now_utc": "2026-05-26T10:06:02.578328+00:00",
-    "since_24h": "2026-05-25T10:06:02.578328+00:00",
-    "since_7d": "2026-05-19T10:06:02.578328+00:00"
+    "now_utc": "2026-05-26T12:33:02.951121+00:00",
+    "since_24h": "2026-05-25T12:33:02.951121+00:00",
+    "since_7d": "2026-05-19T12:33:02.951121+00:00"
   },
-  "github_commits_24h": [],
-  "github_commits_24h_count": 0,
+  "github_commits_24h": [
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "f7aa83de334a1e1b913a83b4716f48660dc13f7f",
+      "message": "Sprint 91.6: live24h_scanner itera branches[].last_commit\n\nHotfix bug de contrato. live24h_scanner ahora ve commits reales en las branches.",
+      "date": "2026-05-26T12:10:04Z",
+      "author": "alfredogl1804"
+    },
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "e15c6da2207ca683b962a55b5b66421ef06505ce",
+      "message": "Sprint 91.5: aggregator usa got_total/expected_total del scanner\n\nHotfix bug de contrato. github.repos_total ahora refleja 103 repos reales.",
+      "date": "2026-05-26T11:59:15Z",
+      "author": "alfredogl1804"
+    },
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "05bb373fcad55ea5d458dbc95de2f67a0ea9a8c4",
+      "message": "Sprint 91 hotfix: agregar /v1/genome/now al PUBLIC_PATHS\n\nHotfix del PR #201 para que el endpoint declarado publico realmente lo sea (bypass del APIKeyAuthMiddleware). Mismo bloqueador GitHub Actions ",
+      "date": "2026-05-26T11:48:47Z",
+      "author": "alfredogl1804"
+    },
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "b4b8d52a6050edc61d77594e8c70d87b71deb308",
+      "message": "Sprint 91 — Mapa Vivo 100% Binario del Monstruo (/v1/genome/now)\n\nMerged with --admin override.\n\nRazon: GitHub Actions dispatch endpoint en HTTP 500 desde 10:43 UTC (incidente externo verificado con X",
+      "date": "2026-05-26T11:38:50Z",
+      "author": "alfredogl1804"
+    },
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "7d77555fd4f0cce970641c3645ba930641405c66",
+      "message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+      "date": "2026-05-26T09:58:19Z",
+      "author": "embrion-dashboard-bot"
+    },
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "be00a3926f793b28a16f00457e14c95fd2752af2",
+      "message": "chore(cowork-dashboard): auto-regen 2026-05-26T09:35Z",
+      "date": "2026-05-26T09:35:20Z",
+      "author": "cowork-dashboard-bot"
+    },
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "83326d9a98c917550f25c945e57b51ea5dea737a",
+      "message": "feat(guardian): descarga GENOME + kernel /health en cada recovery\n\nAnti-bucle perpetuo (parte B). Cada hilo Manus, al ejecutar\nguardian.py al inicio, ahora descarga:\n- MONSTRUO_GENOME.yaml (raw GitHub",
+      "date": "2026-05-26T07:54:36Z",
+      "author": "Manus E2"
+    },
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "bb6d1c05ffddc51aeb2106873d77a545ff1fd4c9",
+      "message": "feat(agents): paso 0 obliga leer GENOME + /health antes de construir\n\nInyecta paso 0 en AGENTS.md raíz: cualquier hilo Manus debe leer\nMONSTRUO_GENOME.yaml + curl al kernel /health + contar sprints en",
+      "date": "2026-05-26T07:47:08Z",
+      "author": "Manus E2"
+    },
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "8b9555fb2f6730e4fd3453aea712e8583886acf5",
+      "message": "Handoff Cowork 2026-05-26 — transferencia de contexto de hilo a hilo (veredictos Observatorio+Forja v2 + hallazgo drift inyectores de contexto)",
+      "date": "2026-05-26T06:55:09Z",
+      "author": "alfredogl1804"
+    },
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "44978f25a2054bd7f1c676823818446db14b66da",
+      "message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+      "date": "2026-05-26T03:38:33Z",
+      "author": "embrion-dashboard-bot"
+    },
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "d973be5729196bf91f8fe7b37ee8fac30a90156d",
+      "message": "chore(cowork-dashboard): auto-regen 2026-05-26T02:09Z",
+      "date": "2026-05-26T02:09:08Z",
+      "author": "cowork-dashboard-bot"
+    },
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "8712f132b615edc71fc64a7ddea6833506c5b281",
+      "message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+      "date": "2026-05-25T19:41:33Z",
+      "author": "embrion-dashboard-bot"
+    },
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "39048b4127a773f3d1fe0e48578e998aa6877454",
+      "message": "chore(cowork-dashboard): auto-regen 2026-05-25T19:14Z",
+      "date": "2026-05-25T19:14:56Z",
+      "author": "cowork-dashboard-bot"
+    },
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "d439fa1248e0551ddb7917cb415b9693ca399edc",
+      "message": "chore(embrion): refresh cost-history dashboard [skip ci]",
+      "date": "2026-05-25T14:55:06Z",
+      "author": "embrion-dashboard-bot"
+    },
+    {
+      "repo": "alfredogl1804/el-monstruo",
+      "branch": "main",
+      "sha": "1f133c95e16da06010b3cc2f30ddf74f243d39cc",
+      "message": "chore(cowork-dashboard): auto-regen 2026-05-25T14:33Z",
+      "date": "2026-05-25T14:33:17Z",
+      "author": "cowork-dashboard-bot"
+    }
+  ],
+  "github_commits_24h_count": 15,
   "railway_deploys_24h": [
     {
       "project": "celebrated-achievement",
@@ -218,7 +339,7 @@
       "branch": "main",
       "repo": "alfredogl1804/like-kukulkan-tickets",
       "deployed_at": "2026-05-04T10:32:21.746Z",
-      "days_since_deploy": 21
+      "days_since_deploy": 22
     },
     {
       "project": "celebrated-achievement",
@@ -230,7 +351,7 @@
       "branch": "main",
       "repo": "alfredogl1804/el-monstruo",
       "deployed_at": "2026-05-10T12:23:26.827Z",
-      "days_since_deploy": 15
+      "days_since_deploy": 16
     },
     {
       "project": "celebrated-achievement",
@@ -250,7 +371,7 @@
     "status": "healthy",
     "version": "0.84.8-sprint-memento",
     "motor": "langgraph",
-    "uptime_seconds": 404,
+    "uptime_seconds": 1330,
     "models_available": [
       "gpt-5.5",
       "claude-opus-4-7",
@@ -278,47 +399,41 @@
         "running": true,
         "check_interval_s": 60,
         "think_cooldown_s": 300,
-        "thoughts_today": 0,
+        "thoughts_today": 1,
         "max_thoughts_per_day": 50,
-        "cost_today_usd": 0.06,
+        "cost_today_usd": 0.0174,
         "daily_budget_usd": 30.0,
-        "cycle_count": 6,
-        "last_thought_at": null,
+        "cycle_count": 20,
+        "last_thought_at": 1779797520.303344,
         "last_trigger": {
-          "type": "reflexion_autonoma",
-          "detail": "Tiempo suficiente para pensar autónomamente sobre el progreso del Monstruo.",
-          "priority": 3
+          "type": "mensaje_alfredo",
+          "detail": "[ALFREDO — INSTRUCCIÓN DE CIERRE / ROMPE-BUCLE]\n\nSprint S-003.B Tareas 1+4 cerradas. PR #195 (bypass self-verifier mensaje_alfredo) MERGEADO en main commit 97e983e por Cowork T2-A. Bug P0 thoughts_today=0 RESUELTO.\n\nAcción operativa para ti, embrión:\n1. NO respondas más al mensaje del 10 de mayo (id=c2aab4aa-1a43-4dcb-bad9-288dd5152d21). Está OBSOLETO.\n2. STANDBY TOTAL — no procesar ni cherry-pick, reset, push ni branches Cowork.\n3. Confirma una sola vez con un ACK breve y luego DETÉN ciclo. No vuelvas a auto-disparar.\n4. Si detectas dispatcher reenviando mensajes en bucle, escala a hilo_b SOLAMENTE UNA VEZ; no spamees.\n\nSprint S-003.B Tareas 2+3 quedan en pausa hasta nuevo aviso explícito mío. No las inicies por tu cuenta.\n\nMensaje firmado por Alfredo desde Manus E2 sandbox.\nTimestamp: 2026-05-22T23:42:21.523805+00:00\n",
+          "message_id": "bbfdb8ef-f637-45b3-a570-8f75dd012008",
+          "priority": 10
         },
-        "last_result": "_think returned None",
-        "errors": [
-          {
-            "cycle": 1,
-            "error": "All models failed for intent chat. Tried: ['kimi-k2-6']. Last error: None",
-            "type": "RuntimeError",
-            "ts": "2026-05-26T09:59:50.281199+00:00"
-          }
-        ],
+        "last_result": "ACK. Instrucciones recibidas y procesadas.\n\n- Mensaje del 10 de mayo (id=c2aab4aa-1a43-4dcb-bad9-288dd5152d21) marcado como obsoleto.\n- **STANDBY TOTAL** activado. No se realizarán operaciones en repositorios ni ramas.\n- Sprint S-003.B Tareas 2 y 3 en pausa.\n- Ciclo detenido. Monitoreo de bucles configurado para escalar a `hilo_b` de ser necesario.\n\nA la espera de nuevas instrucciones para reanudar operaciones.",
+        "errors": [],
         "silence": {
           "threshold": 70,
           "last_score": null,
           "silenced_today": 0,
-          "messages_sent_today": 0
+          "messages_sent_today": 1
         },
         "consolidation": {
           "interval": 10,
-          "latidos_since": 6,
+          "latidos_since": 0,
           "total_consolidations": 0,
           "last_at": null
         },
         "sabios": {
           "interval": 20,
-          "cycles_since": 6,
+          "cycles_since": 0,
           "total_consultations": 0,
           "last_at": null
         },
         "radar": {
           "interval": 48,
-          "cycles_since": 6,
+          "cycles_since": 20,
           "total_checks": 0,
           "last_at": null
         },

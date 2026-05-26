@@ -210,8 +210,34 @@ def scan() -> dict[str, Any]:
             branches_raw = []
             print(f"    branches error: {e}", flush=True)
 
+        # Sprint 91.7.1: garantizar que default_branch (main/master/etc) SIEMPRE
+        # esté en la lista escaneada, aunque el repo tenga >50 branches.
+        # Bug previo: `branches_raw[:50]` excluía `main` cuando aparecía despues
+        # del corte, dejando `live24h.github_commits_24h` siempre en 0.
+        seen_names = set()
+        ordered_branches = []
+        # 1) Asegurar default_branch primero si existe en la lista cruda
+        for b in branches_raw:
+            if b.get("name") == default_branch and default_branch not in seen_names:
+                ordered_branches.append(b)
+                seen_names.add(default_branch)
+                break
+        # 2) Si no apareció en branches_raw, agregarlo sintéticamente para forzar scan
+        if default_branch not in seen_names:
+            ordered_branches.append({"name": default_branch})
+            seen_names.add(default_branch)
+        # 3) Resto de branches hasta llegar al tope de 50
+        for b in branches_raw:
+            n = b.get("name")
+            if n in seen_names:
+                continue
+            ordered_branches.append(b)
+            seen_names.add(n)
+            if len(ordered_branches) >= 50:
+                break
+
         branches = []
-        for b in branches_raw[:50]:  # tope sano por repo
+        for b in ordered_branches:
             commit_info = None
             try:
                 commit_info = get_last_commit(owner, name, b.get("name"))

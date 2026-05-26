@@ -28,6 +28,14 @@ from typing import Any
 import requests
 
 ROOT = Path(__file__).resolve().parent.parent.parent
+
+GH_TOKEN = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or ""
+GH_HEADERS = {
+    "Accept": "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+}
+if GH_TOKEN:
+    GH_HEADERS["Authorization"] = f"Bearer {GH_TOKEN}"
 OUT_DIR = ROOT / "_genome_out"
 
 # Carga .env si existe
@@ -81,20 +89,47 @@ def scan() -> dict[str, Any]:
     sb = load_json("supabase.json") or {}
 
     # 1. Commits recientes (≤24h) por repo
-    # Sprint 91.6 hotfix — contrato correcto: el github_scanner produce
-    # repo["branches"][i]["last_commit"], NO repo["last_commit"].
+    # Sprint 91.7.2 — contrato real: contar TODOS los commits en default_branch
+    # de cada repo en últimas 24h via /repos/{owner}/{repo}/commits?since=...
+    # Antes (91.6): sólo se veía last_commit por branch (cabeza), perdiendo
+    # squash-merges intermedios y cron jobs que sobreescriben la cabeza.
     print("  github commits 24h...", flush=True)
     gh_recent = []
     seen_shas: set[str] = set()
-    for repo in gh.get("repos", []):
+    since_iso = T24H.strftime("%Y-%m-%dT%H:%M:%SZ")
+    repos_list = gh.get("repos", []) or []
+    for repo in repos_list:
         repo_full = repo.get("full_name") or repo.get("name")
-        for branch in repo.get("branches", []) or []:
-            last_commit = branch.get("last_commit") or {}
-            sha = last_commit.get("sha")
-            ts = parse_iso(last_commit.get("date"))
+        default_branch = repo.get("default_branch") or "main"
+        if not repo_full or "/" not in repo_full:
+            continue
+        # Filtro de eficiencia: si pushed_at del repo es > 24h, saltar
+        pushed_at_ts = parse_iso(repo.get("pushed_at"))
+        if pushed_at_ts and pushed_at_ts < T24H:
+            continue
+        owner_name, repo_name = repo_full.split("/", 1)
+        try:
+            url = f"https://api.github.com/repos/{owner_name}/{repo_name}/commits"
+            r = requests.get(
+                url,
+                params={"sha": default_branch, "since": since_iso, "per_page": 100},
+                headers=GH_HEADERS,
+                timeout=20,
+            )
+            if r.status_code != 200:
+                continue
+            commits = r.json() or []
+        except Exception:
+            continue
+        for c in commits:
+            sha = c.get("sha")
+            commit = c.get("commit") or {}
+            author = (commit.get("author") or {}).get("name")
+            date = (commit.get("author") or {}).get("date")
+            message = commit.get("message") or ""
+            ts = parse_iso(date)
             if not (ts and ts >= T24H):
                 continue
-            # Deduplicar por sha (mismo commit en múltiples branches del mismo repo)
             dedup_key = f"{repo_full}:{sha}" if sha else None
             if dedup_key and dedup_key in seen_shas:
                 continue
@@ -103,11 +138,11 @@ def scan() -> dict[str, Any]:
             gh_recent.append(
                 {
                     "repo": repo_full,
-                    "branch": branch.get("name") or repo.get("default_branch"),
+                    "branch": default_branch,
                     "sha": sha,
-                    "message": (last_commit.get("message") or "")[:200],
-                    "date": last_commit.get("date"),
-                    "author": last_commit.get("author"),
+                    "message": message[:200],
+                    "date": date,
+                    "author": author,
                 }
             )
     gh_recent.sort(key=lambda x: x["date"] or "", reverse=True)
