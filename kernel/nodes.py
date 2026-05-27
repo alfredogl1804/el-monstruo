@@ -1163,6 +1163,33 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
             model_used = usage.get("model_used", model)
 
         elif router and hasattr(router, "execute_with_tools"):
+            # ── DAN S5 Router Pin (2026-05-27): si intent=EXECUTE y hay tools
+            # disponibles, forzar modelo FC-fiable (Claude Opus / GPT-5.5).
+            # Confirmado E2E iPhone 2026-05-27 que Grok 4.20 ignora
+            # tool_choice='required' y emite prosa en vez de function-callear.
+            # Sonar/DeepSeek-R1 no tienen FC nativo. Esta capa garantiza el
+            # contrato a nivel router, complementando T1 (prompt drift) y T2
+            # (server-side ghost-gate).
+            if (
+                intent == IntentType.EXECUTE.value
+                and tool_specs
+                and not is_followup  # follow-ups (post-tool-result) usan modelo original
+            ):
+                from config.model_catalog import (
+                    pin_to_reliable_fc,
+                    supports_reliable_function_calling,
+                )
+                if not supports_reliable_function_calling(model):
+                    pinned_model = pin_to_reliable_fc(model)
+                    logger.info(
+                        "router_pin_applied",
+                        original_model=model,
+                        pinned_model=pinned_model,
+                        intent=intent,
+                        tool_count=len(tool_specs),
+                        reason="DAN_S5_router_pin_EXECUTE_tools",
+                    )
+                    model = pinned_model
             llm_response = await router.execute_with_tools(
                 message=message,
                 model=model,
@@ -1249,24 +1276,46 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
                             run_id=state.get("run_id", ""),
                         )
                     else:
-                        # Re-prompt failed: LLM still narrating. Fail-loud.
+                        # ── DAN S5 Capa 4 (Graceful Fallback) ──
+                        # El re-prompt con tool_choice='required' falló:
+                        # el LLM sigue narrando sin emitir tool_call.
+                        # Causa probable: provider ignora tool_choice='required'
+                        # (ej. Grok 4.20, confirmado E2E iPhone 2026-05-27).
+                        #
+                        # Antes (T2 original): raise RuntimeError → mata el
+                        # stream HTTP → frontend ve respuesta vacía + UX rota.
+                        # Ahora (Capa 4): retornar respuesta degradada amigable
+                        # al usuario + log estructurado para auditoría Cowork.
+                        #
+                        # El router pin (Capa 3, ver línea 1166) debería haber
+                        # evitado este caso al forzar modelo FC-fiable. Si
+                        # llegamos aquí, hay drift en el catálogo o un bug.
                         _ghost_persistent = detect_ghost_in_response(
                             response_text=response or "",
                             available_tool_names=_available_tool_names,
                             has_tool_calls=False,
                         )
                         logger.error(
-                            "ghost_gate_reprompt_failed",
+                            "ghost_gate_reprompt_failed_graceful",
                             suspected_tool=_ghost.suspected_tool,
                             persistent_ghost=(_ghost_persistent is not None),
+                            model=model,
                             run_id=state.get("run_id", ""),
+                            action="return_degraded_response",
                         )
-                        raise RuntimeError(
-                            f"Ghost-gate exhausted: LLM narrated tool "
-                            f"'{_ghost.suspected_tool}' in prose, was re-prompted "
-                            f"with tool_choice='required', and still did not emit "
-                            f"a tool_call. {_ghost.reason()}"
+                        # Respuesta degradada: el usuario recibe un mensaje
+                        # claro en lenguaje natural en vez de un crash.
+                        response = (
+                            f"No pude completar la acción automáticamente. "
+                            f"El modelo intentó narrar el uso de la herramienta "
+                            f"'{_ghost.suspected_tool}' en prosa en vez de invocarla. "
+                            f"Estoy registrando este caso para mejorar. "
+                            f"Por favor reformula tu petición de manera más explícita, "
+                            f"o intenta de nuevo en unos segundos."
                         )
+                        # No hay tool_calls pendientes — el flujo termina aquí,
+                        # sin re-intentar y sin matar el stream.
+                        pending_tool_calls = []
                 # /DAN T2 ────────────────────────────────────────────────────────
 
         elif router:
