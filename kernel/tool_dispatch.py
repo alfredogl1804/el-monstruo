@@ -89,6 +89,78 @@ def get_tool_specs():
                 "required": ["query"],
             },
             risk="low",
+            cost_usd_estimated=0.005,  # DAN P0.5: blended Sonar approx
+            latency_ms_estimated=800,  # Sonar reasoning typical TTLT
+        ),
+        # ── DAN P0.4: skill_read tool ───────────────────────────────
+        ToolSpec(
+            name="skill_read",
+            description=(
+                "Read the contents of a skill's SKILL.md file from skills/<name>/SKILL.md. "
+                "Read-only operation. PII (API keys, tokens, JWTs, emails, postgres credentials) "
+                "is redacted from the output before it reaches you. Use this when you need to "
+                "access procedural knowledge stored in a skill instead of guessing from training."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "skill_name": {
+                        "type": "string",
+                        "description": "Name of the skill directory under skills/, e.g. 'el-monstruo-core'.",
+                    },
+                },
+                "required": ["skill_name"],
+            },
+            risk="low",
+            cost_usd_estimated=0.0,  # local read; no API cost
+            latency_ms_estimated=20,
+        ),
+        # ── DAN P0.4: github_ops tool ───────────────────────────────
+        ToolSpec(
+            name="github_ops",
+            description=(
+                "Execute GitHub repository operations via tools/github.py::execute_github(). "
+                "Read actions (search_repos, search_code, get_file, list_issues, list_prs) are "
+                "auto-allowed. COMMIT_LOOP write actions (create_branch, create_or_update_file, "
+                "create_pull_request) are auto-approved because the PR is the human gate. "
+                "HITL_WRITE actions (create_issue, update_issue) require explicit human approval "
+                "before execution and will return error 'HITL_REQUIRED' otherwise. Pass the "
+                "action name in `action` and its arguments as a flat dict in `params`."
+            ),
+            parameters={
+                "type": "object",
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": [
+                            "search_repos",
+                            "search_code",
+                            "get_file",
+                            "list_issues",
+                            "list_prs",
+                            "create_branch",
+                            "create_or_update_file",
+                            "create_pull_request",
+                            "create_issue",
+                            "update_issue",
+                        ],
+                        "description": "GitHub action name (must match tools/github.py).",
+                    },
+                    "params": {
+                        "type": "object",
+                        "description": (
+                            "Flat dict of arguments forwarded to the action function. Keys depend on the action: "
+                            "`repo` is required for repo-scoped actions; `query`, `path`, `ref`, `state`, `limit`, "
+                            "`branch`, `from_branch`, `title`, `body`, `head_branch`, `base_branch`, `labels`, "
+                            "`issue_number`, `content`, `commit_message`, `auto_create_branch` are passed as **kwargs."
+                        ),
+                    },
+                },
+                "required": ["action", "params"],
+            },
+            risk="high",  # write actions modify external state; HITL gates them
+            cost_usd_estimated=0.0,  # GitHub REST API: rate-limit only
+            latency_ms_estimated=400,
         ),
         ToolSpec(
             name="consult_sabios",
@@ -767,12 +839,55 @@ async def _execute_tool(tool_name: str, args: dict[str, Any]) -> dict[str, Any]:
     """Execute a tool by name and return the result."""
     try:
         if tool_name == "web_search":
-            from tools.web_search import web_search
+            # DAN P0.4: route web_search through the telemetry wrapper so the
+            # ToolBroker / cost ledger receive cost_usd + latency_ms + structured
+            # results. The wrapper falls back to the base web_search() shape if
+            # finops/run_id are not provided (caller compatibility preserved).
+            from tools.web_search_tool import web_search_with_telemetry
 
-            return await web_search(
+            # Resolve finops + run_id from args (caller-provided) or fall back
+            # to the global app.state.finops if available. NEVER fabricate.
+            finops = args.get("_finops")
+            run_id = args.get("_run_id")
+            if finops is None:
+                try:  # best-effort: kernel/main.py sets app.state.finops
+                    from kernel.main import app as _app  # type: ignore
+                    finops = getattr(getattr(_app, "state", None), "finops", None)
+                except Exception:
+                    finops = None
+            return await web_search_with_telemetry(
                 query=args.get("query", ""),
                 context=args.get("context", ""),
+                finops=finops,
+                run_id=run_id,
             )
+        elif tool_name == "skill_read":
+            # DAN P0.4: read-only access to skills/<name>/SKILL.md with PII redaction.
+            from tools.skill_read import skill_read
+
+            return await skill_read(
+                skill_name=args.get("skill_name", ""),
+            )
+        elif tool_name == "github_ops":
+            # DAN P0.4: typed wrapper around tools/github.py::execute_github with
+            # explicit hitl_approved propagation. The kernel HITL flow MUST set
+            # `_hitl_approved=True` for write actions; the LLM cannot self-approve.
+            from tools.github import execute_github
+            import json as _json
+
+            action = args.get("action", "")
+            params = args.get("params", {}) or {}
+            hitl_approved = bool(args.get("_hitl_approved", False))
+            raw = await execute_github(action, params, hitl_approved=hitl_approved)
+            # execute_github returns a JSON string; normalize to dict for the
+            # broker / ToolResult.from_handler_result contract.
+            try:
+                parsed = _json.loads(raw) if isinstance(raw, str) else raw
+            except Exception:
+                parsed = {"raw": raw}
+            if isinstance(parsed, dict) and parsed.get("error") == "HITL_REQUIRED":
+                return {"status": "denied", "error": "HITL_REQUIRED", **parsed}
+            return parsed if isinstance(parsed, dict) else {"value": parsed}
         elif tool_name == "consult_sabios":
             from tools.consult_sabios import consult_sabios
 

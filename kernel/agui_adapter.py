@@ -103,6 +103,9 @@ class AGUIEventType:
     TOOL_CALL_START = "TOOL_CALL_START"
     TOOL_CALL_ARGS = "TOOL_CALL_ARGS"
     TOOL_CALL_END = "TOOL_CALL_END"
+    # DAN P0.4: typed completion/failure events with cost_usd + latency_ms
+    TOOL_CALL_COMPLETED = "TOOL_CALL_COMPLETED"
+    TOOL_CALL_FAILED = "TOOL_CALL_FAILED"
     RUN_FINISHED = "RUN_FINISHED"
     RUN_ERROR = "RUN_ERROR"
 
@@ -338,6 +341,7 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                         elif chunk_type == "tool_end":
                             chunk_data = chunk.get("data", {})
                             if tool_calls_emitted:
+                                # Always emit TOOL_CALL_END for backward compatibility
                                 yield _sse_event(
                                     AGUIEventType.TOOL_CALL_END,
                                     {
@@ -347,6 +351,40 @@ async def agui_run(req: AGUIRunRequest, request: Request):
                                         )[:1000],
                                     },
                                 )
+                                # DAN P0.4: also emit TOOL_CALL_COMPLETED or
+                                # TOOL_CALL_FAILED with cost_usd + latency_ms
+                                # so app/HITL can render result cards correctly.
+                                _result = (
+                                    chunk_data.get("result", {}) if isinstance(chunk_data, dict) else {}
+                                )
+                                _result_dict = _result if isinstance(_result, dict) else {}
+                                _err = _result_dict.get("error")
+                                _cost = float(_result_dict.get("cost_usd", 0.0) or 0.0)
+                                _latency = int(_result_dict.get("latency_ms", 0) or 0)
+                                _tool_name = (
+                                    chunk_data.get("tool_name", "") if isinstance(chunk_data, dict) else ""
+                                )
+                                if _err:
+                                    yield _sse_event(
+                                        AGUIEventType.TOOL_CALL_FAILED,
+                                        {
+                                            "toolCallId": tool_calls_emitted[-1],
+                                            "toolName": _tool_name,
+                                            "error": str(_err)[:500],
+                                            "cost_usd": _cost,
+                                            "latency_ms": _latency,
+                                        },
+                                    )
+                                else:
+                                    yield _sse_event(
+                                        AGUIEventType.TOOL_CALL_COMPLETED,
+                                        {
+                                            "toolCallId": tool_calls_emitted[-1],
+                                            "toolName": _tool_name,
+                                            "cost_usd": _cost,
+                                            "latency_ms": _latency,
+                                        },
+                                    )
 
                         elif chunk_type in ("error",):
                             yield _sse_event(
