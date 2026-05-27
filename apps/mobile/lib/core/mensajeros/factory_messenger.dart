@@ -3,10 +3,9 @@
 /// Habilitante: DSC-G-019 (Adopción narrativa Cognitive Republic).
 /// Sprint: SPR-FACTORY-AGGREGATORS-000.
 ///
-/// A diferencia de KernelService (que apunta al AG-UI Gateway), este messenger
-/// va **directo al kernel productivo** porque los endpoints factory son
-/// lectura pura, no necesitan el shaping del gateway, y son la materialización
-/// HTTP de la fábrica invisible (kernel + N transports).
+/// Pasa por el AG-UI Gateway, que ya tiene la KERNEL_API_KEY como env var
+/// (regla dura #6: cero secrets en plaintext en el cliente). El gateway
+/// proxea limpiamente /v1/factory/* al kernel y devuelve JSON tal cual.
 library;
 
 import 'package:dio/dio.dart';
@@ -48,8 +47,8 @@ Future<void> setMonstruoApiKey(WidgetRef ref, String key) async {
 
 /// FactoryMessenger — cliente HTTP autenticado al kernel.
 ///
-/// Usa Dio configurado contra `kernelBaseUrl` directo (no gateway).
-/// Inyecta `X-API-Key` en cada request si hay credencial guardada.
+/// Usa Dio configurado contra `gatewayBaseUrl`. El gateway inyecta
+/// X-API-Key con su propia env var del kernel — el cliente no la ve.
 class FactoryMessenger {
   FactoryMessenger({
     required String? apiKey,
@@ -58,7 +57,7 @@ class FactoryMessenger {
         _dio = dio ??
             Dio(
               BaseOptions(
-                baseUrl: AppConfig.kernelBaseUrl,
+                baseUrl: AppConfig.gatewayBaseUrl,
                 connectTimeout: AppConfig.connectTimeout,
                 receiveTimeout: AppConfig.receiveTimeout,
                 headers: {
@@ -71,7 +70,8 @@ class FactoryMessenger {
   final Dio _dio;
   final String? _apiKey;
 
-  bool get hasApiKey => _apiKey != null && _apiKey.isNotEmpty;
+  /// Compat shim — siempre true porque la auth la hace el gateway.
+  bool get hasApiKey => true;
 
   // ─── Endpoints ───
 
@@ -157,9 +157,6 @@ final factoryMessengerProvider = Provider<FactoryMessenger>((ref) {
 final constellationProvider =
     FutureProvider.autoDispose<ConstellationResponse>((ref) async {
   final messenger = ref.watch(factoryMessengerProvider);
-  if (!messenger.hasApiKey) {
-    throw StateError('No hay API key configurada. Configura en Settings.');
-  }
   return messenger.fetchConstellation();
 });
 
@@ -167,9 +164,6 @@ final economyProvider =
     FutureProvider.autoDispose.family<CognitiveEconomy, String>(
   (ref, window) async {
     final messenger = ref.watch(factoryMessengerProvider);
-    if (!messenger.hasApiKey) {
-      throw StateError('No hay API key configurada. Configura en Settings.');
-    }
     return messenger.fetchEconomy(window: window);
   },
 );
@@ -177,16 +171,10 @@ final economyProvider =
 final timelineProvider =
     FutureProvider.autoDispose<List<SovereignTimelineEvent>>((ref) async {
   final messenger = ref.watch(factoryMessengerProvider);
-  if (!messenger.hasApiKey) {
-    throw StateError('No hay API key configurada. Configura en Settings.');
-  }
   return messenger.fetchTimeline(limit: 100);
 });
 
 final realityDiffProvider = FutureProvider.autoDispose<RealityDiff>((ref) async {
   final messenger = ref.watch(factoryMessengerProvider);
-  if (!messenger.hasApiKey) {
-    throw StateError('No hay API key configurada. Configura en Settings.');
-  }
   return messenger.fetchDiff();
 });
