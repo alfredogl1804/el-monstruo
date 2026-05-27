@@ -257,18 +257,21 @@ class TestNoGhostActive:
         assert hit.expected_tool == "skill_read"
         assert hit.offending_event_type == "STEP"
 
-    @pytest.mark.skip(
-        reason=(
-            "repro S5 2026-05-27 — activar cuando P0.4 (ToolRegistry) registre "
-            "github_ops y el LLM lo dispatche via function-calling tipado. PR "
-            "#221 (feat/dan-p0.4-tool-registry) lo desbloquea."
-        )
-    )
     def test_no_ghost_github_ops(self):
-        # Cuando este test se active (post-merge P0.4), debe correr una
-        # misión REAL contra el kernel + LLM y verificar que la traza NO
-        # contiene ghost. Mientras tanto, el detector SÍ caza la repro
-        # canonizada — eso lo verificamos en `test_repro_s5_canonized` abajo.
+        # ACTIVADO 2026-05-27 post-merge PR #221 (P0.4) y PR #222 (P0.6) en main.
+        #
+        # IMPORTANTE — limitacion honesta documentada por Cowork T2-A en audit #222:
+        # este test corre contra la traza SINTETICA `GITHUB_OPS_CLEAN_TRACE`, no
+        # contra el output real del kernel. Verde aqui != ghost arreglado en
+        # produccion. El gate automatico contra mission_events persistidos llega
+        # en P0.6-completo (post-P0.3 / DSC-S-018 desbloqueada). Hasta entonces,
+        # la unica prueba del fix S5 es la re-validacion E2E en iPhone observando
+        # la HITL Approval Card disparada por TOOL_CALL_START real con
+        # toolCallName='github_ops'.
+        #
+        # Lo que SI prueba este test: que el detector reconoce una traza limpia
+        # del shape AG-UI esperado para github_ops y NO la marca falsamente como
+        # ghost. Es una prueba de no-falso-positivo, no de fix de produccion.
         hit = detect_ghost_tool(
             GITHUB_OPS_CLEAN_TRACE,
             expected_tool="github_ops",
