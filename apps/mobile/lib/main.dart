@@ -6,6 +6,7 @@ import 'package:logging/logging.dart';
 import 'app.dart';
 import 'core/mensajeros/kernel_messenger.dart';
 import 'core/mensajeros/thread_persistence.dart';
+import 'features/hilo/hilo_history.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,6 +22,9 @@ void main() async {
 
   // Initialize thread persistence (must be before any chat interaction)
   await ThreadPersistence.initialize();
+
+  // Initialize Hilo de Manus history (Hive) — Sprint Cabina Dual Pulido 2026-05-27 ítem A
+  await HiloHistory.initialize();
 
   // Lock orientation to portrait on phones, allow all on tablets/foldables
   await SystemChrome.setPreferredOrientations([

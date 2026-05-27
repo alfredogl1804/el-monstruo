@@ -24,9 +24,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:uuid/uuid.dart';
+
 import '../../core/mensajeros/agui_messenger.dart';
 import '../../core/theme/brand_dna.dart';
 import '../../models/embrion_models.dart';
+import 'hilo_history.dart';
+import 'hilo_preferences.dart';
 
 class HiloScreen extends ConsumerStatefulWidget {
   const HiloScreen({super.key});
@@ -45,6 +49,9 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
   bool _isRunning = false;
   String? _error;
   String _agent = 'auto';
+  String? _currentHistoryId;
+  String _currentPrompt = '';
+  DateTime? _currentStartedAt;
 
   static const _agents = {
     'auto': 'Auto',
@@ -56,11 +63,54 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
   };
 
   @override
+  void initState() {
+    super.initState();
+    // Ítem G — cargar el último agente seleccionado por el usuario.
+    HiloPreferences.getLastAgent().then((a) {
+      if (mounted && _agents.containsKey(a)) {
+        setState(() => _agent = a);
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _sub?.cancel();
     _inputCtrl.dispose();
     _scrollCtrl.dispose();
     super.dispose();
+  }
+
+  /// Ítem A — graba la entrada inicial del hilo en historial local.
+  Future<void> _recordHistoryStart(String prompt, String agent) async {
+    final id = const Uuid().v4();
+    _currentHistoryId = id;
+    _currentPrompt = prompt;
+    _currentStartedAt = DateTime.now().toUtc();
+    await HiloHistory.add(HiloHistoryEntry(
+      id: id,
+      prompt: prompt,
+      agent: agent,
+      status: 'running',
+      stepsCount: 0,
+      createdAt: _currentStartedAt!,
+    ));
+  }
+
+  /// Ítem A — cierra la entrada actual con status final + steps count.
+  Future<void> _recordHistoryFinish(String status, {String? errorMessage}) async {
+    final id = _currentHistoryId;
+    if (id == null) return;
+    await HiloHistory.update(HiloHistoryEntry(
+      id: id,
+      prompt: _currentPrompt,
+      agent: _agent,
+      status: status,
+      stepsCount: _steps.length,
+      createdAt: _currentStartedAt ?? DateTime.now().toUtc(),
+      finishedAt: DateTime.now().toUtc(),
+      errorMessage: errorMessage,
+    ));
   }
 
   void _scrollToBottom() {
@@ -85,6 +135,8 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
       _steps.clear();
       _streamingText = '';
     });
+    // Ítem A — abrir entrada de historial.
+    await _recordHistoryStart(msg, _agent);
     final m = ref.read(aguiMessengerProvider);
     final stream = m.runTask(
       msg,
@@ -97,6 +149,8 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
           _error = e.toString();
           _isRunning = false;
         });
+        // Ítem A — cerrar entrada como error.
+        _recordHistoryFinish('error', errorMessage: e.toString());
       },
       onDone: () {
         if (mounted) setState(() => _isRunning = false);
@@ -200,12 +254,16 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
           _steps.add(_StepEntry.done());
           _isRunning = false;
         });
+        // Ítem A — cerrar entrada de historial como completed.
+        _recordHistoryFinish('completed');
         break;
       case AguiEventType.runError:
         setState(() {
           _error = ev.errorMessage ?? 'error desconocido';
           _isRunning = false;
         });
+        // Ítem A — cerrar entrada de historial como error.
+        _recordHistoryFinish('error', errorMessage: ev.errorMessage);
         break;
       case AguiEventType.heartbeat:
       case AguiEventType.unknown:
@@ -227,6 +285,27 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
       _isRunning = false;
       _steps.add(_StepEntry.cancelled());
     });
+    // Ítem A — cerrar entrada de historial como cancelled.
+    _recordHistoryFinish('cancelled');
+  }
+
+  /// Ítem G — persiste la elección de agente cuando el usuario la cambia.
+  void _onAgentChanged(String agent) {
+    setState(() => _agent = agent);
+    HiloPreferences.setLastAgent(agent);
+  }
+
+  /// Ítem A — abre el sheet de historial.
+  void _openHistory() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: MonstruoTheme.surface,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => const _HiloHistorySheet(),
+    );
   }
 
   /// Determina si una tool esperada (heurística del cliente) coincide con
@@ -277,6 +356,15 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
                   const Icon(Icons.stop_circle, color: MonstruoTheme.error),
               onPressed: _stop,
               tooltip: 'Detener',
+            )
+          else
+            IconButton(
+              icon: const Icon(
+                Icons.history,
+                color: MonstruoTheme.onSurfaceDim,
+              ),
+              onPressed: _openHistory,
+              tooltip: 'Historial',
             ),
         ],
       ),
@@ -322,7 +410,7 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
             agent: _agent,
             agents: _agents,
             isRunning: _isRunning,
-            onAgentChanged: (a) => setState(() => _agent = a),
+            onAgentChanged: _onAgentChanged,
             onSend: _launch,
           ),
         ],
@@ -959,6 +1047,295 @@ class _Composer extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// _HiloHistorySheet — Ítem A (historial local persistido en Hive)
+// ═══════════════════════════════════════════════════════════════
+
+class _HiloHistorySheet extends StatefulWidget {
+  const _HiloHistorySheet();
+
+  @override
+  State<_HiloHistorySheet> createState() => _HiloHistorySheetState();
+}
+
+class _HiloHistorySheetState extends State<_HiloHistorySheet> {
+  late List<HiloHistoryEntry> _entries;
+
+  @override
+  void initState() {
+    super.initState();
+    _entries = HiloHistory.list();
+  }
+
+  Future<void> _confirmClear() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: MonstruoTheme.surface,
+        title: const Text(
+          'Borrar historial',
+          style: TextStyle(color: MonstruoTheme.onBackground),
+        ),
+        content: const Text(
+          'Esto borra todos los hilos guardados en este iPhone. La acción no se puede deshacer.',
+          style: TextStyle(color: MonstruoTheme.onSurfaceDim),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: MonstruoTheme.error),
+            child: const Text('Borrar'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await HiloHistory.clear();
+      if (mounted) {
+        setState(() => _entries = []);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      minChildSize: 0.4,
+      maxChildSize: 0.95,
+      expand: false,
+      builder: (_, scrollCtrl) {
+        return Column(
+          children: [
+            // Handle visual
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 10),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: MonstruoTheme.divider,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 4, 12, 8),
+              child: Row(
+                children: [
+                  const Text(
+                    'Historial del Hilo',
+                    style: TextStyle(
+                      color: MonstruoTheme.onBackground,
+                      fontSize: 17,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: -0.3,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (_entries.isNotEmpty)
+                    TextButton(
+                      onPressed: _confirmClear,
+                      style: TextButton.styleFrom(
+                        foregroundColor: MonstruoTheme.onSurfaceDim,
+                      ),
+                      child: const Text('Borrar todo'),
+                    ),
+                ],
+              ),
+            ),
+            const Divider(color: MonstruoTheme.divider, height: 1),
+            Expanded(
+              child: _entries.isEmpty
+                  ? const _HistoryEmptyState()
+                  : ListView.separated(
+                      controller: scrollCtrl,
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                      itemCount: _entries.length,
+                      separatorBuilder: (_, __) =>
+                          const SizedBox(height: 8),
+                      itemBuilder: (_, i) =>
+                          _HistoryEntryCard(entry: _entries[i]),
+                    ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _HistoryEmptyState extends StatelessWidget {
+  const _HistoryEmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(
+              Icons.history_toggle_off,
+              color: MonstruoTheme.onSurfaceDim,
+              size: 36,
+            ),
+            SizedBox(height: 12),
+            Text(
+              'Sin hilos guardados',
+              style: TextStyle(
+                color: MonstruoTheme.onBackground,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 4),
+            Text(
+              'Los hilos que lances desde el iPhone quedan registrados aquí.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: MonstruoTheme.onSurfaceDim,
+                fontSize: 12.5,
+                height: 1.45,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HistoryEntryCard extends StatelessWidget {
+  const _HistoryEntryCard({required this.entry});
+  final HiloHistoryEntry entry;
+
+  (Color, IconData, String) get _statusVisual {
+    switch (entry.status) {
+      case 'completed':
+        return (MonstruoTheme.success, Icons.check_circle_outline, 'Completado');
+      case 'running':
+        return (MonstruoTheme.primary, Icons.bolt, 'En curso');
+      case 'cancelled':
+        return (MonstruoTheme.warning, Icons.cancel_outlined, 'Detenido');
+      case 'error':
+        return (MonstruoTheme.error, Icons.error_outline, 'Error');
+      default:
+        return (MonstruoTheme.onSurfaceDim, Icons.help_outline, entry.status);
+    }
+  }
+
+  String _formatRelative(DateTime dt) {
+    final now = DateTime.now().toUtc();
+    final diff = now.difference(dt.toUtc());
+    if (diff.inMinutes < 1) return 'hace unos segundos';
+    if (diff.inMinutes < 60) return 'hace ${diff.inMinutes} min';
+    if (diff.inHours < 24) return 'hace ${diff.inHours} h';
+    if (diff.inDays < 7) return 'hace ${diff.inDays} d';
+    return '${dt.toLocal().day}/${dt.toLocal().month}/${dt.toLocal().year}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final (color, icon, statusLabel) = _statusVisual;
+    return Container(
+      decoration: BoxDecoration(
+        color: MonstruoTheme.background,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: MonstruoTheme.divider.withValues(alpha: 0.6),
+          width: 0.5,
+        ),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 14, color: color),
+              const SizedBox(width: 6),
+              Text(
+                statusLabel,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                _formatRelative(entry.createdAt),
+                style: const TextStyle(
+                  color: MonstruoTheme.onSurfaceDim,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            entry.displayLabel,
+            style: const TextStyle(
+              color: MonstruoTheme.onBackground,
+              fontSize: 13.5,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: MonstruoTheme.surface,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  entry.agent,
+                  style: const TextStyle(
+                    color: MonstruoTheme.onSurfaceDim,
+                    fontSize: 10.5,
+                    fontFamily: 'monospace',
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${entry.stepsCount} steps',
+                style: const TextStyle(
+                  color: MonstruoTheme.onSurfaceDim,
+                  fontSize: 11,
+                ),
+              ),
+              if (entry.errorMessage != null) ...[
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    entry.errorMessage!,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: MonstruoTheme.error,
+                      fontSize: 11,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
       ),
     );
   }

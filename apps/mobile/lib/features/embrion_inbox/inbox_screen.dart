@@ -74,7 +74,16 @@ class EmbrionInboxScreen extends ConsumerWidget {
           onRetry: () => ref.invalidate(embrionPendingProposalsProvider),
         ),
         data: (proposals) {
-          if (proposals.isEmpty) return const _EmptyState();
+          if (proposals.isEmpty) {
+            // Ítem D — empty state diferenciado: sin propuestas vs embrión down vs estado desconocido.
+            return _EmptyState(
+              estado: estado,
+              onRetry: () {
+                ref.invalidate(embrionPendingProposalsProvider);
+                ref.invalidate(embrionEstadoProvider);
+              },
+            );
+          }
           return RefreshIndicator(
             color: MonstruoTheme.primary,
             backgroundColor: MonstruoTheme.surface,
@@ -551,25 +560,98 @@ class _RejectDialogState extends State<_RejectDialog> {
 // Empty / Loading / Error states
 // ═══════════════════════════════════════════════════════════════
 
+/// Ítem D — Empty state diferenciado.
+///
+/// Distingue tres situaciones que ANTES se veían iguales:
+///   1. Embrión DESPIERTO y sin propuestas → mensaje "calma" original.
+///   2. Embrión DORMIDO/DOWN → mensaje claro + botón reintentar.
+///   3. Estado DESCONOCIDO (loading/error en estado, propuestas vacías) → mensaje neutro.
+///
+/// El usuario ya no asume "todo bien" cuando en realidad el embrión está caído.
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  const _EmptyState({required this.estado, required this.onRetry});
+  final AsyncValue<EmbrionEstado> estado;
+  final VoidCallback onRetry;
+
+  static const _stalenessThreshold = Duration(minutes: 10);
+
+  ({
+    IconData icon,
+    Color iconColor,
+    String title,
+    String message,
+    bool showRetry,
+  }) _resolveCopy() {
+    return estado.when(
+      loading: () => (
+        icon: Icons.hourglass_empty,
+        iconColor: MonstruoTheme.onSurfaceDim,
+        title: 'Consultando al Embrión…',
+        message: 'Pidiendo su estado actual. Un momento.',
+        showRetry: false,
+      ),
+      error: (e, _) => (
+        icon: Icons.cloud_off_rounded,
+        iconColor: MonstruoTheme.error,
+        title: 'No alcanzo al Embrión',
+        message: 'El gateway no respondió al pedir el estado del loop. La bandeja se ve vacía, pero podría haber propuestas que no estoy viendo.',
+        showRetry: true,
+      ),
+      data: (e) {
+        if (!e.running) {
+          return (
+            icon: Icons.bedtime_outlined,
+            iconColor: MonstruoTheme.warning,
+            title: 'El Embrión está dormido',
+            message: 'No está corriendo ciclos en este momento, así que no llegarán propuestas nuevas hasta que despierte.',
+            showRetry: true,
+          );
+        }
+        // Detección de staleness: despierto pero sin pensar hace tiempo.
+        final last = e.lastThoughtAt;
+        if (last != null) {
+          final since = DateTime.now().toUtc().difference(last.toUtc());
+          if (since > _stalenessThreshold) {
+            return (
+              icon: Icons.warning_amber_outlined,
+              iconColor: MonstruoTheme.warning,
+              title: 'Despierto pero callado',
+              message: 'El Embrión marca despierto pero no genera un pensamiento desde hace ${since.inMinutes} min. Puede estar bloqueado en una herramienta.',
+              showRetry: true,
+            );
+          }
+        }
+        // Estado bueno: realmente está despierto y reciente.
+        return (
+          icon: Icons.inbox_outlined,
+          iconColor: MonstruoTheme.onSurfaceDim,
+          title: 'Sin propuestas pendientes',
+          message: 'El Embrión observa, piensa y propone solo cuando la realidad lo amerita. Tu bandeja vacía es señal de calma — no de inactividad.',
+          showRetry: false,
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final copy = _resolveCopy();
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.inbox_outlined,
+            Icon(
+              copy.icon,
               size: 56,
-              color: MonstruoTheme.onSurfaceDim,
+              color: copy.iconColor,
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Sin propuestas pendientes',
-              style: TextStyle(
+            Text(
+              copy.title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
                 color: MonstruoTheme.onBackground,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -577,14 +659,22 @@ class _EmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              'El Embrión observa, piensa y propone solo cuando la realidad lo amerita. Tu bandeja vacía es señal de calma — no de inactividad.',
+              copy.message,
               textAlign: TextAlign.center,
-              style: TextStyle(
+              style: const TextStyle(
                 color: MonstruoTheme.onSurfaceDim,
                 fontSize: 13,
                 height: 1.5,
               ),
             ),
+            if (copy.showRetry) ...[
+              const SizedBox(height: 20),
+              OutlinedButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh, size: 16),
+                label: const Text('Reintentar'),
+              ),
+            ],
           ],
         ),
       ),
