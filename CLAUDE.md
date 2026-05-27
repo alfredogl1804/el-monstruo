@@ -311,7 +311,7 @@ Doc canónico: `docs/EL_MONSTRUO_15_OBJETIVOS_MAESTROS.md` v3.0 (50,906 bytes). 
 
 - **Arquetipo:** El Creador + El Mago
 - **Personalidad:** Implacable, Preciso, Soberano, Magnánimo
-- **Estética:** Naranja forja (#F97316) + Graphite (#1C1917) + Acero (#A8A29E)
+- **Estética:** minimalismo Apple/Tesla — restraint premium. **Paleta canónica (T1 2026-05-27, valores públicos de marca):** base neutra `#F5F5F7` off-white Apple, `#1D1D1F` near-black Apple, `#171A20` dark Tesla, `#FFFFFF`/`#000000`, grises Apple; **acento primario rojo Tesla `#E82127`**, **acento secundario azul Apple `#0071E3`**. ⚠️ DEPRECADO: "forja-graphite-acero" (#F97316 + graphite + acero) + brutalismo industrial — error arrastrado desde DSC-MO-002 v1, corregido en v3.
 - **Naming:** Módulos con identidad. **NUNCA:** service, handler, utils, helper, misc (DSC-G-004)
 
 ## Reglas Críticas (canonizadas previamente)
