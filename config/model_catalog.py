@@ -35,6 +35,7 @@ MODELS: dict = {
             "planificador",
             "ejecutor",
         ],
+        "reliable_function_calling": True,  # DAN S5 Router Pin: confirmed respeta tool_choice='required'
         "validated": "2026-04-25",
         "source": "https://developers.openai.com/api/docs/models",
     },
@@ -50,6 +51,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 5.00, "output": 25.00},
         "roles": ["analisis", "critico", "arquitecto", "codigo"],
+        "reliable_function_calling": True,  # DAN S5 Router Pin: Anthropic flagship FC-capable
         "validated": "2026-04-25",
         "source": "https://www.anthropic.com/news/claude-opus-4-7",
     },
@@ -65,6 +67,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 5.00, "output": 25.00},
         "roles": ["analisis", "critico", "arquitecto"],
+        "reliable_function_calling": True,  # DAN S5 Router Pin: Anthropic FC-capable
         "validated": "2026-04-12",
         "source": "https://platform.claude.com/docs/en/about-claude/models/overview",
     },
@@ -81,6 +84,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 2.00, "output": 6.00},
         "roles": ["codigo", "creativo", "critico"],
+        "reliable_function_calling": False,  # DAN S5 Router Pin: confirmed E2E iPhone 2026-05-27 ignora tool_choice='required' — narra en vez de function-callear
         "validated": "2026-04-12",
         "source": "https://docs.x.ai/developers/models",
     },
@@ -96,6 +100,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 0.50, "output": 2.15},
         "roles": ["razonador", "tecnico"],
+        "reliable_function_calling": False,  # DAN S5 Router Pin: DeepSeek R1 reasoning-only, no native FC
         "validated": "2026-04-12",
         "source": "https://openrouter.ai/deepseek/deepseek-r1-0528",
     },
@@ -111,6 +116,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 2.00, "output": 8.00},
         "roles": ["investigador"],
+        "reliable_function_calling": False,  # DAN S5 Router Pin: Sonar es modelo de research, no soporta FC nativo
         "validated": "2026-04-12",
         "source": "https://docs.perplexity.ai/docs/sonar/models",
     },
@@ -129,6 +135,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 0.10, "output": 0.40},
         "roles": ["clasificador_rapido", "worker_economico", "chat_rapido"],
+        "reliable_function_calling": True,  # DAN S5 Router Pin: GPT-4.1 family soporta FC nativo
         "validated": "2026-04-30",
         "source": "https://developers.openai.com/api/docs/models",
     },
@@ -144,6 +151,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 0.30, "output": 1.00},
         "roles": ["chat_rapido", "clasificador_rapido", "worker_economico"],
+        "reliable_function_calling": False,  # DAN S5 Router Pin: variante grok, mismo bug que grok-4.20 (asumido por proveedor)
         "validated": "2026-04-30",
         "source": "https://docs.x.ai/developers/models",
     },
@@ -159,6 +167,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 0.40, "output": 1.60},  # $/M tokens — very cheap
         "roles": ["clasificador_rapido", "worker_economico"],
+        "reliable_function_calling": True,  # DAN S5 Router Pin: GPT-4.1 family soporta FC nativo
         "validated": "2026-04-25",
         "source": "https://developers.openai.com/api/docs/models",
     },
@@ -174,6 +183,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 3.00, "output": 15.00},
         "roles": ["codigo", "ejecutor"],
+        "reliable_function_calling": True,  # DAN S5 Router Pin: Anthropic Sonnet FC-capable
         "validated": "2026-04-12",
         "source": "https://platform.claude.com/docs/en/about-claude/models/overview",
     },
@@ -189,6 +199,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 0.00, "output": 0.00},  # Free tier
         "roles": ["chat_rapido", "background", "worker_economico"],
+        "reliable_function_calling": True,  # DAN S5 Router Pin: Gemini family soporta FC nativo
         "validated": "2026-04-12",
         "source": "https://ai.google.dev/gemini-api/docs/models",
     },
@@ -204,6 +215,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 1.25, "output": 5.00},
         "roles": ["creativo", "multimodal"],
+        "reliable_function_calling": True,  # DAN S5 Router Pin: Gemini Pro FC-capable
         "validated": "2026-04-22",
         "source": "https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview",
     },
@@ -219,6 +231,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 0.3827, "output": 1.72},
         "roles": ["motor_barato", "background"],
+        "reliable_function_calling": False,  # DAN S5 Router Pin: Kimi via OpenRouter, FC inconsistente — default conservador
         "validated": "2026-04-12",
         "source": "https://openrouter.ai/moonshotai/kimi-k2.5",
     },
@@ -234,6 +247,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 3.00, "output": 15.00},
         "roles": ["investigador_general"],
+        "reliable_function_calling": False,  # DAN S5 Router Pin: Sonar research, no FC nativo
         "validated": "2026-04-12",
         "source": "https://docs.perplexity.ai/docs/sonar/models",
     },
@@ -250,6 +264,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 0.11, "output": 0.34},  # $/M tokens — ultra cheap
         "roles": ["fallback", "worker_economico"],
+        "reliable_function_calling": False,  # DAN S5 Router Pin: Llama-4-Scout FC inconsistente via Groq — default conservador
         "validated": "2026-04-25",
         "source": "https://console.groq.com/docs/models",
     },
@@ -265,6 +280,7 @@ MODELS: dict = {
         "supports_temperature": True,
         "pricing": {"input": 0.18, "output": 0.59},  # $/M tokens
         "roles": ["fallback", "worker_economico"],
+        "reliable_function_calling": False,  # DAN S5 Router Pin: Llama-4-Scout via Together, FC inconsistente — default conservador
         "validated": "2026-04-25",
         "source": "https://docs.together.ai/docs/serverless-models",
     },
@@ -330,6 +346,63 @@ def get_fallback_chain(role: str) -> list[str]:
 def supports_temperature(name: str) -> bool:
     """Check if a model supports the temperature parameter."""
     return MODELS.get(name, {}).get("supports_temperature", True)
+
+
+# ===================== DAN S5 ROUTER PIN (2026-05-27) =====================
+# Confirmed E2E iPhone 2026-05-27: Grok 4.20 ignora tool_choice='required'
+# y emite prosa en vez de function-callear. Otros providers (Sonar, DeepSeek-R1)
+# no tienen FC nativo. Esta capa garantiza que cuando intent=EXECUTE y hay tools,
+# el router fuerce el modelo a uno FC-fiable, independiente de supervisor/dispatcher.
+
+
+def supports_reliable_function_calling(name: str) -> bool:
+    """Check if a model is FC-fiable (respeta tool_choice='required').
+
+    Default conservador: si no está marcado explícito, asume False.
+    DAN S5 Router Pin: solo modelos con flag True se permiten para EXECUTE+tools.
+    """
+    return MODELS.get(name, {}).get("reliable_function_calling", False)
+
+
+# Cadena de fallback FC-fiable, ordenada por preferencia (calidad/costo balanceado).
+# Si el modelo actual NO es FC-fiable, el router pin selecciona el primero de esta
+# lista que esté disponible.
+RELIABLE_FC_FALLBACK_CHAIN: list[str] = [
+    "claude-opus-4-7",     # Tier 1, Anthropic flagship
+    "gpt-5.5",             # Tier 1, OpenAI flagship
+    "claude-sonnet-4-6",   # Tier 3, Anthropic mid (más barato)
+    "gemini-3.1-pro",      # Tier 3, Google
+    "gpt-4.1-nano",        # Tier 3, OpenAI cheap fast
+    "gemini-3.1-flash-lite",  # Tier 3, ultimate cheap
+]
+
+
+def pin_to_reliable_fc(current_model: str) -> str:
+    """DAN S5 Router Pin: si current_model NO es FC-fiable, retorna el primer
+    fallback de RELIABLE_FC_FALLBACK_CHAIN. Si current_model YA es FC-fiable,
+    lo retorna sin cambios.
+
+    Args:
+        current_model: catalog key del modelo actual.
+
+    Returns:
+        catalog key del modelo a usar (puede ser el mismo si ya era FC-fiable,
+        o uno de RELIABLE_FC_FALLBACK_CHAIN).
+
+    Raises:
+        RuntimeError: si NINGÚN modelo del catálogo es FC-fiable (caso imposible
+        salvo catálogo corrupto). Esto es fail-loud: si el catálogo no tiene FC,
+        el sistema no debe intentar EXECUTE+tools.
+    """
+    if supports_reliable_function_calling(current_model):
+        return current_model
+    for fallback in RELIABLE_FC_FALLBACK_CHAIN:
+        if supports_reliable_function_calling(fallback):
+            return fallback
+    raise RuntimeError(
+        "DAN S5 Router Pin: no FC-fiable model found in catalog. "
+        "Check model_catalog.py reliable_function_calling flags."
+    )
 
 
 # ===================== SPRINT 29 CANDIDATES =====================
