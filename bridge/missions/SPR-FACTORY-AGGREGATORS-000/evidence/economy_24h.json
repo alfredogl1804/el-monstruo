@@ -1,0 +1,55 @@
+{
+  "version": "1.0",
+  "window": "24h",
+  "generated_at": "2026-05-27T03:04:15.689234+00:00",
+  "kpis": {
+    "cost_per_production_order_usd": null,
+    "cost_per_embryo_line_usd": null,
+    "cost_per_accepted_evidence_usd": null,
+    "cost_per_verified_claim_usd": null,
+    "cost_per_pr_draft_usd": null,
+    "cost_per_t1_decision_usd": null,
+    "rework_cost_usd": null,
+    "dory_cost_avoided_usd": null,
+    "human_time_saved_hours": null,
+    "model_efficiency_index": null,
+    "evidence_acceptance_rate": null,
+    "production_throughput_per_day": 15,
+    "defect_rate": null,
+    "autonomy_roi": null,
+    "sovereignty_score": {
+      "raw_score": 117,
+      "components": {
+        "dscs_signed": 83,
+        "skills_canonized": 34
+      },
+      "honest_note": "v1: proxy lineal de densidad civilizacional. Sin normalización temporal."
+    }
+  },
+  "formulas_used": {
+    "cognitive_roi": "(value_artifacts - costs) / (model_cost + infra_cost)",
+    "dory_cost_avoided": "historical_rework_pre_memory - current_rework_post_memory",
+    "evidence_yield": "verified_claims / total_claims",
+    "embryo_productivity": "accepted_artifacts / cost_usd",
+    "t1_leverage": "decisions_made / human_minutes_spent"
+  },
+  "data_quality": {
+    "coverage": "partial",
+    "missing_metrics": [
+      "cost_per_production_order_usd",
+      "cost_per_embryo_line_usd",
+      "cost_per_accepted_evidence_usd",
+      "cost_per_verified_claim_usd",
+      "cost_per_pr_draft_usd",
+      "cost_per_t1_decision_usd",
+      "rework_cost_usd",
+      "dory_cost_avoided_usd",
+      "human_time_saved_hours",
+      "model_efficiency_index",
+      "evidence_acceptance_rate",
+      "defect_rate",
+      "autonomy_roi"
+    ],
+    "honest_disclaimer": "v1: solo cubre métricas con telemetría real existente. KPIs faltantes serán habilitados conforme sprints siguientes canonicen sus fuentes (usage_tracker, embrion_loop telemetry, evidence receipts). DSC-G-019 prohíbe valores fabricados."
+  }
+}

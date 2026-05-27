@@ -602,3 +602,25 @@ dscs:
     reason: >
       Decision conceptual de producto. Constants en _canonical_constraints
       lo respaldan parcialmente, pero el DSC habla del concepto per se.
+
+  "_GLOBAL/DSC-G-019_cognitive_republic_narrative_adoption.md":
+    status: enforced
+    contracts:
+      - kernel/factory_routes.py
+      - kernel/main.py
+      - tests/test_factory_routes.py
+      - scripts/factory_smoke_test.py
+      - bridge/sprints_propuestos/SPR-FACTORY-AGGREGATORS-000.md
+      - bridge/missions/SPR-FACTORY-AGGREGATORS-000/evidence_pack.md
+    notes: >
+      DSC-G-019 (Adopcion narrativa Cognitive Republic) firmado por Alfredo
+      Gongora T1 el 2026-05-26 via Manus B en hilo tablero-campana. Sprint
+      cero SPR-FACTORY-AGGREGATORS-000 materializa los 4 endpoints aggregator
+      del kernel (/v1/factory/{constellation,economy,timeline,diff}) con
+      datos reales del genome vivo. Tests enforzan los 3 anti-patrones
+      canonizados (no kimi-k2-6, no Factory Mode, no secrets en respuesta).
+      Cobertura tests 20/20 verde. Pre-commit DSC-G-008/G-012/G-017 verde.
+      Audit Cowork (Claude Opus 4.7) pendiente — content + brand-compliance.
+      Reemplaza nomenclatura "Factory Mode" en codigo nuevo. Migracion en
+      docs es progresiva (sin sprint dedicado). Habilita sprint piloto
+      REPUBLIC-CONSTELLATION-001 en tablero-campana (modulos 1, 2, 3, 13).

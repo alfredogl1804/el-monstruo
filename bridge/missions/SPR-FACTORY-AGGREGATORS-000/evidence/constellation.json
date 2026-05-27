@@ -1,0 +1,550 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-05-27T03:04:15.681963+00:00",
+  "binario_100": true,
+  "source_genome_at": "2026-05-26T12:33:10.374214+00:00",
+  "nodes": [
+    {
+      "forge_id": "kernel-monstruo",
+      "name": "El Monstruo Kernel",
+      "tier": "core",
+      "kind": "kernel",
+      "is_aggregate": false,
+      "substrate": {
+        "runtime": "python_fastapi",
+        "endpoint": "https://el-monstruo-kernel-production.up.railway.app",
+        "repo": "alfredogl1804/el-monstruo"
+      },
+      "sovereignty": {
+        "envelope_supported": true,
+        "signer_key_id": "<unset>",
+        "court_bound": true,
+        "t1_required_lanes": [
+          "merge",
+          "deploy",
+          "canon"
+        ]
+      },
+      "production": {
+        "active_lines": [
+          "embrion_loop",
+          "memory_curator"
+        ],
+        "last_cycle_at": "2026-05-26T12:33:10.374214+00:00",
+        "artifacts_24h": 15,
+        "evidence_receipts_24h": 0,
+        "failures_24h": 0,
+        "cost_24h_usd": null
+      },
+      "memory": {
+        "writes_to_memory": true,
+        "lessons_canonized": 83,
+        "unresolved_gaps": 5
+      },
+      "status": "ONLINE"
+    },
+    {
+      "forge_id": "embrion-loop",
+      "name": "Embryo Industrial Grid",
+      "tier": "inner",
+      "kind": "embryo_line",
+      "is_aggregate": false,
+      "substrate": {
+        "runtime": "python",
+        "endpoint": "kernel.embriones.embrion_loop",
+        "repo": "alfredogl1804/el-monstruo"
+      },
+      "sovereignty": {
+        "envelope_supported": true,
+        "signer_key_id": "<unset>",
+        "court_bound": true,
+        "t1_required_lanes": [
+          "promote_lane"
+        ]
+      },
+      "production": {
+        "active_lines": [],
+        "last_cycle_at": null,
+        "artifacts_24h": 0,
+        "evidence_receipts_24h": 0,
+        "failures_24h": 0,
+        "cost_24h_usd": null
+      },
+      "memory": {
+        "writes_to_memory": true,
+        "lessons_canonized": null,
+        "unresolved_gaps": null
+      },
+      "status": "STANDBY"
+    },
+    {
+      "forge_id": "memory-cortex",
+      "name": "Memory Cortex",
+      "tier": "inner",
+      "kind": "memory_cortex",
+      "is_aggregate": false,
+      "substrate": {
+        "runtime": "supabase",
+        "endpoint": "supabase.thoughts + episodic + semantic",
+        "repo": "alfredogl1804/el-monstruo"
+      },
+      "sovereignty": {
+        "envelope_supported": false,
+        "signer_key_id": null,
+        "court_bound": false,
+        "t1_required_lanes": []
+      },
+      "production": {
+        "active_lines": [
+          "memory_writes"
+        ],
+        "last_cycle_at": null,
+        "artifacts_24h": null,
+        "evidence_receipts_24h": null,
+        "failures_24h": null,
+        "cost_24h_usd": null
+      },
+      "memory": {
+        "writes_to_memory": true,
+        "lessons_canonized": 83,
+        "unresolved_gaps": null
+      },
+      "status": "ONLINE"
+    },
+    {
+      "forge_id": "sovereign-court",
+      "name": "Sovereign Court Chamber",
+      "tier": "inner",
+      "kind": "court",
+      "is_aggregate": false,
+      "substrate": {
+        "runtime": "python_fastapi",
+        "endpoint": "kernel.observatorio + kernel.audit_middleware",
+        "repo": "alfredogl1804/el-monstruo"
+      },
+      "sovereignty": {
+        "envelope_supported": true,
+        "signer_key_id": "<unset>",
+        "court_bound": true,
+        "t1_required_lanes": [
+          "all_rulings"
+        ]
+      },
+      "production": {
+        "active_lines": [
+          "envelope_signing"
+        ],
+        "last_cycle_at": null,
+        "artifacts_24h": 0,
+        "evidence_receipts_24h": 0,
+        "failures_24h": 0,
+        "cost_24h_usd": null
+      },
+      "memory": {
+        "writes_to_memory": true,
+        "lessons_canonized": null,
+        "unresolved_gaps": null
+      },
+      "status": "ONLINE"
+    },
+    {
+      "forge_id": "railway-54e4275f",
+      "name": "forja-monstruo-direct-1777801048",
+      "tier": "mid",
+      "kind": "satellite",
+      "is_aggregate": false,
+      "substrate": {
+        "runtime": "railway",
+        "endpoint": "railway.app/project/54e4275f-6aa8-4e66-af6e-a865a7921101",
+        "repo": null
+      },
+      "sovereignty": {
+        "envelope_supported": false,
+        "signer_key_id": null,
+        "court_bound": false,
+        "t1_required_lanes": [
+          "deploy"
+        ]
+      },
+      "production": {
+        "active_lines": [
+          "API"
+        ],
+        "last_cycle_at": "2026-05-26T08:30:53.484Z",
+        "artifacts_24h": null,
+        "evidence_receipts_24h": null,
+        "failures_24h": null,
+        "cost_24h_usd": null
+      },
+      "memory": {
+        "writes_to_memory": false,
+        "lessons_canonized": null,
+        "unresolved_gaps": null
+      },
+      "status": "ONLINE"
+    },
+    {
+      "forge_id": "railway-9bf79c63",
+      "name": "forja-monstruo-direct-1777801110",
+      "tier": "mid",
+      "kind": "satellite",
+      "is_aggregate": false,
+      "substrate": {
+        "runtime": "railway",
+        "endpoint": "railway.app/project/9bf79c63-19b6-477c-94b2-b119b7b16c5f",
+        "repo": null
+      },
+      "sovereignty": {
+        "envelope_supported": false,
+        "signer_key_id": null,
+        "court_bound": false,
+        "t1_required_lanes": [
+          "deploy"
+        ]
+      },
+      "production": {
+        "active_lines": [
+          "API"
+        ],
+        "last_cycle_at": "2026-05-26T08:30:48.267Z",
+        "artifacts_24h": null,
+        "evidence_receipts_24h": null,
+        "failures_24h": null,
+        "cost_24h_usd": null
+      },
+      "memory": {
+        "writes_to_memory": false,
+        "lessons_canonized": null,
+        "unresolved_gaps": null
+      },
+      "status": "ONLINE"
+    },
+    {
+      "forge_id": "railway-160560d7",
+      "name": "forja-saludo-v2",
+      "tier": "mid",
+      "kind": "satellite",
+      "is_aggregate": false,
+      "substrate": {
+        "runtime": "railway",
+        "endpoint": "railway.app/project/160560d7-17bb-496b-a9ee-eb320fe6a067",
+        "repo": null
+      },
+      "sovereignty": {
+        "envelope_supported": false,
+        "signer_key_id": null,
+        "court_bound": false,
+        "t1_required_lanes": [
+          "deploy"
+        ]
+      },
+      "production": {
+        "active_lines": [
+          "API"
+        ],
+        "last_cycle_at": "2026-05-26T08:30:43.150Z",
+        "artifacts_24h": null,
+        "evidence_receipts_24h": null,
+        "failures_24h": null,
+        "cost_24h_usd": null
+      },
+      "memory": {
+        "writes_to_memory": false,
+        "lessons_canonized": null,
+        "unresolved_gaps": null
+      },
+      "status": "ONLINE"
+    },
+    {
+      "forge_id": "railway-6da843db",
+      "name": "forja-marketplace-mate",
+      "tier": "mid",
+      "kind": "satellite",
+      "is_aggregate": false,
+      "substrate": {
+        "runtime": "railway",
+        "endpoint": "railway.app/project/6da843db-e082-4742-a0f3-6e03a434d3fc",
+        "repo": null
+      },
+      "sovereignty": {
+        "envelope_supported": false,
+        "signer_key_id": null,
+        "court_bound": false,
+        "t1_required_lanes": [
+          "deploy"
+        ]
+      },
+      "production": {
+        "active_lines": [
+          "API"
+        ],
+        "last_cycle_at": "2026-05-26T08:30:36.338Z",
+        "artifacts_24h": null,
+        "evidence_receipts_24h": null,
+        "failures_24h": null,
+        "cost_24h_usd": null
+      },
+      "memory": {
+        "writes_to_memory": false,
+        "lessons_canonized": null,
+        "unresolved_gaps": null
+      },
+      "status": "ONLINE"
+    },
+    {
+      "forge_id": "railway-1dcb47ee",
+      "name": "celebrated-achievement",
+      "tier": "mid",
+      "kind": "satellite",
+      "is_aggregate": false,
+      "substrate": {
+        "runtime": "railway",
+        "endpoint": "railway.app/project/1dcb47ee-6c01-44bb-baff-d89812382fee",
+        "repo": null
+      },
+      "sovereignty": {
+        "envelope_supported": false,
+        "signer_key_id": null,
+        "court_bound": false,
+        "t1_required_lanes": [
+          "deploy"
+        ]
+      },
+      "production": {
+        "active_lines": [
+          "el-monstruo-kernel",
+          "open-webui",
+          "Redis",
+          "el-monstruo",
+          "forja-mcp",
+          "proposal-worker",
+          "command-center",
+          "la-forja-api",
+          "worker",
+          "Postgres",
+          "sms-rem-cycle",
+          "ag-ui-gateway"
+        ],
+        "last_cycle_at": "2026-05-21T14:09:18.565Z",
+        "artifacts_24h": null,
+        "evidence_receipts_24h": null,
+        "failures_24h": null,
+        "cost_24h_usd": null
+      },
+      "memory": {
+        "writes_to_memory": false,
+        "lessons_canonized": null,
+        "unresolved_gaps": null
+      },
+      "status": "ONLINE"
+    },
+    {
+      "forge_id": "railway-e9f5d5f6",
+      "name": "truthful-freedom",
+      "tier": "mid",
+      "kind": "satellite",
+      "is_aggregate": false,
+      "substrate": {
+        "runtime": "railway",
+        "endpoint": "railway.app/project/e9f5d5f6-61ac-4efb-92d2-5c63dc93f1f4",
+        "repo": null
+      },
+      "sovereignty": {
+        "envelope_supported": false,
+        "signer_key_id": null,
+        "court_bound": false,
+        "t1_required_lanes": [
+          "deploy"
+        ]
+      },
+      "production": {
+        "active_lines": [
+          "like-kukulkan-tickets",
+          "ticketlike-staging"
+        ],
+        "last_cycle_at": "2026-04-16T21:22:50.895Z",
+        "artifacts_24h": null,
+        "evidence_receipts_24h": null,
+        "failures_24h": null,
+        "cost_24h_usd": null
+      },
+      "memory": {
+        "writes_to_memory": false,
+        "lessons_canonized": null,
+        "unresolved_gaps": null
+      },
+      "status": "ONLINE"
+    },
+    {
+      "forge_id": "railway-6e5c7f06",
+      "name": "simulador-universal",
+      "tier": "mid",
+      "kind": "satellite",
+      "is_aggregate": false,
+      "substrate": {
+        "runtime": "railway",
+        "endpoint": "railway.app/project/6e5c7f06-6a7e-4740-931d-92be3ccae07d",
+        "repo": null
+      },
+      "sovereignty": {
+        "envelope_supported": false,
+        "signer_key_id": null,
+        "court_bound": false,
+        "t1_required_lanes": [
+          "deploy"
+        ]
+      },
+      "production": {
+        "active_lines": [
+          "simulador-api"
+        ],
+        "last_cycle_at": "2026-04-12T16:16:18.833Z",
+        "artifacts_24h": null,
+        "evidence_receipts_24h": null,
+        "failures_24h": null,
+        "cost_24h_usd": null
+      },
+      "memory": {
+        "writes_to_memory": false,
+        "lessons_canonized": null,
+        "unresolved_gaps": null
+      },
+      "status": "ONLINE"
+    },
+    {
+      "forge_id": "agg-skills",
+      "name": "Skills canonized (34)",
+      "tier": "outer",
+      "kind": "skill_bank",
+      "is_aggregate": true,
+      "substrate": {
+        "runtime": "filesystem",
+        "endpoint": "skills/",
+        "repo": "alfredogl1804/el-monstruo"
+      },
+      "sovereignty": {
+        "envelope_supported": false,
+        "signer_key_id": null,
+        "court_bound": true,
+        "t1_required_lanes": [
+          "canonize"
+        ]
+      },
+      "production": {
+        "active_lines": [],
+        "last_cycle_at": null,
+        "artifacts_24h": null,
+        "evidence_receipts_24h": null,
+        "failures_24h": null,
+        "cost_24h_usd": null
+      },
+      "memory": {
+        "writes_to_memory": true,
+        "lessons_canonized": 34,
+        "unresolved_gaps": null
+      },
+      "status": "ONLINE"
+    }
+  ],
+  "edges": [
+    {
+      "edge_id": "kernel-->embrion-loop",
+      "from": "kernel-monstruo",
+      "to": "embrion-loop",
+      "envelope_kind": "policy.ruling.issued",
+      "last_envelope_at": null,
+      "signature_valid": true,
+      "latency_ms": null
+    },
+    {
+      "edge_id": "kernel-->memory-cortex",
+      "from": "kernel-monstruo",
+      "to": "memory-cortex",
+      "envelope_kind": "data.observability",
+      "last_envelope_at": null,
+      "signature_valid": false,
+      "latency_ms": null
+    },
+    {
+      "edge_id": "kernel-->sovereign-court",
+      "from": "kernel-monstruo",
+      "to": "sovereign-court",
+      "envelope_kind": "policy.ruling.issued",
+      "last_envelope_at": null,
+      "signature_valid": true,
+      "latency_ms": null
+    },
+    {
+      "edge_id": "kernel-->railway-54e4275f",
+      "from": "kernel-monstruo",
+      "to": "railway-54e4275f",
+      "envelope_kind": "data.observability",
+      "last_envelope_at": null,
+      "signature_valid": false,
+      "latency_ms": null
+    },
+    {
+      "edge_id": "kernel-->railway-9bf79c63",
+      "from": "kernel-monstruo",
+      "to": "railway-9bf79c63",
+      "envelope_kind": "data.observability",
+      "last_envelope_at": null,
+      "signature_valid": false,
+      "latency_ms": null
+    },
+    {
+      "edge_id": "kernel-->railway-160560d7",
+      "from": "kernel-monstruo",
+      "to": "railway-160560d7",
+      "envelope_kind": "data.observability",
+      "last_envelope_at": null,
+      "signature_valid": false,
+      "latency_ms": null
+    },
+    {
+      "edge_id": "kernel-->railway-6da843db",
+      "from": "kernel-monstruo",
+      "to": "railway-6da843db",
+      "envelope_kind": "data.observability",
+      "last_envelope_at": null,
+      "signature_valid": false,
+      "latency_ms": null
+    },
+    {
+      "edge_id": "kernel-->railway-1dcb47ee",
+      "from": "kernel-monstruo",
+      "to": "railway-1dcb47ee",
+      "envelope_kind": "data.observability",
+      "last_envelope_at": null,
+      "signature_valid": false,
+      "latency_ms": null
+    },
+    {
+      "edge_id": "kernel-->railway-e9f5d5f6",
+      "from": "kernel-monstruo",
+      "to": "railway-e9f5d5f6",
+      "envelope_kind": "data.observability",
+      "last_envelope_at": null,
+      "signature_valid": false,
+      "latency_ms": null
+    },
+    {
+      "edge_id": "kernel-->railway-6e5c7f06",
+      "from": "kernel-monstruo",
+      "to": "railway-6e5c7f06",
+      "envelope_kind": "data.observability",
+      "last_envelope_at": null,
+      "signature_valid": false,
+      "latency_ms": null
+    }
+  ],
+  "totals": {
+    "nodes_total": 12,
+    "tiers": {
+      "core": 1,
+      "inner": 3,
+      "mid": 7,
+      "outer": 1
+    }
+  }
+}

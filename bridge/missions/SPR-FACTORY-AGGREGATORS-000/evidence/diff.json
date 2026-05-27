@@ -1,0 +1,62 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-05-27T03:04:15.705706+00:00",
+  "binario_100_live": true,
+  "source_genome_at": "2026-05-26T12:33:10.374214+00:00",
+  "drift_count": 0,
+  "domains": {
+    "github": {
+      "declared_repos": null,
+      "live_repos": null,
+      "match": true,
+      "diff": [],
+      "scanned_at": "2026-05-26T12:30:40.281377+00:00"
+    },
+    "railway": {
+      "declared_services": 19,
+      "live_services": 19,
+      "match": true,
+      "diff": [],
+      "scanned_at": "2026-05-26T10:05:53.198281+00:00"
+    },
+    "supabase": {
+      "declared_tables": null,
+      "live_tables": null,
+      "match": true,
+      "diff": [],
+      "scanned_at": "2026-05-26T10:06:02.500752+00:00"
+    },
+    "live24h": {
+      "kernel_health": "healthy",
+      "drift_over_7d": 14,
+      "match": true,
+      "scanned_at": "2026-05-26T12:33:04.584219+00:00"
+    }
+  },
+  "cross_validation": {
+    "all_domains_match": true,
+    "details": {
+      "findings": [
+        {
+          "kind": "railway_drift_over_7d",
+          "severity": "info",
+          "message": "14 servicios Railway con último deploy > 7 días",
+          "count": 14
+        }
+      ],
+      "findings_count": 1,
+      "coverage_match_per_source": {
+        "github": true,
+        "railway": true,
+        "supabase": true,
+        "live24h": true
+      }
+    }
+  },
+  "sprint_drift": {
+    "proposed_sprints": 43,
+    "completed_sprints": 19,
+    "in_progress_sprints": null,
+    "drift_alerts": []
+  }
+}
