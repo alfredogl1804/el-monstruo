@@ -97,12 +97,23 @@ class LLMResponse:
 
 @dataclass
 class ToolSpec:
-    """Tool specification — provider-agnostic."""
+    """Tool specification — provider-agnostic.
+
+    DAN P0.4 additions (2026-05-27):
+      - cost_usd_estimated: USD estimate per invocation. Used by budget gating
+        and the cost ledger as a sanity floor. Default 0.0 (no cost).
+      - latency_ms_estimated: Milliseconds estimate per invocation. Used for
+        SLO planning and timeout heuristics. Default 0 (no SLO hint).
+
+    These are *estimated*; real cost/latency are recorded by the broker.
+    """
 
     name: str
     description: str
     parameters: dict[str, Any]  # JSON Schema
     risk: str = "low"  # low, medium, high
+    cost_usd_estimated: float = 0.0
+    latency_ms_estimated: int = 0
 
     def to_openai_format(self) -> dict:
         """Convert to OpenAI/xAI/OpenRouter tools format."""
