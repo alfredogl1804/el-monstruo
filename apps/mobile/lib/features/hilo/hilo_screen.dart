@@ -17,6 +17,7 @@
 library;
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,6 +25,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:url_launcher/url_launcher.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../core/mensajeros/agui_messenger.dart';
@@ -125,6 +127,79 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
     });
   }
 
+  /// S5a — aprueba un HITL request enviando "aprobado" al kernel.
+  /// Reusa el thread_id actual via runTask con el mensaje de continuación.
+  Future<void> _approveHitl(_StepEntry entry) async {
+    if (entry.hitlResolved || _isRunning) return;
+    HapticFeedback.mediumImpact();
+    setState(() {
+      entry.hitlResolved = true;
+      _steps.add(_StepEntry.hitlApproved(entry.hitlAction ?? 'acción'));
+      _isRunning = true;
+      _error = null;
+      _streamingText = '';
+    });
+    final m = ref.read(aguiMessengerProvider);
+    final stream = m.runTask(
+      'aprobado',
+      dispatchAgent: _agent == 'auto' ? null : _agent,
+    );
+    _sub = stream.listen(
+      _handleEvent,
+      onError: (e) {
+        setState(() {
+          _error = e.toString();
+          _isRunning = false;
+        });
+      },
+      onDone: () {
+        if (mounted) setState(() => _isRunning = false);
+      },
+    );
+  }
+
+  /// S5a — rechaza un HITL request enviando "no" al kernel.
+  Future<void> _rejectHitl(_StepEntry entry) async {
+    if (entry.hitlResolved || _isRunning) return;
+    HapticFeedback.lightImpact();
+    setState(() {
+      entry.hitlResolved = true;
+      _steps.add(_StepEntry.hitlRejected(entry.hitlAction ?? 'acción'));
+      _isRunning = true;
+      _error = null;
+      _streamingText = '';
+    });
+    final m = ref.read(aguiMessengerProvider);
+    final stream = m.runTask(
+      'rechazado',
+      dispatchAgent: _agent == 'auto' ? null : _agent,
+    );
+    _sub = stream.listen(
+      _handleEvent,
+      onError: (e) {
+        setState(() {
+          _error = e.toString();
+          _isRunning = false;
+        });
+      },
+      onDone: () {
+        if (mounted) setState(() => _isRunning = false);
+      },
+    );
+  }
+
+  /// S5b — abre URL del artifact en navegador externo.
+  Future<void> _openArtifact(String url) async {
+    HapticFeedback.lightImpact();
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      // Silencioso — si falla, el usuario puede copiar manualmente.
+    }
+  }
+
   Future<void> _launch() async {
     final msg = _inputCtrl.text.trim();
     if (msg.isEmpty || _isRunning) return;
@@ -208,6 +283,10 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
             ev.raw['status']?.toString() == 'error' ||
             ev.raw['status']?.toString() == 'failed';
         final toolName = ev.toolName ?? 'tool';
+        // S5a — detectar HITL_REQUIRED en el output del tool.
+        final hitl = _detectHitl(out, toolName);
+        // S5b — detectar URLs accionables en el output.
+        final artifacts = _detectArtifacts(out);
         setState(() {
           if (hasError) {
             // Marcar steps relacionados como failed
@@ -222,6 +301,20 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
           _steps.add(_StepEntry.toolResult(
               toolName,
               preview: out));
+          if (hitl != null) {
+            _steps.add(_StepEntry.hitlRequest(
+              action: hitl.action,
+              payload: hitl.payload,
+              message: hitl.message,
+            ));
+          }
+          for (final art in artifacts) {
+            _steps.add(_StepEntry.artifact(
+              url: art.url,
+              label: art.label,
+              kind: art.kind,
+            ));
+          }
         });
         break;
       case AguiEventType.textMessageStart:
@@ -460,6 +553,33 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
           monospace: true,
           trust: s.trust,
         );
+      case _StepKind.hitlRequest:
+        // S5a — tarjeta interactiva con Aprobar/Rechazar.
+        return _HitlRequestCard(
+          entry: s,
+          onApprove: () => _approveHitl(s),
+          onReject: () => _rejectHitl(s),
+        );
+      case _StepKind.hitlApproved:
+        return _StepCard(
+          color: MonstruoTheme.success,
+          icon: Icons.check_circle,
+          label: s.text,
+          trust: s.trust,
+        );
+      case _StepKind.hitlRejected:
+        return _StepCard(
+          color: MonstruoTheme.warning,
+          icon: Icons.do_not_disturb_alt_outlined,
+          label: s.text,
+          trust: s.trust,
+        );
+      case _StepKind.artifact:
+        // S5b — URL accionable.
+        return _ArtifactCard(
+          entry: s,
+          onOpen: () => _openArtifact(s.artifactUrl ?? ''),
+        );
       case _StepKind.message:
         return _StepCard(
           color: MonstruoTheme.onBackground,
@@ -524,6 +644,10 @@ enum _StepKind {
   step,
   toolCall,
   toolResult,
+  hitlRequest, // S5a — acción HIGH-risk requiere aprobación humana en el iPhone
+  hitlApproved, // S5a — marcador de que el usuario aprobó desde la app
+  hitlRejected, // S5a — marcador de que el usuario rechazó desde la app
+  artifact, // S5b — URL/result accionable (PR, issue, branch, etc.)
   message,
   done,
   cancelled,
@@ -591,12 +715,26 @@ class _StepEntry {
   /// Cuando llega `tool_call_started` con matching name, [trust] pasa a verified.
   String? expectedTool;
 
+  /// HITL data — S5a. Solo presente cuando kind == hitlRequest.
+  String? hitlAction;
+  String? hitlPayload;
+  bool hitlResolved;
+
+  /// Artifact data — S5b. Solo presente cuando kind == artifact.
+  String? artifactUrl;
+  String? artifactKind;
+
   _StepEntry({
     required this.kind,
     required this.text,
     this.subtitle,
     this.trust = _TrustState.none,
     this.expectedTool,
+    this.hitlAction,
+    this.hitlPayload,
+    this.hitlResolved = false,
+    this.artifactUrl,
+    this.artifactKind,
   });
 
   factory _StepEntry.started() =>
@@ -635,6 +773,43 @@ class _StepEntry {
       _StepEntry(kind: _StepKind.done, text: 'done');
   factory _StepEntry.cancelled() =>
       _StepEntry(kind: _StepKind.cancelled, text: 'cancelled');
+
+  /// S5a — HITL approval request card.
+  factory _StepEntry.hitlRequest({
+    required String action,
+    required String payload,
+    required String message,
+  }) =>
+      _StepEntry(
+        kind: _StepKind.hitlRequest,
+        text: message,
+        subtitle: payload,
+        hitlAction: action,
+        hitlPayload: payload,
+      );
+
+  factory _StepEntry.hitlApproved(String action) => _StepEntry(
+        kind: _StepKind.hitlApproved,
+        text: 'Aprobaste: $action',
+      );
+
+  factory _StepEntry.hitlRejected(String action) => _StepEntry(
+        kind: _StepKind.hitlRejected,
+        text: 'Rechazaste: $action',
+      );
+
+  /// S5b — Artifact accionable (URL clickeable).
+  factory _StepEntry.artifact({
+    required String url,
+    required String label,
+    required String kind,
+  }) =>
+      _StepEntry(
+        kind: _StepKind.artifact,
+        text: label,
+        artifactUrl: url,
+        artifactKind: kind,
+      );
 
   void append(String delta) {
     subtitle = (subtitle ?? '') + delta;
@@ -1338,5 +1513,473 @@ class _HistoryEntryCard extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// S5a — HITL detection + interactive card
+// ═══════════════════════════════════════════════════════════════
+
+/// Datos extraídos del output de un tool cuando éste pide aprobación humana
+/// antes de ejecutar una acción HIGH-risk (commit, push, payment, etc.).
+class _HitlInfo {
+  const _HitlInfo({
+    required this.action,
+    required this.payload,
+    required this.message,
+  });
+
+  /// Acción canónica que requiere aprobación (ej. "git_push", "payment").
+  final String action;
+
+  /// Payload serializado de la acción (JSON o string corto para mostrar).
+  final String payload;
+
+  /// Mensaje legible que el usuario verá en la tarjeta de aprobación.
+  final String message;
+}
+
+/// Detecta si el output de un tool contiene una solicitud HITL.
+///
+/// Convención esperada del kernel:
+///   - JSON con `{"hitl_required": true, "action": "...", "payload": {...}, "message": "..."}`
+///   - O un texto plano que contenga `HITL_REQUIRED:` seguido de los campos
+///   - O `requires_approval: true` con campos hermanos
+///
+/// Si no detecta nada, retorna null.
+_HitlInfo? _detectHitl(String? out, String toolName) {
+  if (out == null || out.isEmpty) return null;
+  final trimmed = out.trim();
+
+  // Camino 1 — JSON estructurado.
+  if (trimmed.startsWith('{') && trimmed.endsWith('}')) {
+    try {
+      final decoded = jsonDecode(trimmed);
+      if (decoded is Map<String, dynamic>) {
+        final flag = decoded['hitl_required'] == true ||
+            decoded['requires_approval'] == true ||
+            decoded['needs_human'] == true;
+        if (flag) {
+          final action =
+              decoded['action']?.toString() ?? toolName;
+          final rawPayload = decoded['payload'];
+          final payload = rawPayload == null
+              ? ''
+              : (rawPayload is String
+                  ? rawPayload
+                  : jsonEncode(rawPayload));
+          final message = decoded['message']?.toString() ??
+              decoded['reason']?.toString() ??
+              'El tool "$toolName" solicita tu aprobación antes de continuar.';
+          return _HitlInfo(
+            action: action,
+            payload: payload,
+            message: message,
+          );
+        }
+      }
+    } catch (_) {
+      // No es JSON válido — caemos al camino 2.
+    }
+  }
+
+  // Camino 2 — marcador en texto plano.
+  final marker = RegExp(
+    r'HITL_REQUIRED\s*[:\-]\s*(.+)',
+    caseSensitive: false,
+    dotAll: true,
+  );
+  final m = marker.firstMatch(trimmed);
+  if (m != null) {
+    final body = m.group(1)?.trim() ?? '';
+    return _HitlInfo(
+      action: toolName,
+      payload: body,
+      message: 'El tool "$toolName" requiere aprobación: $body',
+    );
+  }
+
+  return null;
+}
+
+/// Tarjeta interactiva — muestra el mensaje HITL y dos botones grandes:
+/// Aprobar (verde) y Rechazar (rojo). Un toque ya envía el resultado al kernel.
+class _HitlRequestCard extends StatelessWidget {
+  const _HitlRequestCard({
+    required this.entry,
+    required this.onApprove,
+    required this.onReject,
+  });
+
+  final _StepEntry entry;
+  final VoidCallback onApprove;
+  final VoidCallback onReject;
+
+  @override
+  Widget build(BuildContext context) {
+    final resolved = entry.hitlResolved;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      decoration: BoxDecoration(
+        color: MonstruoTheme.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: resolved
+              ? MonstruoTheme.onSurfaceDim
+              : MonstruoTheme.warning,
+          width: 1.5,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.shield_outlined,
+                size: 18,
+                color: resolved
+                    ? MonstruoTheme.onSurfaceDim
+                    : MonstruoTheme.warning,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Aprobación requerida',
+                style: TextStyle(
+                  color: resolved
+                      ? MonstruoTheme.onSurfaceDim
+                      : MonstruoTheme.warning,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              if (entry.hitlAction != null) ...[
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: MonstruoTheme.background,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    entry.hitlAction!,
+                    style: const TextStyle(
+                      color: MonstruoTheme.onSurfaceDim,
+                      fontFamily: 'monospace',
+                      fontSize: 10.5,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            entry.text,
+            style: const TextStyle(
+              color: MonstruoTheme.onBackground,
+              fontSize: 13.5,
+              height: 1.4,
+            ),
+          ),
+          if (entry.hitlPayload != null && entry.hitlPayload!.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: MonstruoTheme.background,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                entry.hitlPayload!.length > 320
+                    ? '${entry.hitlPayload!.substring(0, 320)}…'
+                    : entry.hitlPayload!,
+                style: const TextStyle(
+                  color: MonstruoTheme.onSurfaceDim,
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  height: 1.4,
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          if (!resolved)
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: onReject,
+                    icon: const Icon(Icons.close, size: 16),
+                    label: const Text('Rechazar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: MonstruoTheme.surface,
+                      foregroundColor: MonstruoTheme.error,
+                      side: const BorderSide(
+                          color: MonstruoTheme.error, width: 1),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: onApprove,
+                    icon: const Icon(Icons.check, size: 16),
+                    label: const Text('Aprobar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: MonstruoTheme.success,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else
+            const Text(
+              'Resuelta',
+              style: TextStyle(
+                color: MonstruoTheme.onSurfaceDim,
+                fontSize: 11,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+        ],
+      ),
+    ).animate().fadeIn(duration: 250.ms).slideX(begin: -0.05, end: 0);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// S5b — Artifact detection + clickable card
+// ═══════════════════════════════════════════════════════════════
+
+/// Un artifact accionable detectado en el output de un tool — típicamente
+/// una URL de PR, issue, branch, deploy, archivo de Drive, etc.
+class _ArtifactInfo {
+  const _ArtifactInfo({
+    required this.url,
+    required this.label,
+    required this.kind,
+  });
+
+  final String url;
+  final String label;
+
+  /// Categoría visual: pr, issue, branch, deploy, file, link.
+  final String kind;
+}
+
+/// Patrones canónicos para clasificar URLs.
+final _artifactPatterns = <RegExp, String>{
+  RegExp(r'github\.com/[^/]+/[^/]+/pull/\d+'): 'pr',
+  RegExp(r'github\.com/[^/]+/[^/]+/issues/\d+'): 'issue',
+  RegExp(r'github\.com/[^/]+/[^/]+/tree/[\w\-/.]+'): 'branch',
+  RegExp(r'github\.com/[^/]+/[^/]+/commit/[a-f0-9]{7,40}'): 'commit',
+  RegExp(r'\.(?:up\.)?railway\.app'): 'deploy',
+  RegExp(r'vercel\.app'): 'deploy',
+  RegExp(r'\.manus\.space'): 'deploy',
+  RegExp(r'drive\.google\.com'): 'file',
+  RegExp(r'docs\.google\.com'): 'file',
+  RegExp(r'notion\.so'): 'doc',
+  RegExp(r'supabase\.co/dashboard'): 'db',
+};
+
+/// Extrae URLs de un texto y las clasifica.
+///
+/// Devuelve hasta 5 artefactos para evitar saturar la UI cuando un tool
+/// vuelca un dump enorme. Si el output es JSON con campo `url`/`urls`,
+/// los respeta como prioritarios.
+List<_ArtifactInfo> _detectArtifacts(String? out) {
+  if (out == null || out.isEmpty) return const [];
+  final results = <_ArtifactInfo>[];
+  final seen = <String>{};
+
+  void add(String url, {String? label, String? kind}) {
+    final clean = url.trim();
+    if (clean.isEmpty || seen.contains(clean)) return;
+    if (results.length >= 5) return;
+    seen.add(clean);
+    final detectedKind = kind ?? _classifyArtifact(clean);
+    final detectedLabel =
+        label ?? _shortLabelFor(clean, detectedKind);
+    results.add(_ArtifactInfo(
+      url: clean,
+      label: detectedLabel,
+      kind: detectedKind,
+    ));
+  }
+
+  // 1. Si es JSON con campo url/urls, priorizar.
+  final trimmed = out.trim();
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try {
+      final decoded = jsonDecode(trimmed);
+      void walk(dynamic node) {
+        if (node is Map) {
+          final u = node['url'];
+          if (u is String) {
+            add(u,
+                label: node['label']?.toString() ??
+                    node['title']?.toString(),
+                kind: node['kind']?.toString());
+          }
+          for (final v in node.values) {
+            walk(v);
+          }
+        } else if (node is List) {
+          for (final v in node) {
+            walk(v);
+          }
+        }
+      }
+
+      walk(decoded);
+    } catch (_) {
+      // ignore: JSON malformado, caemos al regex.
+    }
+  }
+
+  // 2. Regex genérico de URLs.
+  final urlRegex = RegExp(
+    r'https?://[^\s\)\]\}<>"\u2018\u2019\u201C\u201D]+',
+    caseSensitive: false,
+  );
+  for (final m in urlRegex.allMatches(out)) {
+    add(m.group(0)!);
+  }
+
+  return results;
+}
+
+String _classifyArtifact(String url) {
+  for (final entry in _artifactPatterns.entries) {
+    if (entry.key.hasMatch(url)) return entry.value;
+  }
+  return 'link';
+}
+
+String _shortLabelFor(String url, String kind) {
+  switch (kind) {
+    case 'pr':
+      final m = RegExp(r'github\.com/([^/]+)/([^/]+)/pull/(\d+)')
+          .firstMatch(url);
+      if (m != null) return '${m.group(1)}/${m.group(2)} #${m.group(3)}';
+      break;
+    case 'issue':
+      final m = RegExp(r'github\.com/([^/]+)/([^/]+)/issues/(\d+)')
+          .firstMatch(url);
+      if (m != null) return '${m.group(1)}/${m.group(2)} #${m.group(3)}';
+      break;
+    case 'commit':
+      final m = RegExp(r'github\.com/([^/]+)/([^/]+)/commit/([a-f0-9]+)')
+          .firstMatch(url);
+      if (m != null) {
+        final sha = m.group(3)!;
+        return '${m.group(2)}@${sha.substring(0, sha.length > 7 ? 7 : sha.length)}';
+      }
+      break;
+  }
+  // Fallback: dominio + path acortado.
+  final uri = Uri.tryParse(url);
+  if (uri == null) return url;
+  final path = uri.path.length > 28 ? '${uri.path.substring(0, 28)}…' : uri.path;
+  return '${uri.host}$path';
+}
+
+/// Tarjeta clickable que abre un artifact en el navegador externo.
+class _ArtifactCard extends StatelessWidget {
+  const _ArtifactCard({
+    required this.entry,
+    required this.onOpen,
+  });
+
+  final _StepEntry entry;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final kind = entry.artifactKind ?? 'link';
+    final iconData = switch (kind) {
+      'pr' => Icons.merge_type,
+      'issue' => Icons.error_outline,
+      'branch' => Icons.account_tree_outlined,
+      'commit' => Icons.commit_outlined,
+      'deploy' => Icons.rocket_launch_outlined,
+      'file' => Icons.insert_drive_file_outlined,
+      'doc' => Icons.menu_book_outlined,
+      'db' => Icons.storage_outlined,
+      _ => Icons.open_in_new,
+    };
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: MonstruoTheme.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: const Border(
+          left: BorderSide(color: MonstruoTheme.tertiary, width: 3),
+        ),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onOpen,
+          borderRadius: BorderRadius.circular(10),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Icon(iconData, size: 18, color: MonstruoTheme.tertiary),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        entry.text,
+                        style: const TextStyle(
+                          color: MonstruoTheme.onBackground,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        entry.artifactUrl ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: MonstruoTheme.onSurfaceDim,
+                          fontSize: 11,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                const Icon(
+                  Icons.open_in_new,
+                  size: 14,
+                  color: MonstruoTheme.onSurfaceDim,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ).animate().fadeIn(duration: 250.ms).slideX(begin: -0.05, end: 0);
   }
 }
