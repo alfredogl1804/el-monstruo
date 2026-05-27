@@ -106,6 +106,18 @@ class ToolSpec:
         SLO planning and timeout heuristics. Default 0 (no SLO hint).
 
     These are *estimated*; real cost/latency are recorded by the broker.
+
+    DAN T1 S5_KERNEL_FIX addition (2026-05-27):
+      - trigger_hint: When set, this text is rendered DYNAMICALLY in the
+        'Cuando Usar Cada Herramienta' section of get_tool_aware_prompt_suffix(),
+        prefixed by the tool name and optionally suffixed by the action enum.
+        This kills the hardcoded drift bug that caused S5: P0.4 added github_ops
+        + skill_read to get_tool_specs() but the prompt block still mentioned
+        legacy 'github' with legacy actions, so the LLM narrated the legacy
+        names instead of emitting TOOL_CALL_START with the real names.
+        Anti-drift structural fix: prompt is now generated from get_tool_specs(),
+        so adding/renaming a tool or action updates the prompt automatically.
+        Default empty string keeps the tool absent from the trigger block.
     """
 
     name: str
@@ -114,6 +126,7 @@ class ToolSpec:
     risk: str = "low"  # low, medium, high
     cost_usd_estimated: float = 0.0
     latency_ms_estimated: int = 0
+    trigger_hint: str = ""
 
     def to_openai_format(self) -> dict:
         """Convert to OpenAI/xAI/OpenRouter tools format."""

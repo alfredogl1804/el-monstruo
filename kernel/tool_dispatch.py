@@ -91,6 +91,11 @@ def get_tool_specs():
             risk="low",
             cost_usd_estimated=0.005,  # DAN P0.5: blended Sonar approx
             latency_ms_estimated=800,  # Sonar reasoning typical TTLT
+            trigger_hint=(
+                "Datos actuales (precios, noticias, tipo de cambio, clima, eventos "
+                "recientes, resultados deportivos, cualquier dato post-2025). SIEMPRE "
+                "usa web_search para información que pueda haber cambiado."
+            ),
         ),
         # ── DAN P0.4: skill_read tool ───────────────────────────────
         ToolSpec(
@@ -114,6 +119,11 @@ def get_tool_specs():
             risk="low",
             cost_usd_estimated=0.0,  # local read; no API cost
             latency_ms_estimated=20,
+            trigger_hint=(
+                "Cuando necesites el contenido literal de un skill local de Manus "
+                "(skills/<name>/SKILL.md) para acceder a conocimiento procedural. "
+                "NO adivines desde tu entrenamiento — lee el SKILL.md real."
+            ),
         ),
         # ── DAN P0.4: github_ops tool ───────────────────────────────
         ToolSpec(
@@ -161,6 +171,12 @@ def get_tool_specs():
             risk="high",  # write actions modify external state; HITL gates them
             cost_usd_estimated=0.0,  # GitHub REST API: rate-limit only
             latency_ms_estimated=400,
+            trigger_hint=(
+                "Cuando el usuario mencione repositorios, código, commits, issues, PRs, "
+                "branches, o cualquier operación de GitHub. Pasa el action como string y "
+                "sus argumentos como dict en params. Acciones de escritura HITL_WRITE "
+                "(create_issue, update_issue) requieren aprobación humana — NO simules."
+            ),
         ),
         ToolSpec(
             name="consult_sabios",
@@ -185,6 +201,11 @@ def get_tool_specs():
                 "required": ["prompt"],
             },
             risk="low",
+            trigger_hint=(
+                "Cuando necesites consenso de múltiples IAs sobre un tema complejo. "
+                "Diferente de delegate_task: sabios consulta modelos externos, "
+                "delegate_task usa roles internos del Monstruo."
+            ),
         ),
         ToolSpec(
             name="start_cidp_research",
@@ -292,37 +313,16 @@ def get_tool_specs():
             },
             risk="high",
         ),
-        ToolSpec(
-            name="github",
-            description=(
-                "Interact with GitHub repositories. Available actions: "
-                "search_repos, search_code, get_file, list_issues, list_prs, "
-                "create_issue, update_issue, create_branch, create_pull_request, "
-                "create_or_update_file. "
-                "Use when the user asks about code, repos, issues, PRs, branches, "
-                "or wants to create/update files in a GitHub repository. "
-                "For the COMMIT LOOP (self-modify): use create_branch to create a "
-                "feature branch, create_or_update_file to write changes, then "
-                "create_pull_request to open a PR for review. "
-                "Commit Loop actions (branch + file + PR) are auto-approved. "
-                "The PR review by Alfredo is the human gate."
-            ),
-            parameters={
-                "type": "object",
-                "properties": {
-                    "action": {
-                        "type": "string",
-                        "description": "The GitHub action to perform: search_repos, search_code, get_file, list_issues, list_prs, create_issue, update_issue, create_branch, create_pull_request, create_or_update_file",  # noqa: E501
-                    },
-                    "params": {
-                        "type": "object",
-                        "description": "Parameters for the action. Common: repo (owner/name), query, path, title, body, labels, state, limit",  # noqa: E501
-                    },
-                },
-                "required": ["action", "params"],
-            },
-            risk="medium",  # Sprint 33: lowered from high — commit loop is auto-approved, PR is the gate
-        ),
+        # ToolSpec "github" REMOVED 2026-05-27 (DAN T1 S5_KERNEL_FIX root cause).
+        # Previously this legacy spec coexisted with `github_ops` (P0.4), so the LLM
+        # had TWO bindings for the same backend (tools/github.py::execute_github),
+        # one with HITL gate (`github_ops`) and one without (`github`). Combined
+        # with the hardcoded prompt block that named `github` explicitly, the LLM
+        # picked the legacy name in production (iPhone repro 2026-05-27 11:29).
+        # The caller branch in _execute_tool (tool_name == "github") is kept for
+        # backwards compatibility with any in-flight trace that references it by
+        # name, but the registry no longer exposes it to the LLM. New tool calls
+        # must use `github_ops` which goes through the HITL gate properly.
         ToolSpec(
             name="notion",
             description=(
@@ -349,6 +349,11 @@ def get_tool_specs():
                 "required": ["action", "params"],
             },
             risk="medium",
+            trigger_hint=(
+                "Cuando el usuario mencione notas, documentos, bases de datos, páginas, "
+                "wiki, o cualquier contenido de Notion. Operaciones de escritura "
+                "(create_page, update_page, append_content) requieren aprobación humana."
+            ),
         ),
         ToolSpec(
             name="delegate_task",
@@ -395,6 +400,12 @@ def get_tool_specs():
                 "required": ["task", "role"],
             },
             risk="low",
+            trigger_hint=(
+                "Cuando necesites una perspectiva especializada, análisis profundo, o "
+                "quieras dividir una tarea compleja en sub-tareas. Roles disponibles: "
+                "estratega, investigador, razonador, critico, creativo, arquitecto, codigo, "
+                "sintetizador, verificador. Usa mode='parallel' para consultar múltiples roles."
+            ),
         ),
         ToolSpec(
             name="schedule_task",
@@ -438,6 +449,12 @@ def get_tool_specs():
                 "required": ["title", "instruction", "run_at"],
             },
             risk="low",
+            trigger_hint=(
+                "Cuando el usuario pida hacer algo EN EL FUTURO: 'recuérdame mañana', "
+                "'en 3 horas haz X', 'programa para las 8am', 'tomorrow at 9am send Y'. "
+                "Siempre usa schedule_task para tareas futuras. NO digas 'no puedo programar' — "
+                "SÍ puedes, usa esta herramienta."
+            ),
         ),
         ToolSpec(
             name="user_dossier",
@@ -507,6 +524,11 @@ def get_tool_specs():
                 "required": ["action"],
             },
             risk="low",
+            trigger_hint=(
+                "Cuando el usuario mencione su perfil, preferencias, proyectos activos, "
+                "misiones, o cuando necesites recordar/actualizar algo sobre el usuario. "
+                "También úsalo para crear nuevas misiones o cambiar prioridades."
+            ),
         ),
         ToolSpec(
             name="sovereign_browser_render",
@@ -692,6 +714,11 @@ def get_tool_specs():
                 "required": ["action"],
             },
             risk="medium",
+            trigger_hint=(
+                "Cuando necesites delegar tareas complejas a un agente Manus (investigación "
+                "con navegador, ejecución de código multi-paso, workflows complejos). Acciones: "
+                "create_task, get_status, create_and_wait. Limitado a 5 llamadas/hora."
+            ),
         ),
         # ── Sprint 84 Bloque 2 — Deploy unificado (Magna decide) ──────
         ToolSpec(
@@ -1300,53 +1327,29 @@ def get_tool_aware_prompt_suffix() -> str:
         lines.append(f"- **{spec.name}**: {spec.description}{risk_label}")
 
     # ── Tool Trigger Conditions (Sprint 7: prompt engineering) ──
+    # DAN T1 S5_KERNEL_FIX (2026-05-27): generated DYNAMICALLY from get_tool_specs()
+    # to kill hardcoded drift. Previous version mentioned legacy tool name `github`
+    # with legacy actions (list_repos, search_code, ...) even after P0.4 renamed to
+    # `github_ops` with different actions (list_prs, create_pull_request, ...).
+    # The LLM trusted the prompt over the function-calling schema and narrated the
+    # legacy names verbatim, producing the S5 ghost-tool bug. NEVER hardcode again.
     lines.append("")
     lines.append("## Cuándo Usar Cada Herramienta")
     lines.append("")
-    lines.append(
-        "**web_search**: Datos actuales (precios, noticias, tipo de cambio, clima, "
-        "eventos recientes, resultados deportivos, cualquier dato post-2025). "
-        "SIEMPRE usa web_search para información que pueda haber cambiado."
-    )
-    lines.append(
-        "**github**: Cuando el usuario mencione repositorios, código, commits, issues, "
-        "PRs, o cualquier operación de GitHub. Acciones: list_repos, get_repo, "
-        "list_issues, create_issue, list_commits, get_file, search_code."
-    )
-    lines.append(
-        "**notion**: Cuando el usuario mencione notas, documentos, bases de datos, "
-        "páginas, wiki, o cualquier contenido de Notion. Acciones: search, get_page, "
-        "get_page_content, query_database, create_page, update_page, append_content."
-    )
-    lines.append(
-        "**delegate_task**: Cuando necesites una perspectiva especializada, análisis "
-        "profundo, o quieras dividir una tarea compleja en sub-tareas. Roles disponibles: "
-        "estratega, investigador, razonador, critico, creativo, arquitecto, codigo, "
-        "sintetizador, verificador. Usa mode='parallel' para consultar múltiples roles."
-    )
-    lines.append(
-        "**user_dossier**: Cuando el usuario mencione su perfil, preferencias, "
-        "proyectos activos, misiones, o cuando necesites recordar/actualizar algo sobre "
-        "el usuario. También úsalo para crear nuevas misiones o cambiar prioridades."
-    )
-    lines.append(
-        "**schedule_task**: Cuando el usuario pida hacer algo EN EL FUTURO: "
-        "'recuérdame mañana', 'en 3 horas haz X', 'programa para las 8am', "
-        "'tomorrow at 9am send Y'. Siempre usa schedule_task para tareas futuras. "
-        "NO digas 'no puedo programar' — SÍ puedes, usa esta herramienta."
-    )
-    lines.append(
-        "**consult_sabios**: Cuando necesites consenso de múltiples IAs sobre un tema "
-        "complejo. Diferente de delegate_task: sabios consulta modelos externos, "
-        "delegate_task usa roles internos del Monstruo."
-    )
-    lines.append(
-        "**manus_bridge**: Cuando necesites delegar tareas complejas a un agente Manus "
-        "(investigación con navegador, ejecución de código multi-paso, workflows complejos). "
-        "Acciones: create_task (crear tarea), get_status (verificar progreso), "
-        "create_and_wait (crear y esperar resultado). Limitado a 5 llamadas/hora. "
-        "[riesgo: medium]"
-    )
+    for spec in specs:
+        if not spec.trigger_hint:
+            continue
+        # Extract action enum if the schema has an `action` property with enum.
+        action_enum: list[str] = []
+        try:
+            props = (spec.parameters or {}).get("properties", {}) or {}
+            action_prop = props.get("action", {}) or {}
+            action_enum = list(action_prop.get("enum", []) or [])
+        except (AttributeError, TypeError):
+            action_enum = []
+        action_suffix = f" Acciones: {', '.join(action_enum)}." if action_enum else ""
+        risk_suffix = f" [riesgo: {spec.risk}]" if spec.risk != "low" else ""
+        lines.append(f"**{spec.name}**: {spec.trigger_hint}{action_suffix}{risk_suffix}")
     lines.append("")
     lines.append(
         "REGLA CRÍTICA: Cuando el usuario pida información actual, SIEMPRE usa "
