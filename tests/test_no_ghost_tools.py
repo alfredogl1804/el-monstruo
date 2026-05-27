@@ -126,6 +126,44 @@ GITHUB_OPS_REPRO_S5_TRACE = [
     _ev("RUN_FINISHED"),
 ]
 
+
+# ── 3.b github_ops — REPRO V2 2026-05-27 11:29 UTC-6 (post-merge P0.4+P0.6) ─
+# Traza canonizada: capturada en iPhone físico durante validación E2E
+# DESPUÉS de mergear P0.4 (#221) y P0.6 (#222) en main. El bug NO se arregló.
+# El LLM evolucionó la prosa narrativa a un formato estructurado con markdown
+# bold ("**Acción:**", "**Riesgo:**", "**Herramienta:**", "**Petición directa:**")
+# y declara "Voy a ejecutarla ahora" pero NUNCA emite TOOL_CALL_START.
+#
+# Causa probable: el ToolSpec de github_ops fue agregado al registry pero el
+# binding de tools al LLMClient en el LangGraph execute_node no incluye la
+# nueva tool, o el system prompt sigue induciendo narración en lugar de
+# function calling.
+#
+# Ver bridge/manus_to_cowork_S5_REGRESION_E2E_2026_05_27.md
+GITHUB_OPS_REPRO_S5_V2_2026_05_27_1129_TRACE = [
+    _ev("RUN_STARTED", runId="s5_repro_v2_2026_05_27_1129"),
+    _ev("THINKING_STATE", state="planning"),
+    _ev(
+        "TEXT_MESSAGE_CONTENT",
+        delta=(
+            "Voy a consultar las Pull Requests abiertas en el repositorio "
+            "`alfredogl1804/el-monstruo`. Dame un momento.\n\n"
+            "**Acción:** `list_prs` en `alfredogl1804/el-monstruo` con filtro `open`.\n"
+            "**Riesgo:** medium (lectura de repositorio público)\n"
+            "**Herramienta:** github\n\n"
+            "**Petición directa:** list_prs con owner=\"alfredogl1804\", "
+            "repo=\"el-monstruo\", state=\"open\" (sin parámetros adicionales "
+            "de paginación).\n\n"
+            "Voy a ejecutarla ahora. (No describo más — procedo con la llamada)."
+        ),
+    ),
+    # ❌ Aquí debería venir TOOL_CALL_START con toolCallName='github_ops' y
+    # args {action: 'list_prs', params: {owner: 'alfredogl1804', repo: 'el-monstruo', state: 'open'}}.
+    # En la repro real V2, el siguiente evento fue RUN_FINISHED. La HITL card
+    # NO se renderizó — igual que en V1.
+    _ev("RUN_FINISHED"),
+]
+
 GITHUB_OPS_CLEAN_TRACE = [
     _ev("RUN_STARTED", runId="s5_clean"),
     _ev(
@@ -156,8 +194,15 @@ GITHUB_OPS_CLEAN_TRACE = [
 GITHUB_OPS_PATTERNS = [
     r"llama(?:ndo|r[eaá]?)?\s+(?:a\s+)?(?:la\s+)?herramienta\s+[\"`]?github[\"`]?",
     r"invocar?\s+(?:la\s+)?herramienta\s+[\"`]?github[\"`]?",
-    # Patron de respaldo: "accion: <op>" donde <op> es uno de los actions del tool
+    # Patron de respaldo V1: "accion: <op>" donde <op> es uno de los actions del tool
     r"(?:acci[oó]n|action)\s*:\s*(?:list_prs|merge_pr|create_issue|create_pull_request|create_branch|search_repos|search_code|get_file|list_issues|update_issue|create_or_update_file)",
+    # Patrones V2 (agregados 2026-05-27 11:29 — repro V2):
+    # markdown bold + dos puntos + valor ("**Herramienta:** github", "**Acción:** list_prs")
+    r"\*\*(?:herramienta|tool)\*\*\s*:\s*[\"`]?github",
+    r"\*\*(?:acci[oó]n|action)\*\*\s*:\s*[\"`]?(?:list_prs|merge_pr|create_issue|create_pull_request|create_branch|search_repos|search_code|get_file|list_issues|update_issue|create_or_update_file)",
+    # "voy a ejecutar(la) ahora" + "procedo con la llamada" — declaracion de intencion sin tool call
+    r"voy\s+a\s+ejecutar(?:la)?\s+ahora",
+    r"procedo\s+con\s+la\s+llamada",
 ]
 
 
@@ -233,10 +278,10 @@ class TestNoGhostActive:
 
     def test_repro_s5_canonized_is_ghost(self):
         """
-        Gate permanente: la traza CANONIZADA observada en iPhone el 2026-05-27
-        DEBE ser detectada como ghost por el detector. Si este test falla, el
-        detector se rompió o alguien perdió la capacidad de cazar la repro
-        original — eso es regresión grave.
+        Gate permanente V1: la traza CANONIZADA observada en iPhone el 2026-05-27
+        (primer E2E, prosa narrativa simple) DEBE ser detectada como ghost por
+        el detector. Si este test falla, el detector se rompió o alguien perdió
+        la capacidad de cazar la repro original — eso es regresión grave.
         """
         hit = detect_ghost_tool(
             GITHUB_OPS_REPRO_S5_TRACE,
@@ -244,11 +289,37 @@ class TestNoGhostActive:
             prose_patterns=GITHUB_OPS_PATTERNS,
         )
         assert hit is not None, (
-            "Detector failed to catch the canonized S5 repro — anti-ghost suite is broken"
+            "Detector failed to catch the canonized S5 repro V1 — anti-ghost suite is broken"
         )
         assert hit.expected_tool == "github_ops"
         assert "github" in hit.offending_text.lower()
         assert hit.matched_pattern  # truthy
+
+    def test_repro_s5_v2_canonized_is_ghost(self):
+        """
+        Gate permanente V2: la traza CANONIZADA observada en iPhone el 2026-05-27
+        a las 11:29 UTC-6, DESPUES de mergear P0.4 (#221) y P0.6 (#222) en main.
+        El bug NO se arregló; el LLM evolucionó la prosa narrativa a un formato
+        estructurado con markdown bold (**Acción:**, **Riesgo:**, **Herramienta:**,
+        **Petición directa:**) y declara "Voy a ejecutarla ahora" pero NUNCA emite
+        TOOL_CALL_START. Este test endurece el detector contra mutaciones del
+        LLM y certifica que la regresión V2 sigue siendo cazada.
+        Ver bridge/manus_to_cowork_S5_REGRESION_E2E_2026_05_27.md
+        """
+        hit = detect_ghost_tool(
+            GITHUB_OPS_REPRO_S5_V2_2026_05_27_1129_TRACE,
+            expected_tool="github_ops",
+            prose_patterns=GITHUB_OPS_PATTERNS,
+        )
+        assert hit is not None, (
+            "Detector failed to catch the canonized S5 repro V2 (2026-05-27 11:29) "
+            "— the LLM mutation evaded the patterns. Update GITHUB_OPS_PATTERNS."
+        )
+        assert hit.expected_tool == "github_ops"
+        # Debe matchear al menos uno de los patrones V2 (markdown bold) o V1 (palabras sueltas)
+        assert hit.matched_pattern, "No regex matched the V2 trace"
+        # La prosa V2 contiene "github" explícito en "**Herramienta:** github"
+        assert "github" in hit.offending_text.lower()
 
 
 # ──────────────────────────────────────────────────────────────────────

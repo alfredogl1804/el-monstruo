@@ -67,7 +67,7 @@ class GhostHit:
     """Tipo del evento ofensor (TEXT_MESSAGE_CONTENT, STEP, THINKING_STATE)."""
 
     offending_text: str
-    """Snippet del texto ofensor (truncado a 200 chars)."""
+    """Snippet del texto ofensor (truncado a 600 chars)."""
 
     matched_pattern: str
     """Regex que disparó el match (string del patrón, no objeto compilado)."""
@@ -187,7 +187,7 @@ def detect_ghost_tool(
                 expected_tool=expected_tool,
                 offending_event_index=idx,
                 offending_event_type=ev.get("type", "?"),
-                offending_text=(text[:200] + ("…" if len(text) > 200 else "")),
+                offending_text=(text[:600] + ("…" if len(text) > 600 else "")),
                 matched_pattern=pat.pattern,
                 next_tool_event=nxt,
             )
