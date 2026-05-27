@@ -259,3 +259,116 @@ class TestRegressionBugIphone:
     def test_gpt55_pasa_sin_cambio_para_execute_tools(self) -> None:
         """Si supervisor ya escogió GPT-5.5, el pin no debe alterarlo."""
         assert pin_to_reliable_fc("gpt-5.5") == "gpt-5.5"
+
+
+# ════════════════════════════════════════════════════════════════════
+# Grupo 6: DAN S5 OBS-1 Hotfix — Alias normalization (2026-05-27)
+# ════════════════════════════════════════════════════════════════════
+
+
+class TestAliasNormalization:
+    """Verifica que ALIAS_TO_CATALOG resuelve mismatches entre /health y MODELS keys.
+
+    Reportado por Cowork audit 2026-05-27 sobre #229: el kernel /health reporta
+    'gemini-3.1-pro-preview' pero MODELS tiene 'gemini-3.1-pro' como key.
+    Sin normalización, supports_reliable_function_calling('gemini-3.1-pro-preview')
+    retornaba False (cae al default conservador), causando re-pin innecesario.
+    """
+
+    def test_normalize_passthrough_canonical(self) -> None:
+        """Nombres canónicos (sin sufijo) pasan tal cual."""
+        from config.model_catalog import normalize_model_name
+
+        assert normalize_model_name("gpt-5.5") == "gpt-5.5"
+        assert normalize_model_name("claude-opus-4-7") == "claude-opus-4-7"
+        assert normalize_model_name("gemini-3.1-pro") == "gemini-3.1-pro"
+
+    def test_normalize_resuelve_gemini_preview(self) -> None:
+        """gemini-3.1-pro-preview se normaliza a gemini-3.1-pro."""
+        from config.model_catalog import normalize_model_name
+
+        assert normalize_model_name("gemini-3.1-pro-preview") == "gemini-3.1-pro"
+
+    def test_normalize_resuelve_gemini_flash_lite_preview(self) -> None:
+        """gemini-3.1-flash-lite-preview se normaliza a gemini-3.1-flash-lite."""
+        from config.model_catalog import normalize_model_name
+
+        assert normalize_model_name("gemini-3.1-flash-lite-preview") == "gemini-3.1-flash-lite"
+
+    def test_normalize_passthrough_unknown(self) -> None:
+        """Modelos sin alias retornan nombre original (passthrough)."""
+        from config.model_catalog import normalize_model_name
+
+        assert normalize_model_name("modelo-inventado-xyz") == "modelo-inventado-xyz"
+        assert normalize_model_name("grok-4.20") == "grok-4.20"
+        # NUNCA agregar alias a grok - es No-FC por diseño.
+
+    def test_supports_fc_via_alias_gemini_preview(self) -> None:
+        """gemini-3.1-pro-preview pasa por alias y resuelve a FC=True."""
+        # Esta era la razón del hotfix: antes daba False (default), ahora debe dar True.
+        assert supports_reliable_function_calling("gemini-3.1-pro-preview") is True
+
+    def test_supports_fc_via_alias_gemini_flash_preview(self) -> None:
+        """gemini-3.1-flash-lite-preview pasa por alias y resuelve a FC=True."""
+        assert supports_reliable_function_calling("gemini-3.1-flash-lite-preview") is True
+
+    def test_pin_no_reruta_gemini_preview(self) -> None:
+        """REGRESIÓN OBS-1: pin_to_reliable_fc preserva gemini-3.1-pro-preview.
+
+        Antes del hotfix, el flujo era:
+        1. /health reporta gemini-3.1-pro-preview
+        2. supports_reliable_function_calling('gemini-3.1-pro-preview') → False
+        3. pin_to_reliable_fc rerouta a claude-opus-4-7 (innecesario)
+
+        Después del hotfix:
+        1. /health reporta gemini-3.1-pro-preview
+        2. normalize_model_name → gemini-3.1-pro
+        3. supports_reliable_function_calling → True
+        4. pin_to_reliable_fc retorna el ORIGINAL (con sufijo -preview intacto).
+        """
+        result = pin_to_reliable_fc("gemini-3.1-pro-preview")
+        assert result == "gemini-3.1-pro-preview", (
+            "El alias debe preservar el nombre original con sufijo -preview "
+            "(no rerutear a claude-opus innecesariamente)"
+        )
+
+    def test_pin_si_reruta_grok_aunque_haya_alias_pattern(self) -> None:
+        """grok-4.20 sigue rerouteando aunque comparta familia con grok-4.1-fast."""
+        # Verificar que NO inventamos un alias incorrecto que rescate a grok.
+        result = pin_to_reliable_fc("grok-4.20")
+        assert result != "grok-4.20", "Grok DEBE ser rerouteado por router pin"
+        assert result in RELIABLE_FC_FALLBACK_CHAIN
+
+    def test_alias_no_rescata_no_fc_models(self) -> None:
+        """ALIAS_TO_CATALOG NO debe contener mappings que rescaten modelos No-FC."""
+        from config.model_catalog import ALIAS_TO_CATALOG
+
+        # Lista de modelos NO-FC que NUNCA deben ser destino de un alias.
+        no_fc_models = [
+            "grok-4.20",
+            "grok-4.1-fast",
+            "sonar-reasoning-pro",
+            "sonar-pro",
+            "deepseek-r1-0528",
+            "kimi-k2.5",
+            "groq-llama-scout",
+            "together-llama-scout",
+        ]
+
+        for alias, canonical in ALIAS_TO_CATALOG.items():
+            assert canonical not in no_fc_models, (
+                f"ALIAS_TO_CATALOG['{alias}'] = '{canonical}' apunta a modelo No-FC. "
+                f"Eso rescataría modelos No-FC de manera silenciosa. "
+                f"Prohibido por DAN S5 Router Pin."
+            )
+
+    def test_alias_canonicals_existen_en_models(self) -> None:
+        """Todos los destinos en ALIAS_TO_CATALOG deben existir como keys en MODELS."""
+        from config.model_catalog import ALIAS_TO_CATALOG
+
+        for alias, canonical in ALIAS_TO_CATALOG.items():
+            assert canonical in MODELS, (
+                f"ALIAS_TO_CATALOG['{alias}'] = '{canonical}' apunta a un modelo "
+                f"que NO existe en MODELS. Esto causaría que supports_reliable_function_calling "
+                f"caiga a default False silencioso. Verificar config/model_catalog.py."
+            )
