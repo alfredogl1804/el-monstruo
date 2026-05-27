@@ -64,7 +64,7 @@ Ejecutando ahora...
 
 **Stream cortó. Botón rojo desactivado. Sin tool_call_start visible. Sin resultado.**
 
-### Turno 3 — Gemini 3.1 (cambio manual de modelo), `web_search`
+### Turno 3 — Gemini 3.1 (selector manual), `web_search`
 
 Mensaje: "busca las 3 últimas noticias sobre Claude Opus 4.7 de Anthropic"
 
@@ -77,6 +77,19 @@ Voy a ejecutarla ahora.
 ```
 
 **Stream cortó. Proceso muerto. Cero tool_call.**
+
+### Turno 4 — "hola" simples (control, sin tools)
+
+Para descartar bug de WebSocket o conectividad, se enviaron 2 saludos consecutivos:
+
+- Mensaje 1: "hola" con selector en "Auto" → respondió `"Hola. ¿En qué puedo ayudarte?"` ✅
+- Mensaje 2: "hola" con selector cambiado a "Gemini 3.1" → respondió `"Hola."` ✅
+
+**Hallazgos críticos del Turno 4:**
+
+1. **WebSocket está sano.** Los mensajes simples sin tools llegan y responden completos. El bug en Turnos 1-3 NO es de transporte, es específico al path-con-tools.
+2. **Alfredo confirma binariamente que ambas respuestas "hola" las generó Grok 4.20**, no Gemini, no Auto routing. Esto significa: **el selector de modelo del frontend Flutter NO controla el ruteo real del kernel**. El catálogo Auto/Manus/Kimi/Perplexity/Gemini/Grok del frontend es decorativo o está roto en su path al kernel.
+3. **Implicación crítica:** todos los Turnos 1-3 fueron procesados por Grok 4.20 internamente, **independientemente de qué modelo eligió Alfredo en el dropdown**. Por lo tanto la H2 anterior se reduce a: **Grok 4.20 ignora `tool_choice="required"` en re-prompts** (no estamos seguros del comportamiento de Gemini real porque nunca llegó al kernel).
 
 ---
 
@@ -137,13 +150,13 @@ Si en `execute_with_tools` el segundo call (re-prompt) pierde el `tools=tool_spe
 
 **Cómo verificar:** revisar `kernel/nodes.py:1229-1237` — confirmar que `tools=tool_specs` se pasa igual en retry. Quick read confirma que sí se pasa (`tools=tool_specs`).
 
-**Mi apuesta es H1 o H2.**
+**Mi apuesta es H1 o H2 con Grok 4.20 específicamente.** Tras el Turno 4 sabemos que todos los runs anteriores fueron Grok aunque el frontend mostrara Gemini.
 
 ---
 
 ## Información adicional importante
 
-### Frontend tiene catálogo de modelos desincronizado
+### Frontend tiene catálogo de modelos desincronizado Y selector desconectado del ruteo
 
 El selector del iPhone (IMG_5630) muestra solo: Manus, Kimi K2.5, Perplexity, Gemini 3.1, Grok 4.20.
 
@@ -152,7 +165,10 @@ Pero `/health` del kernel reporta:
 "models_available": ["gpt-5.5", "claude-opus-4-7", "gemini-3.1-pro-preview", "sonar-reasoning-pro"]
 ```
 
-**Hay drift entre frontend (Flutter) y kernel.** Claude Opus 4.7 y GPT-5.5 NO están seleccionables desde la app — irónicamente son los que mejor function-calling soportan.
+**Hay 2 problemas distintos:**
+
+1. **Drift de catálogo:** Claude Opus 4.7 y GPT-5.5 NO aparecen en el dropdown del frontend, aunque están activos en el kernel. Irónicamente son los que mejor function-calling soportan.
+2. **Selector desconectado del ruteo (NUEVO HALLAZGO Turno 4):** Alfredo confirmó que aunque cambió el selector a "Gemini 3.1", el kernel siguió ruteando a Grok 4.20. **El selector del frontend no controla el modelo real que ejecuta el kernel.** Esto debe arreglarse para poder testear S5 con providers que sí respeten `tool_choice="required"`.
 
 ### Bug ortogonal: `github_ops list_prs` retorna 0 cuando hay 42
 
