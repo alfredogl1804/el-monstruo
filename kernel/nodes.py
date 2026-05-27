@@ -1185,6 +1185,89 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
                     tools=[tc.name for tc in llm_response.tool_calls],
                     loop_count=tool_loop_count,
                 )
+            else:
+                # ── DAN T2 (S5 KERNEL FIX 2026-05-27): server-side ghost-gate ──
+                # If the LLM did NOT emit tool_calls, scan the response text for
+                # tool ghosts (LLM narrating a tool call in prose). If a ghost
+                # is detected, re-prompt ONCE with tool_choice="required" to
+                # force function-calling. If the ghost persists after the retry,
+                # fail-loud — DAN Regla 2: tool ghost = fallo de sistema.
+                #
+                # This is the FIRST line of defense against the S5 repro pattern
+                # observed in iPhone 2026-05-27 (V1 + V2 traces). Without it,
+                # T1 (anti-drift prompt) only changes WHAT the LLM narrates,
+                # not WHETHER it function-calls.
+                from kernel.anti_ghost import detect_ghost_in_response
+
+                _available_tool_names = [s.name for s in tool_specs]
+                _ghost = detect_ghost_in_response(
+                    response_text=response or "",
+                    available_tool_names=_available_tool_names,
+                    has_tool_calls=False,  # we are in the else branch
+                )
+                _ghost_gate_attempted = state.get("ghost_gate_attempted", False)
+                if _ghost is not None and not _ghost_gate_attempted:
+                    logger.warning(
+                        "ghost_detected_reprompting",
+                        suspected_tool=_ghost.suspected_tool,
+                        matched_alias=_ghost.matched_alias,
+                        matched_pattern=_ghost.matched_pattern,
+                        offending_excerpt=_ghost.offending_excerpt,
+                        action="reprompt_with_tool_choice_required",
+                        run_id=state.get("run_id", ""),
+                    )
+                    # Re-prompt with tool_choice="required" to force function-calling.
+                    # The original prompt is reused with an additional system
+                    # nudge that makes the requirement explicit.
+                    _reprompt_message = (
+                        f"{message}\n\n[SYSTEM NUDGE — DAN T2]: La respuesta anterior "
+                        f"narró una tool ('{_ghost.suspected_tool}') en prosa sin emitirla "
+                        f"como tool_call estructurado. Esto es un fallo de sistema (DAN Regla 2). "
+                        f"Ahora DEBES emitir un tool_call estructurado al tool '{_ghost.suspected_tool}' "
+                        f"o, si la pregunta NO requiere tool, responder solo con texto sin narrar tools."
+                    )
+                    llm_response_retry = await router.execute_with_tools(
+                        message=_reprompt_message,
+                        model=model,
+                        intent=IntentType(intent),
+                        context=enriched_context,
+                        tools=tool_specs,
+                        tool_results=tool_results if is_followup else None,
+                        tool_choice="required",  # ← forzamos function-calling
+                    )
+                    response = llm_response_retry.content
+                    usage = llm_response_retry.usage
+                    model_used = llm_response_retry.usage.get("model_used", model)
+                    if llm_response_retry.has_tool_calls:
+                        pending_tool_calls = [
+                            tc.to_dict() for tc in llm_response_retry.tool_calls
+                        ]
+                        logger.info(
+                            "ghost_gate_reprompt_succeeded",
+                            tool_count=len(pending_tool_calls),
+                            tools=[tc.name for tc in llm_response_retry.tool_calls],
+                            run_id=state.get("run_id", ""),
+                        )
+                    else:
+                        # Re-prompt failed: LLM still narrating. Fail-loud.
+                        _ghost_persistent = detect_ghost_in_response(
+                            response_text=response or "",
+                            available_tool_names=_available_tool_names,
+                            has_tool_calls=False,
+                        )
+                        logger.error(
+                            "ghost_gate_reprompt_failed",
+                            suspected_tool=_ghost.suspected_tool,
+                            persistent_ghost=(_ghost_persistent is not None),
+                            run_id=state.get("run_id", ""),
+                        )
+                        raise RuntimeError(
+                            f"Ghost-gate exhausted: LLM narrated tool "
+                            f"'{_ghost.suspected_tool}' in prose, was re-prompted "
+                            f"with tool_choice='required', and still did not emit "
+                            f"a tool_call. {_ghost.reason()}"
+                        )
+                # /DAN T2 ────────────────────────────────────────────────────────
 
         elif router:
             # Fallback to old execute() without tools

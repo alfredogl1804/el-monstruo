@@ -283,6 +283,7 @@ class RouterEngine:
         context: Optional[dict[str, Any]] = None,
         tools: Optional[list] = None,
         tool_results: Optional[list[dict[str, Any]]] = None,
+        tool_choice: str = "auto",
     ) -> "LLMResponse":
         """
         Sprint 2: Execute with native tool calling support.
@@ -290,6 +291,14 @@ class RouterEngine:
 
         If tool_results is provided, this is a follow-up call where the LLM
         receives the results of previously executed tools.
+
+        DAN T2 (S5 KERNEL FIX 2026-05-27): tool_choice now configurable.
+          - 'auto' (default): LLM decides whether to call a tool.
+          - 'required': LLM MUST emit a tool_call. Used by the server-side
+            ghost-gate in kernel/nodes.py::execute() to force function-calling
+            on a re-prompt when the first response narrated a tool in prose
+            without emitting TOOL_CALL_START.
+          - 'none': LLM is forbidden from calling tools (text-only).
         """
 
         system_prompt = _get_system_prompt(intent, context)
@@ -391,7 +400,7 @@ class RouterEngine:
                     messages=messages,
                     temperature=temperature,
                     tools=tools,
-                    tool_choice="auto",
+                    tool_choice=tool_choice,  # DAN T2: configurable, default "auto"
                 )
 
                 is_fallback = attempt_model != catalog_key

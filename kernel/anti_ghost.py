@@ -192,3 +192,198 @@ def detect_ghost_tool(
                 next_tool_event=nxt,
             )
     return None
+
+
+# ── DAN T2 (S5 KERNEL FIX 2026-05-27) ──────────────────────────────────────
+# Detector server-side post-LLM-response (NO post-stream). Recibe el texto
+# plano que el LLM devolvió y la lista de tools disponibles, y reporta si la
+# prosa narra una tool del catálogo sin que el LLM haya emitido un tool_call
+# estructurado en la misma respuesta.
+#
+# Diferencia con `detect_ghost_tool` (P0.6): aquí no hay traza AG-UI todavía
+# — el kernel tiene la respuesta del LLM en mano (LLMResponse.content +
+# LLMResponse.tool_calls) y necesita decidir SI re-promptea con
+# tool_choice="required" antes de servir nada al frontend. Es la primera línea
+# de defensa contra ghost a nivel de kernel.
+# ───────────────────────────────────────────────────────────────────────────
+
+
+# Patrones genéricos de prosa que indican que el LLM va a usar UNA tool del
+# catálogo. Cada patrón es case-insensitive y matchea variantes ES/EN +
+# markdown bold ("**Herramienta:** X") porque la traza V2 del repro S5 usaba
+# exactamente esa estructura.
+# Cada patrón DEBE contener {tool_alias} — son tool-specific. Patrones
+# genéricos como "procedo con la llamada" se manejan como FALLBACK separado
+# (ver _GENERIC_FALLBACK_PATTERNS) y solo aplican si hay match tool-specific
+# de fortalecimiento.
+_GENERIC_GHOST_PATTERNS_TEMPLATE = [
+    # "voy a llamar / llamando / llamo / llamando a la herramienta X"
+    # Cubre conjugaciones: indicativo presente (llamo, llama), gerundio
+    # (llamando), infinitivo (llamar), participio (llamado), etc.
+    r"(?:voy\s+a\s+|estoy\s+|mientras\s+|cuando\s+)?llam(?:ar|ando|ado|o|a|amos|aremos|ar[eé])\s+(?:a\s+)?(?:la\s+)?herramienta\s+[\"`'*]*{tool_alias}",
+    # "voy a invocar / invocando / invoco X"
+    r"(?:voy\s+a\s+|estoy\s+)?invoc(?:ar|ando|o|a|amos)\s+(?:a\s+)?(?:la\s+herramienta\s+)?[\"`'*]*{tool_alias}",
+    # "usaré / usando / uso / usar X"
+    r"(?:voy\s+a\s+)?us(?:ar|ando|o|a|ar[eé])\s+(?:la\s+herramienta\s+)?[\"`'*]*{tool_alias}",
+    # Markdown bold: "**Herramienta:** X" (V2 repro S5 — debe matchear con o sin
+    # tool_alias inmediatamente después; el alias puede aparecer después en la línea)
+    r"\*\*herramienta\*\*\s*:?\s*[\"`'*\s]*{tool_alias}",
+    # Markdown bold: "**Tool:** X" (variante EN)
+    r"\*\*tool\*\*\s*:?\s*[\"`'*\s]*{tool_alias}",
+    # EN: "I'll call X" / "calling X" / "I am calling X"
+    r"(?:i['\u2019]?ll\s+|i\s+am\s+|i'm\s+|will\s+)?call(?:ing|s)?\s+(?:the\s+)?[\"`'*]*{tool_alias}",
+]
+
+# Patrones genéricos sin tool_alias — indican narración de tool-call sin
+# nombrar tool específico. Si la traza tiene UNO de estos Y además la
+# prosa menciona literalmente alguno de los tool_aliases en cualquier parte,
+# se considera ghost. Esto cubre patrones como "voy a ejecutarla ahora" o
+# "procedo con la llamada" que aparecen en V2 repro S5.
+_GENERIC_FALLBACK_PATTERNS = [
+    r"proced(?:o|er[eé])\s+(?:con|a)\s+(?:la\s+)?llamada",
+    r"voy\s+a\s+ejecutarla?\s+ahora",
+    r"executing\s+now",
+]
+
+# Aliases legacy → canonical mapping. Si el LLM narra "github" en prosa, eso
+# debería detectarse como ghost de "github_ops" (que es el tool real). Esto
+# defiende contra el patrón observado en repro S5 V1 (2026-05-27) donde el
+# LLM usaba el nombre legacy aunque ya no estuviera en el registry.
+TOOL_NAME_ALIASES: dict[str, list[str]] = {
+    "github_ops": ["github_ops", "github"],
+    # Otros tools no tienen aliases legacy conocidos — usan su nombre canónico.
+}
+
+
+@dataclass(frozen=True)
+class ResponseGhostHit:
+    """Resultado positivo del detector post-response (texto plano, no traza)."""
+
+    suspected_tool: str
+    """Tool del catálogo que el LLM narró en prosa."""
+
+    matched_alias: str
+    """Alias específico del tool que matcheó (puede ser legacy, e.g. 'github')."""
+
+    matched_pattern: str
+    """Regex que disparó el match."""
+
+    offending_excerpt: str
+    """Snippet del texto ofensor (truncado a 400 chars)."""
+
+    def reason(self) -> str:
+        """Mensaje legible para logs y eventos AG-UI."""
+        return (
+            f"Ghost detected: LLM narrated tool '{self.suspected_tool}' "
+            f"(alias '{self.matched_alias}') in prose without emitting a "
+            f"tool_call. Pattern: {self.matched_pattern!r}. "
+            f"Excerpt: {self.offending_excerpt!r}"
+        )
+
+
+def detect_ghost_in_response(
+    response_text: str,
+    *,
+    available_tool_names: list[str],
+    has_tool_calls: bool,
+) -> ResponseGhostHit | None:
+    """
+    Detecta tool fantasma en una respuesta del LLM ANTES de que sea servida
+    al frontend. Usado en `kernel/nodes.py::execute()` post-`execute_with_tools`
+    para decidir si re-promptea con `tool_choice="required"`.
+
+    Args:
+        response_text: el contenido textual de `LLMResponse.content`. Si vacío
+            o None, la función retorna `None` (no hay prosa que analizar).
+        available_tool_names: nombres canónicos de tools en el registry actual
+            (e.g. `[s.name for s in get_tool_specs()]`).
+        has_tool_calls: `LLMResponse.has_tool_calls` — si `True`, el LLM SÍ
+            emitió tool_calls estructurados, por lo tanto NO es ghost aunque
+            la prosa también mencione la tool. Esto evita falsos positivos
+            cuando el LLM anuncia Y luego function-calleó correctamente.
+
+    Returns:
+        `ResponseGhostHit` si detectó ghost (LLM narró tool en prosa Y NO
+        emitió tool_calls), o `None` si la respuesta está limpia.
+
+    Diseño:
+    - Si `has_tool_calls=True` → retorna `None` sin analizar (tool_call wins).
+    - Para cada tool del catálogo, genera regex usando aliases (canonical +
+      legacy). Si CUALQUIER patrón matchea la prosa, reporta hit.
+    - Patrones son case-insensitive y matchean ES/EN + markdown bold + variantes
+      observadas en repro S5 V1 y V2 (iPhone 2026-05-27).
+    """
+    # Si el LLM emitió tool_calls estructurados, no es ghost — la prosa puede
+    # ser anuncio legítimo ("Voy a llamar a github_ops") seguido del call real.
+    if has_tool_calls:
+        return None
+
+    if not response_text or not isinstance(response_text, str):
+        return None
+
+    if not available_tool_names:
+        return None
+
+    # ── Fase 1: tool-specific patterns ────────────────────────────────────
+    # Para cada tool disponible, probar todos sus aliases con patrones que
+    # incluyen el {tool_alias} literal en el regex.
+    for tool_name in available_tool_names:
+        aliases = TOOL_NAME_ALIASES.get(tool_name, [tool_name])
+        for alias in aliases:
+            # Escapar el alias para insertarlo seguro en el regex template.
+            alias_escaped = re.escape(alias)
+            for tpl in _GENERIC_GHOST_PATTERNS_TEMPLATE:
+                pattern_str = tpl.format(tool_alias=alias_escaped)
+                pat = re.compile(pattern_str, re.IGNORECASE)
+                m = pat.search(response_text)
+                if m is None:
+                    continue
+                # Match — extraer snippet alrededor del match.
+                start = max(0, m.start() - 50)
+                end = min(len(response_text), m.end() + 150)
+                excerpt = response_text[start:end].strip()
+                if len(excerpt) > 400:
+                    excerpt = excerpt[:400] + "…"
+                return ResponseGhostHit(
+                    suspected_tool=tool_name,
+                    matched_alias=alias,
+                    matched_pattern=pattern_str,
+                    offending_excerpt=excerpt,
+                )
+
+    # ── Fase 2: fallback patterns (sin {tool_alias}) ────────────────────
+    # Si la prosa contiene un patrón genérico ("procedo con la llamada",
+    # "voy a ejecutarla ahora") Y además menciona literalmente el alias de
+    # alguna tool del catálogo, también cuenta como ghost. Esto captura
+    # estructuras V2 donde el bold "**Herramienta:** github" + el cierre
+    # "procedo con la llamada" están separados en líneas distintas.
+    fallback_compiled = [re.compile(p, re.IGNORECASE) for p in _GENERIC_FALLBACK_PATTERNS]
+    for fb_pat in fallback_compiled:
+        m_fb = fb_pat.search(response_text)
+        if m_fb is None:
+            continue
+        # Hay fallback pattern. ¿Menciona literalmente algún tool del catálogo?
+        # Buscamos el alias como palabra word-boundary para evitar falsos positivos.
+        for tool_name in available_tool_names:
+            aliases = TOOL_NAME_ALIASES.get(tool_name, [tool_name])
+            for alias in aliases:
+                alias_pat = re.compile(
+                    r"\b" + re.escape(alias) + r"\b", re.IGNORECASE
+                )
+                m_alias = alias_pat.search(response_text)
+                if m_alias is None:
+                    continue
+                # Tenemos fallback + alias literal → ghost.
+                start = max(0, m_alias.start() - 50)
+                end = min(len(response_text), m_alias.end() + 150)
+                excerpt = response_text[start:end].strip()
+                if len(excerpt) > 400:
+                    excerpt = excerpt[:400] + "…"
+                return ResponseGhostHit(
+                    suspected_tool=tool_name,
+                    matched_alias=alias,
+                    matched_pattern=f"{fb_pat.pattern} + alias '{alias}'",
+                    offending_excerpt=excerpt,
+                )
+
+    return None
