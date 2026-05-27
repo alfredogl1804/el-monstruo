@@ -11,6 +11,14 @@ exige y la versión base no entrega:
       Sonar no descompone tokens_in vs tokens_out (usage.total_tokens).
       Marcado NO VERIFICADO: el split exacto debe ajustarse cuando Perplexity
       exponga `prompt_tokens`/`completion_tokens` por separado.
+      [DAN P0.4 audit Cowork 2026-05-27 — ACEPTADO blended 50/50. No es
+       "correcto", es "estimador menos sesgado". `total_tokens` se persiste
+       tal cual en `tokens_out` del ledger, asi el dia que Perplexity exponga
+       el desglose se puede recomputar retroactivamente. Decision T2-A: NO
+       abrir issue tracker contra Perplexity — busywork de bajo valor.]
+       TODO(perplexity-token-split): cuando Sonar exponga prompt_tokens y
+       completion_tokens en el payload, reemplazar el blended por el split
+       real y backfillear run_costs reciente con el desglose.
     - `results: list[{url, citation_id, title, snippet}]` mapeado desde
       `citations` (URLs). title/snippet quedan en None cuando Sonar no los trae
       (no inventar).
@@ -49,6 +57,8 @@ def _compute_cost_usd(
     un blended cost = total_tokens × ((input + output) / 2) / 1_000_000.
     Cuando Perplexity exponga prompt_tokens/completion_tokens separados,
     refactorizar para usar el split real.
+    TODO(perplexity-token-split): ver docstring del modulo para el contexto
+    completo de la decision T2-A 2026-05-27.
 
     Returns:
         (cost_usd, source) — `source` indica de dónde salió el pricing
