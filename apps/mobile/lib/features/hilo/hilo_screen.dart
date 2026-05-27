@@ -121,9 +121,20 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
             ev.stepLabel ?? ev.raw['name']?.toString() ?? 'paso')));
         break;
       case AguiEventType.toolCallStart:
-        setState(() => _steps.add(_StepEntry.toolCall(
-            ev.toolName ?? 'tool',
-            argsPreview: ev.raw['arguments']?.toString())));
+        final toolName = ev.toolName ?? 'tool';
+        setState(() {
+          // Verificar pending steps matching esta tool
+          for (final s in _steps) {
+            if (s.trust == _TrustState.pendingVerification &&
+                s.expectedTool != null &&
+                _toolMatches(s.expectedTool!, toolName)) {
+              s.trust = _TrustState.verified;
+            }
+          }
+          _steps.add(_StepEntry.toolCall(
+              toolName,
+              argsPreview: ev.raw['arguments']?.toString()));
+        });
         break;
       case AguiEventType.toolCallArgs:
         // Append a partial args snapshot to the latest tool_call entry.
@@ -139,9 +150,25 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
         break;
       case AguiEventType.toolCallEnd:
         final out = ev.raw['result']?.toString() ?? ev.raw['output']?.toString();
-        setState(() => _steps.add(_StepEntry.toolResult(
-            ev.toolName ?? 'tool',
-            preview: out)));
+        final hasError = ev.raw['error'] != null ||
+            ev.raw['status']?.toString() == 'error' ||
+            ev.raw['status']?.toString() == 'failed';
+        final toolName = ev.toolName ?? 'tool';
+        setState(() {
+          if (hasError) {
+            // Marcar steps relacionados como failed
+            for (final s in _steps) {
+              if (s.expectedTool != null &&
+                  _toolMatches(s.expectedTool!, toolName) &&
+                  s.trust != _TrustState.ghost) {
+                s.trust = _TrustState.failed;
+              }
+            }
+          }
+          _steps.add(_StepEntry.toolResult(
+              toolName,
+              preview: out));
+        });
         break;
       case AguiEventType.textMessageStart:
         setState(() => _streamingText = '');
@@ -164,6 +191,12 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
             _steps.add(_StepEntry.message(_streamingText));
             _streamingText = '';
           }
+          // Cualquier step pending sin verificar al final = ghost detected
+          for (final s in _steps) {
+            if (s.trust == _TrustState.pendingVerification) {
+              s.trust = _TrustState.ghost;
+            }
+          }
           _steps.add(_StepEntry.done());
           _isRunning = false;
         });
@@ -185,9 +218,36 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
     _sub?.cancel();
     HapticFeedback.lightImpact();
     setState(() {
+      // Steps pending al cancelar = ghost (no se podrán verificar)
+      for (final s in _steps) {
+        if (s.trust == _TrustState.pendingVerification) {
+          s.trust = _TrustState.ghost;
+        }
+      }
       _isRunning = false;
       _steps.add(_StepEntry.cancelled());
     });
+  }
+
+  /// Determina si una tool esperada (heurística del cliente) coincide con
+  /// una tool real reportada por el kernel (server-side).
+  /// Es tolerante porque el kernel puede usar nombres ligeramente distintos
+  /// (e.g. "web_search_perplexity" vs "web_search").
+  bool _toolMatches(String expected, String actual) {
+    final e = expected.toLowerCase();
+    final a = actual.toLowerCase();
+    if (e == a) return true;
+    if (a.contains(e) || e.contains(a)) return true;
+    // Aliases comunes
+    const aliases = {
+      'web_search': ['websearch', 'search_web', 'perplexity_search', 'sonar'],
+      'skill_read': ['read_skill', 'skill_get', 'load_skill'],
+      'consulta_sabios': ['consult_sabios', 'ask_sabios', 'sabios_query'],
+      'code_exec': ['exec_code', 'run_code', 'python_exec'],
+      'supabase_query': ['db_query', 'sql_exec', 'postgres_query'],
+    };
+    final aliasesForExpected = aliases[e] ?? const <String>[];
+    return aliasesForExpected.any((alias) => a.contains(alias));
   }
 
   @override
@@ -277,6 +337,7 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
           color: MonstruoTheme.primary,
           icon: Icons.play_circle_outline,
           label: 'Hilo iniciado',
+          trust: s.trust,
         );
       case _StepKind.thinking:
         return _StepCard(
@@ -284,12 +345,14 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
           icon: Icons.psychology_outlined,
           label: s.text,
           italic: true,
+          trust: s.trust,
         );
       case _StepKind.step:
         return _StepCard(
           color: MonstruoTheme.tertiary,
           icon: Icons.layers_outlined,
           label: s.text,
+          trust: s.trust,
         );
       case _StepKind.toolCall:
         return _StepCard(
@@ -298,6 +361,7 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
           label: 'Llamando ${s.text}',
           subtitle: s.subtitle,
           monospace: true,
+          trust: s.trust,
         );
       case _StepKind.toolResult:
         return _StepCard(
@@ -306,10 +370,12 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
           label: '${s.text} → resultado',
           subtitle: s.subtitle,
           monospace: true,
+          trust: s.trust,
         );
       case _StepKind.message:
         return _StepCard(
           color: MonstruoTheme.onBackground,
+          trust: s.trust,
           child: MarkdownBody(
             data: s.text,
             styleSheet: _markdownStyle(),
@@ -320,6 +386,7 @@ class _HiloScreenState extends ConsumerState<HiloScreen> {
           color: MonstruoTheme.success,
           icon: Icons.task_alt,
           label: 'Hilo completo',
+          trust: s.trust,
         );
       case _StepKind.cancelled:
         return _StepCard(
@@ -374,17 +441,89 @@ enum _StepKind {
   cancelled,
 }
 
+/// Trust state — DAN v1 P0.7
+///
+/// Cada step que ANUNCIA una herramienta ("voy a buscar en web", "leeré la skill X")
+/// arranca como [pendingVerification]. Si en los próximos eventos llega un
+/// `tool_call_started` matching, pasa a [verified]. Si la mission termina sin
+/// tool match, queda como [ghost]. Si la tool falla, queda como [failed].
+///
+/// Visual:
+///   verified    🟢 — modelo dijo X y ejecutó X
+///   pending     ⚪ — anunció pero aún no se sabe (en vivo)
+///   ghost       🟡 — anunció pero NO ejecutó (potencial fantasma)
+///   failed      🔴 — anunció X y X falló
+///   none        sin indicador (no anunció tool)
+enum _TrustState {
+  none,
+  pendingVerification,
+  verified,
+  ghost,
+  failed,
+}
+
+/// Patrones que indican intención de llamar a una herramienta.
+/// Si un `message` o `thinking` matchea, queda con trust = pending_verification
+/// hasta que un `tool_call_started` lo confirme o la mission termine sin
+/// confirmarlo.
+final _toolIntentPatterns = <RegExp, String>{
+  RegExp(r'(buscar(é|emos)?|consultar(é|emos)?|investigar(é|emos)?)\s+(en\s+)?(la\s+)?web',
+      caseSensitive: false): 'web_search',
+  RegExp(r'(buscar|hacer)\s+(una\s+)?búsqueda\s+(en\s+)?(la\s+)?web',
+      caseSensitive: false): 'web_search',
+  RegExp(r'leer(é|emos)?\s+la\s+skill', caseSensitive: false): 'skill_read',
+  RegExp(r'consultar(é|emos)?\s+la\s+skill', caseSensitive: false): 'skill_read',
+  RegExp(r'(consultar|preguntar)\s+a\s+los?\s+sabios?', caseSensitive: false):
+      'consulta_sabios',
+  RegExp(r'ejecutar(é|emos)?\s+(este\s+)?código', caseSensitive: false):
+      'code_exec',
+  RegExp(r'(consultar|leer)\s+(la\s+)?(base\s+de\s+datos|supabase|db)',
+      caseSensitive: false): 'supabase_query',
+};
+
+/// Detecta si un mensaje anuncia el uso de una herramienta.
+/// Retorna el nombre de la tool esperada o null si no anuncia ninguna.
+String? _detectToolIntent(String text) {
+  if (text.isEmpty) return null;
+  for (final entry in _toolIntentPatterns.entries) {
+    if (entry.key.hasMatch(text)) return entry.value;
+  }
+  return null;
+}
+
 class _StepEntry {
   final _StepKind kind;
   String text;
   String? subtitle;
 
-  _StepEntry({required this.kind, required this.text, this.subtitle});
+  /// Trust indicator state — DAN v1 P0.7
+  _TrustState trust;
+
+  /// Tool esperada cuando el step anuncia una herramienta.
+  /// Cuando llega `tool_call_started` con matching name, [trust] pasa a verified.
+  String? expectedTool;
+
+  _StepEntry({
+    required this.kind,
+    required this.text,
+    this.subtitle,
+    this.trust = _TrustState.none,
+    this.expectedTool,
+  });
 
   factory _StepEntry.started() =>
       _StepEntry(kind: _StepKind.started, text: 'started');
-  factory _StepEntry.thinking(String label) =>
-      _StepEntry(kind: _StepKind.thinking, text: label);
+  factory _StepEntry.thinking(String label) {
+    final intent = _detectToolIntent(label);
+    return _StepEntry(
+      kind: _StepKind.thinking,
+      text: label,
+      trust: intent != null
+          ? _TrustState.pendingVerification
+          : _TrustState.none,
+      expectedTool: intent,
+    );
+  }
   factory _StepEntry.step(String label) =>
       _StepEntry(kind: _StepKind.step, text: label);
   factory _StepEntry.toolCall(String name, {String? argsPreview}) =>
@@ -393,8 +532,17 @@ class _StepEntry {
   factory _StepEntry.toolResult(String name, {String? preview}) =>
       _StepEntry(
           kind: _StepKind.toolResult, text: name, subtitle: preview);
-  factory _StepEntry.message(String md) =>
-      _StepEntry(kind: _StepKind.message, text: md);
+  factory _StepEntry.message(String md) {
+    final intent = _detectToolIntent(md);
+    return _StepEntry(
+      kind: _StepKind.message,
+      text: md,
+      trust: intent != null
+          ? _TrustState.pendingVerification
+          : _TrustState.none,
+      expectedTool: intent,
+    );
+  }
   factory _StepEntry.done() =>
       _StepEntry(kind: _StepKind.done, text: 'done');
   factory _StepEntry.cancelled() =>
@@ -418,6 +566,7 @@ class _StepCard extends StatelessWidget {
     this.italic = false,
     this.monospace = false,
     this.child,
+    this.trust = _TrustState.none,
   });
 
   final Color color;
@@ -427,6 +576,7 @@ class _StepCard extends StatelessWidget {
   final bool italic;
   final bool monospace;
   final Widget? child;
+  final _TrustState trust;
 
   @override
   Widget build(BuildContext context) {
@@ -440,50 +590,118 @@ class _StepCard extends StatelessWidget {
           left: BorderSide(color: color, width: 3),
         ),
       ),
-      child: child ??
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (icon != null) ...[
-                Icon(icon, size: 16, color: color),
-                const SizedBox(width: 8),
-              ],
-              Expanded(
-                child: Column(
+      child: Stack(
+        children: [
+          // Trust indicator badge en esquina superior derecha
+          if (trust != _TrustState.none)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: _TrustBadge(state: trust),
+            ),
+          child ??
+              Padding(
+                padding: trust != _TrustState.none
+                    ? const EdgeInsets.only(right: 22)
+                    : EdgeInsets.zero,
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (label != null)
-                      Text(
-                        label!,
-                        style: TextStyle(
-                          color: color,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                          fontStyle:
-                              italic ? FontStyle.italic : FontStyle.normal,
-                          fontFamily: monospace ? 'monospace' : null,
-                        ),
-                      ),
-                    if (subtitle != null && subtitle!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle!.length > 240
-                            ? '${subtitle!.substring(0, 240)}…'
-                            : subtitle!,
-                        style: const TextStyle(
-                          color: MonstruoTheme.onSurfaceDim,
-                          fontSize: 11.5,
-                          fontFamily: 'monospace',
-                          height: 1.5,
-                        ),
-                      ),
+                    if (icon != null) ...[
+                      Icon(icon, size: 16, color: color),
+                      const SizedBox(width: 8),
                     ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (label != null)
+                            Text(
+                              label!,
+                              style: TextStyle(
+                                color: color,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                fontStyle: italic
+                                    ? FontStyle.italic
+                                    : FontStyle.normal,
+                                fontFamily: monospace ? 'monospace' : null,
+                              ),
+                            ),
+                          if (subtitle != null && subtitle!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              subtitle!.length > 240
+                                  ? '${subtitle!.substring(0, 240)}…'
+                                  : subtitle!,
+                              style: const TextStyle(
+                                color: MonstruoTheme.onSurfaceDim,
+                                fontSize: 11.5,
+                                fontFamily: 'monospace',
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
-            ],
-          ),
+        ],
+      ),
     ).animate().fadeIn(duration: 250.ms).slideX(begin: -0.05, end: 0);
+  }
+}
+
+/// Badge visual del Trust Indicator (DAN v1 P0.7).
+///
+/// Aparece como un punto de color con tooltip explicativo en cada step
+/// que ANUNCIÓ el uso de una herramienta. Permite a Alfredo detectar de
+/// un vistazo cuando el modelo dice "voy a buscar" pero no busca nada.
+class _TrustBadge extends StatelessWidget {
+  const _TrustBadge({required this.state});
+
+  final _TrustState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final (color, tooltip, icon) = switch (state) {
+      _TrustState.none => (Colors.transparent, '', Icons.circle),
+      _TrustState.pendingVerification => (
+          MonstruoTheme.onSurfaceDim,
+          'Pendiente: el modelo anunció una herramienta. Esperando confirmación…',
+          Icons.hourglass_empty,
+        ),
+      _TrustState.verified => (
+          MonstruoTheme.success,
+          'Verificado: el modelo dijo X y ejecutó X.',
+          Icons.verified_outlined,
+        ),
+      _TrustState.ghost => (
+          MonstruoTheme.warning,
+          'Fantasma: el modelo anunció una herramienta pero no la ejecutó. Trust score ↓',
+          Icons.warning_amber_outlined,
+        ),
+      _TrustState.failed => (
+          MonstruoTheme.error,
+          'Falla: la herramienta fue invocada pero falló.',
+          Icons.error_outline,
+        ),
+    };
+
+    return Tooltip(
+      message: tooltip,
+      preferBelow: false,
+      child: Container(
+        padding: const EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, size: 14, color: color),
+      ),
+    );
   }
 }
 
