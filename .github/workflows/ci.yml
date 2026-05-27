@@ -56,6 +56,14 @@ jobs:
           pip install -r requirements.txt
           pip install pytest pytest-asyncio pytest-cov
 
+      # DAN P0.6 (2026-05-27) — anti-ghost tool gate. Si esto rompe,
+      # el LLM esta narrando tools en prosa sin emitir TOOL_CALL_START.
+      # DAN regla 2: tool ghost = fallo de sistema, no "mejor esfuerzo".
+      - name: P0 anti-ghost gate (tool fantasma = build rojo)
+        run: pytest tests/test_no_ghost_tools.py -v --tb=short --strict-markers
+        env:
+          TESTING: "1"
+
       - name: Run tests
         run: pytest tests/ -v --tb=short -x --ignore=tests/test_e2e_kernel.py
         env:
