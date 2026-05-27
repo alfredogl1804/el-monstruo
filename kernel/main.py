@@ -1942,6 +1942,21 @@ except Exception as e:
     logger.warning("genome_now_mount_failed", error=str(e))
 
 
+# ── Cognitive Republic /v1/factory/* (Sprint cero, DSC-G-019) ─────
+try:
+    from kernel.factory_routes import factory_router
+
+    app.include_router(factory_router)
+    logger.info(
+        "factory_aggregators_mounted",
+        prefix="/v1/factory",
+        endpoints=4,
+        dsc="DSC-G-019",
+    )
+except Exception as e:
+    logger.warning("factory_aggregators_mount_failed", error=str(e))
+
+
 # ── Request/Response Models ─────────────────────────────────────────
 
 

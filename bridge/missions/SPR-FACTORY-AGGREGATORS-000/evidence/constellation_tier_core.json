@@ -1,0 +1,57 @@
+{
+  "version": "1.0",
+  "generated_at": "2026-05-27T03:04:15.686842+00:00",
+  "binario_100": true,
+  "source_genome_at": "2026-05-26T12:33:10.374214+00:00",
+  "nodes": [
+    {
+      "forge_id": "kernel-monstruo",
+      "name": "El Monstruo Kernel",
+      "tier": "core",
+      "kind": "kernel",
+      "is_aggregate": false,
+      "substrate": {
+        "runtime": "python_fastapi",
+        "endpoint": "https://el-monstruo-kernel-production.up.railway.app",
+        "repo": "alfredogl1804/el-monstruo"
+      },
+      "sovereignty": {
+        "envelope_supported": true,
+        "signer_key_id": "<unset>",
+        "court_bound": true,
+        "t1_required_lanes": [
+          "merge",
+          "deploy",
+          "canon"
+        ]
+      },
+      "production": {
+        "active_lines": [
+          "embrion_loop",
+          "memory_curator"
+        ],
+        "last_cycle_at": "2026-05-26T12:33:10.374214+00:00",
+        "artifacts_24h": 15,
+        "evidence_receipts_24h": 0,
+        "failures_24h": 0,
+        "cost_24h_usd": null
+      },
+      "memory": {
+        "writes_to_memory": true,
+        "lessons_canonized": 83,
+        "unresolved_gaps": 5
+      },
+      "status": "ONLINE"
+    }
+  ],
+  "edges": [],
+  "totals": {
+    "nodes_total": 1,
+    "tiers": {
+      "core": 1,
+      "inner": 0,
+      "mid": 0,
+      "outer": 0
+    }
+  }
+}
