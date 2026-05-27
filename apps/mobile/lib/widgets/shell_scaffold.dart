@@ -20,6 +20,7 @@ import 'package:go_router/go_router.dart';
 import '../core/mensajeros/kernel_messenger.dart';
 import '../core/state/mode_provider.dart';
 import '../core/theme/brand_dna.dart';
+import '../features/republic/republic_overlay.dart';
 
 class ShellScaffold extends ConsumerWidget {
   const ShellScaffold({super.key, required this.child});
@@ -75,6 +76,9 @@ class ShellScaffold extends ConsumerWidget {
         bottomNavigationBar: mode == AppMode.daily
             ? _buildDailyBottomNav(context, connectionState)
             : null,
+        // Mini FAB de constelación — abre la Cara B (Cognitive Republic).
+        floatingActionButton: const _RepublicFab(),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
       ),
     );
   }
@@ -429,6 +433,31 @@ class _ConnectionBanner extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Mini-FAB que abre el RepublicOverlay (Cara B — Cognitive Republic).
+/// Visible en cualquier modo (Daily o Cockpit). Estilo Apple-leaning sutil.
+class _RepublicFab extends ConsumerWidget {
+  const _RepublicFab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, right: 4),
+      child: FloatingActionButton.small(
+        onPressed: () => RepublicOverlay.open(context, ref),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 2,
+        tooltip: 'Cognitive Republic',
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: Color(0x1F000000), width: 0.5),
+        ),
+        child: const Icon(Icons.hub_outlined, size: 18),
       ),
     );
   }

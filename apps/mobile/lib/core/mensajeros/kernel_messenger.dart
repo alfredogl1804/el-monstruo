@@ -334,6 +334,28 @@ class KernelService {
     }
   }
 
+  // ─── Embrión Directive (Par 1.4 — cerrado por T1 2026-05-27) ───
+  /// Envía una directiva escrita por T1 al Embrión para destrabarlo cuando esté
+  /// en eco o cuando el operador quiera redirigir su atención.
+  ///
+  /// Habilitante: Par 1.4 del SINTESIS_FASE3 (Cowork T2, 11-may-2026).
+  /// Endpoint: POST /v1/embrion/mensaje (gateway o kernel).
+  Future<Map<String, dynamic>> sendEmbrionDirective(String directive) async {
+    if (directive.trim().isEmpty) {
+      throw ArgumentError('directive no puede estar vacía');
+    }
+    final response = await _dio.post(
+      '/v1/embrion/mensaje',
+      data: {
+        'mensaje': directive.trim(),
+        'origen': 'app_flutter_t1',
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
+      },
+    );
+    _log.info('Embrión directive sent: "${directive.substring(0, directive.length.clamp(0, 50))}..."');
+    return response.data as Map<String, dynamic>;
+  }
+
   // ─── Push Token Registration ───
   Future<void> registerPushToken(String token, String platform, {String? deviceId}) async {
     try {

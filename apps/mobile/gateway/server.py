@@ -647,6 +647,63 @@ async def register_push_token(req: PushTokenRequest):
     return {"status": "registered", "platform": req.platform}
 
 
+# ─── Cognitive Republic — Factory Aggregators (proxy) ───
+# DSC-G-019, SPR-FACTORY-AGGREGATORS-000
+# Proxean los 4 endpoints de fábrica del kernel sin exponer X-API-Key al cliente.
+# El http_client ya inyecta X-API-Key vía KERNEL_API_KEY env var.
+
+@app.get("/v1/factory/constellation")
+async def factory_constellation():
+    """Proxy a /v1/factory/constellation del kernel."""
+    try:
+        r = await http_client.get("/v1/factory/constellation")
+        r.raise_for_status()
+        return r.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"factory upstream: {e}")
+
+
+@app.get("/v1/factory/economy")
+async def factory_economy():
+    """Proxy a /v1/factory/economy del kernel."""
+    try:
+        r = await http_client.get("/v1/factory/economy")
+        r.raise_for_status()
+        return r.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"factory upstream: {e}")
+
+
+@app.get("/v1/factory/timeline")
+async def factory_timeline():
+    """Proxy a /v1/factory/timeline del kernel."""
+    try:
+        r = await http_client.get("/v1/factory/timeline")
+        r.raise_for_status()
+        return r.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"factory upstream: {e}")
+
+
+@app.get("/v1/factory/diff")
+async def factory_diff():
+    """Proxy a /v1/factory/diff del kernel."""
+    try:
+        r = await http_client.get("/v1/factory/diff")
+        r.raise_for_status()
+        return r.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"factory upstream: {e}")
+
+
 # ─── Entry Point ───
 if __name__ == "__main__":
     import uvicorn
