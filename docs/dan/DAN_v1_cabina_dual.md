@@ -1,12 +1,19 @@
 ---
-título: "DAN v1 — El Monstruo: Cabina Dual + Agente Manus Real"
-versión: 1.0.0
-estado: aprobado_para_implementación
+título: "DAN v1.1 — El Monstruo: Cabina Dual + Agente Manus Real (post-audit Cowork)"
+versión: 1.1.0
+estado: aprobado_para_implementación_con_paths_corregidos
 fecha: 2026-05-27
-autor: Manus B (orquestador) + Consejo de 6 Sabios v7.3
+autor: Manus B (orquestador) + Consejo de 6 Sabios v7.3 + audit Cowork
 sintetizador: GPT-5.5 Pro
 validación_post_consulta: Perplexity Sonar Reasoning Pro
 validación_post_síntesis: Gemini 3.1 Pro + Grok 4 (score 0.81 / incorporación 0.95)
+audit_independiente: Cowork (Hilo A) — bridge cowork_to_manus_DAN_v1_SPRINT_1_AUDIT_2026_05_27.md
+changelog_v1.1:
+  - hallazgo_A: "paths kernel reales: agui_adapter.py + engine.py + adaptive_model_selector.py + fallback_engine.py + config/model_catalog.py (NO dispatch_agent.py NI agui_runner.py — esos NO existen)"
+  - hallazgo_B: "2 vectores de downgrade detectados: (1) FALLBACK_CHAINS clasificador/chat_rapido → gpt-4.1-nano, (2) budget pressure → gpt-4o-mini → gemma3:8b"
+  - hallazgo_C: "3 catálogos paralelos a consolidar: config/model_catalog.MODELS + fallback_engine.PROVIDERS + adaptive_model_selector.MODEL_CATALOG"
+  - hallazgo_D: "modelos prohibidos por DAN vivos en producción hoy: gpt-4o, gpt-4o-mini, gemini-2.5-flash en adaptive_model_selector líneas 61/77/84 — purga obligatoria P0"
+  - hallazgo_E: "agui_adapter no emite model_resolved hoy; modelo viaja en chunk.meta → THINKING_STATE. Hay que tocar engine.py + agui_adapter.py"
 ---
 
 # DAN v1 — El Monstruo: Cabina Dual + Agente Manus Real
@@ -16,6 +23,8 @@ validación_post_síntesis: Gemini 3.1 Pro + Grok 4 (score 0.81 / incorporación
 ---
 
 ## 0. Dictamen ejecutivo (léase en 90 segundos)
+
+> **Nota v1.1 (post-audit Cowork):** Las 5 decisiones del Consejo se sostienen íntegras. El audit de Cowork detectó **5 hallazgos críticos pero todos de implementación, no de diseño**: paths kernel correctos, 2 vectores de downgrade en vez de 1, 3 catálogos a consolidar en vez de uno crear, modelos prohibidos a purgar, evento `model_resolved` que toca `engine.py` también. La versión v1.1 incorpora estos hallazgos en la sección 4 (mapeo de implementación) y la sección 8 (Sprint 1 backend). El cuerpo doctrinal (este dictamen + secciones 2, 3, 5, 6, 7) **no cambia**. Trazabilidad: `bridge/cowork_to_manus_DAN_v1_SPRINT_1_AUDIT_2026_05_27.md`.
 
 La decisión central del Consejo es **endurecer el kernel vivo, no reemplazarlo**. El Monstruo ya tiene streaming AG-UI, Embrión, app Flutter y kernel en producción. Lo que falta es convertir esa cabina en un sistema con **manos reales, memoria operativa, routing honesto, autonomía gobernada y UX nativa iOS**. La tabla siguiente resume las cinco decisiones.
 
@@ -397,7 +406,7 @@ Necesita trabajo nativo iOS y disciplina de producto. A cambio, la cabina deja d
 
 | # | Acción | Pregunta | I | P | C | Score |
 |---:|---|:---:|:---:|:---:|:---:|---:|
-| **P0.1** | Eliminar fallback `Manus/Claude → nano`; crear `model_registry`; emitir evento `model_resolved` en `/v1/agui/run` | P2 | 5 | 5 | 1 | **25.0** |
+| **P0.1** | (v1.1) **Eliminar AMBOS vectores de downgrade**: (1) parchar `config/model_catalog.FALLBACK_CHAINS` para que `clasificador` y `chat_rapido` NO terminen en `gpt-4.1-nano`; (2) revisar lógica de presión de presupuesto en `adaptive_model_selector` que cae a `gpt-4o-mini` / `gemma3:8b`. **Consolidar los 3 catálogos paralelos** (`config/model_catalog.MODELS` + `fallback_engine.PROVIDERS` + `adaptive_model_selector.MODEL_CATALOG`) en `config/model_catalog` como fuente única. **Emitir evento `model_resolved`** desde `kernel/engine.py` + `kernel/agui_adapter.py` en `/v1/agui/run`. **Purgar modelos prohibidos** (`gpt-4o`, `gpt-4o-mini`, `gemini-2.5-flash` en `adaptive_model_selector` líneas 61/77/84). | P2 | 5 | 5 | 1 | **25.0** |
 | **P0.2** | Unificar bundle iOS prod/dev/staging y limpiar las 3 apps duplicadas en iPhone | P5 | 4 | 5 | 1 | **20.0** |
 | **P0.3** | Crear tablas `missions` + `mission_events`; devolver `mission_id` en `/v1/agui/run` | P3 | 5 | 4 | 2 | **10.0** |
 | **P0.4** | Implementar `ToolRegistry` + `ToolExecutor` mínimo con eventos AG-UI reales | P1 | 5 | 4 | 3 | 6.7 |
@@ -459,7 +468,7 @@ Necesita trabajo nativo iOS y disciplina de producto. A cambio, la cabina deja d
 | Día | Trabajo |
 |:---:|---|
 | **1** | Fijar bundle canónico iOS y limpiar las 3 apps duplicadas en el iPhone. Comunicar bundle prod a equipo. |
-| **1–2** | Parchear routing kernel: `model_registry`, evento `model_resolved`, **bloqueo absoluto** de fallback nano. |
+| **1–2** | (v1.1) Parchear routing kernel en archivos REALES: consolidar `config/model_catalog` como único catálogo (eliminar duplicados en `fallback_engine.PROVIDERS` y `adaptive_model_selector.MODEL_CATALOG`); parchar `FALLBACK_CHAINS` para bloquear ruta a `gpt-4.1-nano`; emitir `model_resolved` desde `kernel/engine.py` + `kernel/agui_adapter.py`; purgar modelos prohibidos del `adaptive_model_selector`. **Bloqueo absoluto** de fallback nano + modelos `gpt-4o*` + `gemini-2.5-flash`. |
 | **2–4** | Crear tablas `missions` y `mission_events`; persistir AG-UI actual; devolver `mission_id`. |
 | **3–6** | Implementar `ToolRegistry` y `ToolExecutor`; activar `web_search` real con cost ledger. |
 | **5–7** | Añadir tests anti–tool fantasma + cost ledger básico + redacción de logs. |
