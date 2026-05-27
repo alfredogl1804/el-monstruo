@@ -355,13 +355,50 @@ def supports_temperature(name: str) -> bool:
 # el router fuerce el modelo a uno FC-fiable, independiente de supervisor/dispatcher.
 
 
+# DAN S5 OBS-1 Hotfix (2026-05-27): el /health del kernel reporta nombres de
+# modelos que pueden incluir sufijos no presentes en MODELS keys (ej: -preview).
+# ALIAS_TO_CATALOG normaliza esos nombres ANTES de buscar en MODELS para evitar
+# que pin_to_reliable_fc() rerute innecesariamente modelos FC-fiables.
+#
+# Reportado por Cowork audit 2026-05-27 sobre #229: gemini-3.1-pro-preview
+# (lo que reporta /health) NO matcheaba con gemini-3.1-pro (key del catálogo).
+ALIAS_TO_CATALOG: dict[str, str] = {
+    # Gemini -preview suffix variants (Google A/B testing convention)
+    "gemini-3.1-pro-preview": "gemini-3.1-pro",
+    "gemini-3.1-flash-lite-preview": "gemini-3.1-flash-lite",
+    # Future-proof: si Anthropic/OpenAI agregan sufijos similares, agregar aquí.
+    # NOTA: NO agregar grok aliases - grok es No-FC por diseño (tema separado).
+}
+
+
+def normalize_model_name(name: str) -> str:
+    """Normaliza nombres de modelos a sus catalog keys canónicas.
+
+    Resuelve mismatches entre lo que reporta /health del kernel (con sufijos
+    como -preview) y las keys del MODELS dict.
+
+    Si el nombre no tiene alias, lo retorna tal cual (passthrough).
+
+    Args:
+        name: nombre del modelo (puede tener sufijos como -preview).
+
+    Returns:
+        catalog key canónica del modelo, o el nombre original si no hay alias.
+    """
+    return ALIAS_TO_CATALOG.get(name, name)
+
+
 def supports_reliable_function_calling(name: str) -> bool:
     """Check if a model is FC-fiable (respeta tool_choice='required').
 
     Default conservador: si no está marcado explícito, asume False.
     DAN S5 Router Pin: solo modelos con flag True se permiten para EXECUTE+tools.
+
+    DAN S5 OBS-1 Hotfix: normaliza el nombre vía ALIAS_TO_CATALOG antes de
+    buscar en MODELS para evitar mismatches por sufijos como -preview.
     """
-    return MODELS.get(name, {}).get("reliable_function_calling", False)
+    canonical = normalize_model_name(name)
+    return MODELS.get(canonical, {}).get("reliable_function_calling", False)
 
 
 # Cadena de fallback FC-fiable, ordenada por preferencia (calidad/costo balanceado).
@@ -394,6 +431,9 @@ def pin_to_reliable_fc(current_model: str) -> str:
         salvo catálogo corrupto). Esto es fail-loud: si el catálogo no tiene FC,
         el sistema no debe intentar EXECUTE+tools.
     """
+    # DAN S5 OBS-1 Hotfix: si el current_model normalizado YA es FC-fiable,
+    # retornar el current_model ORIGINAL (preservar el nombre con sufijos
+    # intactos para que el provider lo use tal cual, ej: gemini-3.1-pro-preview).
     if supports_reliable_function_calling(current_model):
         return current_model
     for fallback in RELIABLE_FC_FALLBACK_CHAIN:
