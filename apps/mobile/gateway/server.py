@@ -30,8 +30,9 @@ from typing import Optional
 from uuid import uuid4
 
 import httpx
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 # ─── Config ───
@@ -702,6 +703,166 @@ async def factory_diff():
         raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"factory upstream: {e}")
+
+
+# ─── Embrión Inbox — propuestas autónomas (proxy) ───
+# SPR-MOBILE-EMBRION-INBOX-001
+# El Embrión propone escrituras autónomas; el iPhone aprueba/rechaza desde la cabina.
+
+@app.get("/v1/embrion/proposals")
+async def embrion_proposals(status: str = "pending", limit: int = 50):
+    """Proxy a /v1/embrion/proposals del kernel."""
+    try:
+        r = await http_client.get(
+            "/v1/embrion/proposals",
+            params={"status": status, "limit": limit},
+        )
+        r.raise_for_status()
+        return r.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"embrion upstream: {e}")
+
+
+@app.post("/v1/embrion/approve/{proposal_id}")
+async def embrion_approve(proposal_id: str, body: dict):
+    """Proxy a /v1/embrion/approve/{id} del kernel."""
+    try:
+        r = await http_client.post(
+            f"/v1/embrion/approve/{proposal_id}",
+            json=body,
+        )
+        r.raise_for_status()
+        return r.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"embrion upstream: {e}")
+
+
+@app.post("/v1/embrion/reject/{proposal_id}")
+async def embrion_reject(proposal_id: str, body: dict):
+    """Proxy a /v1/embrion/reject/{id} del kernel."""
+    try:
+        r = await http_client.post(
+            f"/v1/embrion/reject/{proposal_id}",
+            json=body,
+        )
+        r.raise_for_status()
+        return r.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"embrion upstream: {e}")
+
+
+@app.get("/v1/embrion/estado")
+async def embrion_estado():
+    """Proxy a /v1/embrion/estado del kernel."""
+    try:
+        r = await http_client.get("/v1/embrion/estado")
+        r.raise_for_status()
+        return r.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"embrion upstream: {e}")
+
+
+# ─── Hilo de Manus — AG-UI streaming SSE (proxy) ───
+# SPR-MOBILE-HILO-AGUI-001
+# Tareas complejas end-to-end con visualización en vivo de pensamiento + tool calls + resultados.
+
+@app.post("/v1/agui/run")
+async def agui_run_proxy(req: AGUIRequest, request: Request):
+    """Proxy SSE de /v1/agui/run del kernel.
+
+    Stream de eventos AG-UI tal cual los emite el kernel:
+    RUN_STARTED, THINKING_STATE, STEP, TEXT_MESSAGE_*, TOOL_CALL_*,
+    RUN_FINISHED, RUN_ERROR, plus heartbeats.
+    """
+
+    async def stream():
+        try:
+            async with http_client.stream(
+                "POST",
+                "/v1/agui/run",
+                json=req.model_dump(),
+                headers={"Accept": "text/event-stream"},
+                timeout=httpx.Timeout(180.0, connect=10.0, read=180.0),
+            ) as upstream:
+                if upstream.status_code != 200:
+                    error_body = await upstream.aread()
+                    payload = json.dumps(
+                        {
+                            "type": "RUN_ERROR",
+                            "error": f"kernel returned {upstream.status_code}",
+                            "detail": error_body.decode("utf-8", errors="replace"),
+                        }
+                    )
+                    yield f"data: {payload}\n\n"
+                    return
+                async for chunk in upstream.aiter_raw():
+                    if await request.is_disconnected():
+                        break
+                    yield chunk
+        except Exception as exc:
+            payload = json.dumps({"type": "RUN_ERROR", "error": str(exc)})
+            yield f"data: {payload}\n\n"
+
+    return StreamingResponse(
+        stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
+
+
+@app.get("/v1/agui/info")
+async def agui_info():
+    """Proxy a /v1/agui/info del kernel."""
+    try:
+        r = await http_client.get("/v1/agui/info")
+        r.raise_for_status()
+        return r.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"agui upstream: {e}")
+
+
+# ─── Missions (proxy) ───
+# SPR-MOBILE-MISSIONS-001 — Persistencia de hilos como Misiones.
+
+@app.get("/v1/missions/")
+async def missions_list(status: Optional[str] = None):
+    """Proxy a /v1/missions/ del kernel."""
+    try:
+        params = {"status": status} if status else {}
+        r = await http_client.get("/v1/missions/", params=params)
+        r.raise_for_status()
+        return r.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"missions upstream: {e}")
+
+
+@app.post("/v1/missions/")
+async def missions_create(body: dict):
+    """Proxy a /v1/missions/ POST del kernel."""
+    try:
+        r = await http_client.post("/v1/missions/", json=body)
+        r.raise_for_status()
+        return r.json()
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"missions upstream: {e}")
 
 
 # ─── Entry Point ───
