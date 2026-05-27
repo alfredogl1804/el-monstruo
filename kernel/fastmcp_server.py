@@ -260,8 +260,10 @@ def create_fastmcp_server():
     @mcp.tool(
         name="github_ops",
         description=(
-            "Perform GitHub operations via REST API: search repos, get file contents, "
-            "list issues, list PRs. Requires GITHUB_TOKEN to be configured."
+            "Perform GitHub operations via REST API. "
+            "READ actions: search_repos, get_file, list_issues, list_prs, search_code. "
+            "WRITE actions: create_branch, commit_file, create_pr, create_issue. "
+            "Requires GITHUB_TOKEN to be configured with write scope."
         ),
         tags={"github", "code"},
     )
@@ -360,11 +362,110 @@ def create_fastmcp_server():
                         ]
                     )
 
+                # ── WRITE ACTIONS (Sprint S2 — Cabina Dual Clase Mundial) ──
+                elif action == "create_branch":
+                    # params: {"branch": "new-branch", "from_branch": "main"}
+                    new_branch = parsed_params.get("branch", "")
+                    from_branch = parsed_params.get("from_branch", "main")
+                    if not new_branch:
+                        return json.dumps({"error": "missing param 'branch'"})
+                    # Get SHA of source branch
+                    r = await client.get(f"/repos/{repo}/git/ref/heads/{from_branch}", headers=headers)
+                    r.raise_for_status()
+                    sha = r.json()["object"]["sha"]
+                    # Create new ref
+                    r = await client.post(
+                        f"/repos/{repo}/git/refs",
+                        headers=headers,
+                        json={"ref": f"refs/heads/{new_branch}", "sha": sha},
+                    )
+                    r.raise_for_status()
+                    return json.dumps({"branch": new_branch, "from": from_branch, "sha": sha, "created": True})
+
+                elif action == "commit_file":
+                    # params: {"path": "x.md", "content": "...", "message": "...", "branch": "feat-x"}
+                    import base64 as _b64
+                    path = parsed_params.get("path", "")
+                    content = parsed_params.get("content", "")
+                    message = parsed_params.get("message", "Commit via MCP")
+                    branch = parsed_params.get("branch", "main")
+                    if not path:
+                        return json.dumps({"error": "missing param 'path'"})
+                    # Check if file exists to get sha
+                    sha = None
+                    r_get = await client.get(f"/repos/{repo}/contents/{path}?ref={branch}", headers=headers)
+                    if r_get.status_code == 200:
+                        sha = r_get.json().get("sha")
+                    payload = {
+                        "message": message,
+                        "content": _b64.b64encode(content.encode("utf-8")).decode("ascii"),
+                        "branch": branch,
+                    }
+                    if sha:
+                        payload["sha"] = sha
+                    r = await client.put(f"/repos/{repo}/contents/{path}", headers=headers, json=payload)
+                    r.raise_for_status()
+                    data = r.json()
+                    return json.dumps({
+                        "path": path,
+                        "branch": branch,
+                        "commit_sha": data.get("commit", {}).get("sha"),
+                        "commit_url": data.get("commit", {}).get("html_url"),
+                        "content_url": data.get("content", {}).get("html_url"),
+                    })
+
+                elif action == "create_pr":
+                    # params: {"title": "...", "body": "...", "head": "feat-x", "base": "main", "draft": false}
+                    payload = {
+                        "title": parsed_params.get("title", ""),
+                        "body": parsed_params.get("body", ""),
+                        "head": parsed_params.get("head", ""),
+                        "base": parsed_params.get("base", "main"),
+                        "draft": bool(parsed_params.get("draft", False)),
+                    }
+                    if not payload["title"] or not payload["head"]:
+                        return json.dumps({"error": "missing required params: 'title' and 'head'"})
+                    r = await client.post(f"/repos/{repo}/pulls", headers=headers, json=payload)
+                    r.raise_for_status()
+                    data = r.json()
+                    return json.dumps({
+                        "number": data["number"],
+                        "url": data["html_url"],
+                        "state": data["state"],
+                        "draft": data.get("draft", False),
+                        "head": data["head"]["ref"],
+                        "base": data["base"]["ref"],
+                    })
+
+                elif action == "create_issue":
+                    # params: {"title": "...", "body": "...", "labels": [...]}
+                    payload = {
+                        "title": parsed_params.get("title", ""),
+                        "body": parsed_params.get("body", ""),
+                    }
+                    labels = parsed_params.get("labels")
+                    if labels:
+                        payload["labels"] = labels
+                    if not payload["title"]:
+                        return json.dumps({"error": "missing required param: 'title'"})
+                    r = await client.post(f"/repos/{repo}/issues", headers=headers, json=payload)
+                    r.raise_for_status()
+                    data = r.json()
+                    return json.dumps({
+                        "number": data["number"],
+                        "url": data["html_url"],
+                        "state": data["state"],
+                        "title": data["title"],
+                    })
+
                 else:
                     return json.dumps(
                         {
                             "error": f"Unknown action: {action}",
-                            "available": ["search_repos", "get_file", "list_issues", "list_prs", "search_code"],
+                            "available": [
+                                "search_repos", "get_file", "list_issues", "list_prs", "search_code",
+                                "create_branch", "commit_file", "create_pr", "create_issue",
+                            ],
                         }
                     )
 
