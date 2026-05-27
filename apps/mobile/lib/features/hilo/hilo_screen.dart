@@ -1557,9 +1557,15 @@ _HitlInfo? _detectHitl(String? out, String toolName) {
     try {
       final decoded = jsonDecode(trimmed);
       if (decoded is Map<String, dynamic>) {
+        // Compatibilidad con el kernel real (tools/github.py): cuando una
+        // acción de escritura se bloquea por falta de aprobación, el tool
+        // devuelve {"error": "HITL_REQUIRED", "action": ..., "message": ...}.
+        final errorIsHitl =
+            decoded['error']?.toString().toUpperCase() == 'HITL_REQUIRED';
         final flag = decoded['hitl_required'] == true ||
             decoded['requires_approval'] == true ||
-            decoded['needs_human'] == true;
+            decoded['needs_human'] == true ||
+            errorIsHitl;
         if (flag) {
           final action =
               decoded['action']?.toString() ?? toolName;

@@ -107,6 +107,34 @@ void main() {
     );
 
     testWidgets(
+      'tool_call_end con error:HITL_REQUIRED del kernel real renderiza la card',
+      (tester) async {
+        // Este es EL formato exacto que devuelve tools/github.py:516
+        // cuando una write action se bloquea por falta de aprobación.
+        final fake = _FakeAguiMessenger([
+          _event(AguiEventType.runStarted, {}),
+          _event(AguiEventType.toolCallStart, {'name': 'github_ops'}),
+          _event(AguiEventType.toolCallEnd, {
+            'name': 'github_ops',
+            'result':
+                '{"error": "HITL_REQUIRED", "message": "Write action create_repo requires human approval.", "action": "create_repo", "risk_level": "HIGH"}',
+          }),
+          _event(AguiEventType.runFinished, {}),
+        ]);
+
+        await tester.pumpWidget(
+          _wrap(child: const HiloScreen(), messenger: fake),
+        );
+        await tester.pump();
+        await _sendPrompt(tester, 'Crea un repo nuevo');
+
+        expect(find.text('Aprobar'), findsOneWidget);
+        expect(find.text('Rechazar'), findsOneWidget);
+        expect(find.textContaining('create_repo'), findsWidgets);
+      },
+    );
+
+    testWidgets(
       'tool_call_end con marker HITL_REQUIRED en texto plano renderiza la card',
       (tester) async {
         final fake = _FakeAguiMessenger([
