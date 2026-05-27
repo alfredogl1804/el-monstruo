@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/mensajeros/embrion_messenger.dart';
 import '../core/mensajeros/kernel_messenger.dart';
 import '../core/state/mode_provider.dart';
 import '../core/theme/brand_dna.dart';
@@ -76,8 +77,11 @@ class ShellScaffold extends ConsumerWidget {
         bottomNavigationBar: mode == AppMode.daily
             ? _buildDailyBottomNav(context, connectionState)
             : null,
-        // Mini FAB de constelación — abre la Cara B (Cognitive Republic).
-        floatingActionButton: const _RepublicFab(),
+        // Columna de FABs de la cabina:
+        //   • Hilo de Manus (tareas complejas, Línea 2)
+        //   • Bandeja del Embrión (propuestas autónomas, Línea 1) con badge
+        //   • Cognitive Republic (Cara B vitrina)
+        floatingActionButton: const _CockpitFabStack(),
         floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
       ),
     );
@@ -434,6 +438,109 @@ class _ConnectionBanner extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Stack vertical de FABs de la cabina. Apilados en topRight.
+/// Cada FAB es un tap directo a una ruta crítica del operador.
+class _CockpitFabStack extends ConsumerWidget {
+  const _CockpitFabStack();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, right: 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          // Hilo de Manus — botaca primaria (color de marca).
+          FloatingActionButton.small(
+            heroTag: 'fab_hilo',
+            onPressed: () => GoRouter.of(context).push('/hilo'),
+            backgroundColor: MonstruoTheme.primary,
+            foregroundColor: Colors.black,
+            elevation: 3,
+            tooltip: 'Hilo de Manus',
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.bolt, size: 18),
+          ),
+          const SizedBox(height: 8),
+          // Bandeja del Embrión con badge numérico de pendings.
+          const _EmbrionInboxFab(),
+          const SizedBox(height: 8),
+          // Republic Overlay (Cara B vitrina).
+          _RepublicFab(),
+        ],
+      ),
+    );
+  }
+}
+
+/// FAB del Embrión con badge numérico de propuestas pendientes.
+/// Lee `embrionPendingProposalsProvider` y muestra contador en burbuja.
+class _EmbrionInboxFab extends ConsumerWidget {
+  const _EmbrionInboxFab();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final pending = ref.watch(embrionPendingProposalsProvider);
+    final count = pending.maybeWhen(
+      data: (list) => list.length,
+      orElse: () => 0,
+    );
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        FloatingActionButton.small(
+          heroTag: 'fab_embrion',
+          onPressed: () => GoRouter.of(context).push('/embrion/inbox'),
+          backgroundColor: MonstruoTheme.surfaceElevated,
+          foregroundColor: MonstruoTheme.onBackground,
+          elevation: 2,
+          tooltip: 'Bandeja del Embrión',
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: MonstruoTheme.divider.withValues(alpha: 0.6),
+              width: 0.5,
+            ),
+          ),
+          child: const Icon(Icons.inbox_outlined, size: 18),
+        ),
+        if (count > 0)
+          Positioned(
+            top: -4,
+            right: -4,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+              decoration: BoxDecoration(
+                color: MonstruoTheme.error,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: MonstruoTheme.error.withValues(alpha: 0.5),
+                    blurRadius: 6,
+                  ),
+                ],
+              ),
+              child: Text(
+                count > 99 ? '99+' : count.toString(),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  height: 1.1,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

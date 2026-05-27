@@ -29,6 +29,7 @@ dependencies:
 
   # Networking & API
   dio: ^5.7.0
+  http: ^1.2.2
   web_socket_channel: ^3.0.2
 
   # GenUI / A2UI (Generative UI)

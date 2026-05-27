@@ -40,6 +40,22 @@ class AppConfig {
   static const String agentsListEndpoint = '/v1/agents/external';
   static const String agentsDispatchEndpoint = '/v1/agents/dispatch';
 
+  // ─── Embrión Inbox (SPR-MOBILE-EMBRION-INBOX-001) ───
+  // Propuestas autónomas + aprobar/rechazar desde el iPhone (Línea 1).
+  static const String embrionProposalsEndpoint = '/v1/embrion/proposals';
+  static const String embrionApproveEndpoint = '/v1/embrion/approve';
+  static const String embrionRejectEndpoint = '/v1/embrion/reject';
+  static const String embrionEstadoEndpoint = '/v1/embrion/estado';
+
+  // ─── Hilo de Manus — AG-UI streaming (SPR-MOBILE-HILO-AGUI-001) ───
+  // Tareas complejas end-to-end con SSE en vivo (Línea 2).
+  static const String aguiRunEndpoint = '/v1/agui/run';
+  static const String aguiInfoV1Endpoint = '/v1/agui/info';
+
+  // ─── Missions (SPR-MOBILE-MISSIONS-001) ───
+  // Persistencia de hilos como misiones de alto nivel.
+  static const String missionsListEndpoint = '/v1/missions/';
+
   // ─── Cognitive Republic Factory Aggregators (DSC-G-019, SPR-FACTORY-AGGREGATORS-000) ───
   // Estos endpoints viven directo en el kernel, no en el gateway. Lectura pura.
   static const String factoryConstellationEndpoint = '/v1/factory/constellation';

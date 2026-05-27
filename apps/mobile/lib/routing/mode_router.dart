@@ -22,8 +22,10 @@ import 'package:go_router/go_router.dart';
 
 import '../core/a2ui/a2ui_screen.dart';
 import '../core/state/mode_provider.dart';
+import '../features/embrion_inbox/inbox_screen.dart';
 import '../features/files/file_viewer.dart';
 import '../features/files/files_screen.dart';
+import '../features/hilo/hilo_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
 import '../features/republic/screens/constellation_screen.dart';
 import '../features/republic/screens/economy_screen.dart';
@@ -206,6 +208,18 @@ final modeRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      // ===== Líneas dobles de la cabina (fuera del shell, pantalla completa) =====
+      // Línea 1 — Bandeja del Embrión (propuestas autónomas).
+      GoRoute(
+        path: '/embrion/inbox',
+        builder: (context, state) => const EmbrionInboxScreen(),
+      ),
+      // Línea 2 — Hilo de Manus (tareas complejas con AG-UI streaming).
+      GoRoute(
+        path: '/hilo',
+        builder: (context, state) => const HiloScreen(),
+      ),
+
       // ===== Cara B — Cognitive Republic (rutas fuera del shell) =====
       // 4 módulos vivos consumiendo /v1/factory/*
       GoRoute(
