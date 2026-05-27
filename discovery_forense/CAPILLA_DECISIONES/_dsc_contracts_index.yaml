@@ -17,7 +17,7 @@
 
 version: 1
 fecha_canonizacion: "2026-05-07"
-fecha_ultima_actualizacion: "2026-05-16"  # +DSC-LF-001..005 canonizados retroactivamente (capilla LA-FORJA cierre Sprint LA-FORJA-001 D3.2)
+fecha_ultima_actualizacion: "2026-05-27"  # +DSC-S-018 (auth fail-closed Forja, aspirational, firmado Cowork T2-A, gated T1-MAGNA-005, autorizado T1 Alfredo). Prev 2026-05-16 +DSC-LF-001..005.
 
 dscs:
 
@@ -192,6 +192,33 @@ dscs:
       sin verificación binaria previa (grep/diff/merge-tree). git diff
       lineal NO sustituye merge-tree para predecir conflicts reales.
       Lección F2+F21 reincidente PR #110 G6.
+
+  "_GLOBAL/DSC-S-018_auth_fail_closed_key_rotation_forja.md":
+    status: aspirational
+    reason: >
+      DSC firmado por Cowork T2-A el 2026-05-27 (autoridad delegada, Alfredo
+      T1 puede revocar; autorizado por T1 en sesion Cowork 2026-05-27).
+      Aspirational hasta que los contratos de codigo en tablero-campana
+      existan (gateway fail-closed, forja_revoke/rotate.py, trigger MySQL/TiDB
+      append-only policy_decisions, 6 tests). Enforce L4-L6 gated en
+      T1-MAGNA-005 (B/C/D); withdrawn si T1-MAGNA-005 = Opcion A.
+      Sprint de implementacion: FORJA_SECURITY_S018_v1 (Manus B post-firma).
+    fecha_firma_T2A_cowork: "2026-05-27"
+    autor_propuesta_original: "Manus B (Hilo B) rev2 post-audit Cowork"
+    supersedes: "propuesta DSC-S-012 (numero ocupado, reasignado por Coherence Gate DSC-G-013)"
+    bloqueante_para_enforced:
+      - "tablero-campana/server/forja/gateway.ts (fail-closed estricto)"
+      - "tablero-campana/scripts/forja_revoke.py + forja_rotate.py"
+      - "tablero-campana/drizzle/migrations (trigger MySQL/TiDB append-only policy_decisions)"
+      - "tablero-campana/server/forja/forja.policy.test.ts (6 tests aceptacion)"
+    cruza_con:
+      - "T1-MAGNA-005 (precondicion enforce L4-L6)"
+      - "DSC-S-008 (delineacion: S-008 secrets/API keys; S-018 claves Ed25519 Forja)"
+      - "DSC-G-013 (Coherence Gate detecto colision S-012)"
+    trazabilidad:
+      - "bridge/cowork_to_manus_DSC_S_012_AUDIT_DONE_2026_05_26.md (audit pass 1, commit f75b570)"
+      - "discovery_forense/CAPILLA_DECISIONES/EL-MONSTRUO/ANEXO_DSC_S_018_AUTH_FAIL_CLOSED_KEY_ROTATION_PROPUESTA.md (rev2)"
+      - "bridge/cowork_to_manus_DAN_v1_ARRANQUE_CONFIRMADO_2026_05_27.md (firma)"
 
   "_GLOBAL/DSC-G-009_recomendaciones_seguridad_firmadas_en_misma_sesion.md":
     status: enforced
