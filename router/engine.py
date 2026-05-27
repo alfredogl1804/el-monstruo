@@ -38,6 +38,42 @@ from config.model_catalog import MODELS
 from contracts.kernel_interface import IntentType
 from router.llm_client import LLMClient, LLMResponse
 
+
+# DAN T4 (S5 KERNEL FIX 2026-05-27): tool_choice por intent.
+# Cierra la 2da via del bug ghost: aun si el modelo siente la tentacion de
+# narrar la accion en prosa, el provider RECHAZA respuestas sin tool_calls
+# cuando intent=EXECUTE y hay tools disponibles.
+#
+# Reglas:
+#   - tools vacio o None      -> 'auto' (no hay nada que forzar)
+#   - tool_results presente   -> 'auto' (LLM debe narrar resultado, no
+#                                re-llamar tool por inercia)
+#   - intent EXECUTE + tools  -> 'required' (vocacion de actuar => forzar FC)
+#   - cualquier otro intent   -> 'auto' (CHAT, DEEP_THINK, BACKGROUND, SYSTEM
+#                                pueden o no usar tool segun decida el modelo)
+def _tool_choice_for_intent(
+    intent: IntentType,
+    has_tools: bool,
+    is_followup: bool,
+) -> str:
+    """Decide el valor de tool_choice para chat_with_tools().
+
+    Args:
+        intent: IntentType del run actual.
+        has_tools: True si la lista de tools entregada al LLM no es vacia.
+        is_followup: True si tool_results estan siendo inyectados (post-exec).
+
+    Returns:
+        'auto' | 'required' | 'none'
+    """
+    if not has_tools:
+        return "auto"
+    if is_followup:
+        return "auto"
+    if intent == IntentType.EXECUTE:
+        return "required"
+    return "auto"
+
 logger = structlog.get_logger("router")
 
 
@@ -283,7 +319,7 @@ class RouterEngine:
         context: Optional[dict[str, Any]] = None,
         tools: Optional[list] = None,
         tool_results: Optional[list[dict[str, Any]]] = None,
-        tool_choice: str = "auto",
+        tool_choice: Optional[str] = None,
     ) -> "LLMResponse":
         """
         Sprint 2: Execute with native tool calling support.
@@ -292,8 +328,17 @@ class RouterEngine:
         If tool_results is provided, this is a follow-up call where the LLM
         receives the results of previously executed tools.
 
-        DAN T2 (S5 KERNEL FIX 2026-05-27): tool_choice now configurable.
-          - 'auto' (default): LLM decides whether to call a tool.
+        DAN S5 SENTINEL (2026-05-27): tool_choice uses sentinel pattern.
+          - None (default): caller did NOT specify -> derive from intent
+            via _tool_choice_for_intent(intent, has_tools, is_followup).
+            This is the T4 path: EXECUTE+tools+!followup -> 'required'.
+          - 'auto' | 'required' | 'none' (explicit): caller-explicit value
+            WINS over intent-derived. This protects the T2 ghost-gate, which
+            passes 'required' explicitly on re-prompt and MUST NOT be
+            clobbered by T4 derivation.
+
+        DAN T2 (S5 KERNEL FIX 2026-05-27): tool_choice values reference.
+          - 'auto': LLM decides whether to call a tool.
           - 'required': LLM MUST emit a tool_call. Used by the server-side
             ghost-gate in kernel/nodes.py::execute() to force function-calling
             on a re-prompt when the first response narrated a tool in prose
@@ -395,12 +440,39 @@ class RouterEngine:
                     if effective_config.get("use_max_completion_tokens"):
                         effective_config["max_completion_tokens"] = max_tokens_override
 
+                # DAN S5 SENTINEL: caller-explicito gana sobre intent-derivado.
+                # T2 ghost-gate (kernel/nodes.py::execute) pasa 'required' explicito
+                # en el re-prompt y DEBE ganar. Si caller paso None, derivamos por
+                # intent (T4): EXECUTE + has_tools + !is_followup -> 'required'.
+                if tool_choice is None:
+                    tool_choice = _tool_choice_for_intent(
+                        intent=intent,
+                        has_tools=bool(tools),
+                        is_followup=bool(tool_results),
+                    )
+                    logger.info(
+                        "tool_choice_derived",
+                        intent=intent.value if hasattr(intent, "value") else str(intent),
+                        has_tools=bool(tools),
+                        is_followup=bool(tool_results),
+                        tool_choice=tool_choice,
+                        source="intent",
+                    )
+                else:
+                    logger.info(
+                        "tool_choice_caller_explicit",
+                        intent=intent.value if hasattr(intent, "value") else str(intent),
+                        has_tools=bool(tools),
+                        is_followup=bool(tool_results),
+                        tool_choice=tool_choice,
+                        source="caller",
+                    )
                 llm_response = await self._llm.chat_with_tools(
                     model_config=effective_config,
                     messages=messages,
                     temperature=temperature,
                     tools=tools,
-                    tool_choice=tool_choice,  # DAN T2: configurable, default "auto"
+                    tool_choice=tool_choice,  # DAN S5 sentinel: caller-explicito gana
                 )
 
                 is_fallback = attempt_model != catalog_key
