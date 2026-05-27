@@ -40,6 +40,13 @@ class AppConfig {
   static const String agentsListEndpoint = '/v1/agents/external';
   static const String agentsDispatchEndpoint = '/v1/agents/dispatch';
 
+  // ─── Cognitive Republic Factory Aggregators (DSC-G-019, SPR-FACTORY-AGGREGATORS-000) ───
+  // Estos endpoints viven directo en el kernel, no en el gateway. Lectura pura.
+  static const String factoryConstellationEndpoint = '/v1/factory/constellation';
+  static const String factoryEconomyEndpoint = '/v1/factory/economy';
+  static const String factoryTimelineEndpoint = '/v1/factory/timeline';
+  static const String factoryDiffEndpoint = '/v1/factory/diff';
+
   // ─── Timeouts ───
   static const Duration connectTimeout = Duration(seconds: 10);
   static const Duration receiveTimeout = Duration(seconds: 120);

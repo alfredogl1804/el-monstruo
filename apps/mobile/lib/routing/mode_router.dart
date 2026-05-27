@@ -25,6 +25,11 @@ import '../core/state/mode_provider.dart';
 import '../features/files/file_viewer.dart';
 import '../features/files/files_screen.dart';
 import '../features/onboarding/onboarding_screen.dart';
+import '../features/republic/screens/constellation_screen.dart';
+import '../features/republic/screens/economy_screen.dart';
+import '../features/republic/screens/module_stub_screen.dart';
+import '../features/republic/screens/reality_diff_screen.dart';
+import '../features/republic/screens/timeline_screen.dart';
 import '../modes/cockpit/embrion_screen.dart' as cockpit_embrion;
 import '../modes/cockpit/finops_screen.dart' as cockpit_finops;
 import '../modes/cockpit/memory_screen.dart' as cockpit_memory;
@@ -200,6 +205,70 @@ final modeRouterProvider = Provider<GoRouter>((ref) {
             content: extra['content'] as String?,
           );
         },
+      ),
+      // ===== Cara B — Cognitive Republic (rutas fuera del shell) =====
+      // 4 módulos vivos consumiendo /v1/factory/*
+      GoRoute(
+        path: '/republic/constellation',
+        builder: (context, state) => const ConstellationScreen(),
+      ),
+      GoRoute(
+        path: '/republic/timeline',
+        builder: (context, state) => const TimelineScreen(),
+      ),
+      GoRoute(
+        path: '/republic/economy',
+        builder: (context, state) => const EconomyScreen(),
+      ),
+      GoRoute(
+        path: '/republic/reality-diff',
+        builder: (context, state) => const RealityDiffScreen(),
+      ),
+      // 9 módulos en stub (vitrina futura)
+      GoRoute(
+        path: '/republic/envelope-mesh',
+        builder: (context, state) =>
+            const ModuleStubScreen(moduleId: 'sovereign-envelope-mesh'),
+      ),
+      GoRoute(
+        path: '/republic/doctrine',
+        builder: (context, state) =>
+            const ModuleStubScreen(moduleId: 'doctrine-court'),
+      ),
+      GoRoute(
+        path: '/republic/genesis-kit',
+        builder: (context, state) =>
+            const ModuleStubScreen(moduleId: 'forge-genesis-kit'),
+      ),
+      GoRoute(
+        path: '/republic/embryo-grid',
+        builder: (context, state) =>
+            const ModuleStubScreen(moduleId: 'embryo-industrial-grid'),
+      ),
+      GoRoute(
+        path: '/republic/registry',
+        builder: (context, state) =>
+            const ModuleStubScreen(moduleId: 'cognitive-republic-registry'),
+      ),
+      GoRoute(
+        path: '/republic/power-lanes',
+        builder: (context, state) =>
+            const ModuleStubScreen(moduleId: 'power-lane-scaler'),
+      ),
+      GoRoute(
+        path: '/republic/missions',
+        builder: (context, state) =>
+            const ModuleStubScreen(moduleId: 'mission-capsule-conveyor'),
+      ),
+      GoRoute(
+        path: '/republic/receipts',
+        builder: (context, state) =>
+            const ModuleStubScreen(moduleId: 'evidence-receipt-vault'),
+      ),
+      GoRoute(
+        path: '/republic/omega',
+        builder: (context, state) =>
+            const ModuleStubScreen(moduleId: 'omega-command-theater'),
       ),
     ],
   );
