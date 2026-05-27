@@ -8,8 +8,8 @@
 Corregir el drift de theme del Command Center. Hoy (matriz §2.14) usa cyan `#00E5FF` + púrpura `#BB86FC` (inspired ChatGPT/Claude/Gemini) — drift binario contra el Brand DNA. Migrar a la paleta canónica Apple/Tesla firmada T1 (DSC-MO-002 v3).
 
 ## Paleta destino (DSC-MO-002 v3, firmada T1 2026-05-27)
-- Base neutra: `#F5F5F7` off-white Apple, `#1D1D1F` near-black Apple, `#171A20` dark Tesla, `#FFFFFF`/`#000000`, grises Apple.
-- Acento primario: rojo Tesla `#E82127`. Acento secundario: azul Apple `#0071E3`.
+- **PRINCIPALES (la marca, dominan la UI):** vacío hueso `#F5F5F7` (claro) / negro absoluto `#000000` (oscuro); near-black `#1D1D1F`; blanco `#FFFFFF`; grises Apple + `#171A20` (superficie oscura). El vacío manda; el contenido es el protagonista.
+- **ACENTOS (contraste, escasos — NO son la marca):** escala rojo Tesla (base `#E82127`) + escala azul Apple (base `#0071E3`). Máximo 2 matices; un tercer matiz rompe Apple. Nunca como fondo dominante.
 - DEPRECADO: cyan/púrpura actuales + forja-graphite-acero.
 
 ## Alcance
@@ -19,7 +19,7 @@ Corregir el drift de theme del Command Center. Hoy (matriz §2.14) usa cyan `#00
 
 ## Tareas
 - T1: localizar el sistema de tokens/theme del Command Center (Tailwind config / CSS vars).
-- T2: reemplazar paleta cyan/púrpura → Apple/Tesla (base neutra + rojo Tesla primario + azul Apple secundario).
+- T2: reemplazar paleta cyan/púrpura → Apple/Tesla (neutros + vacío hueso/negro como base dominante; rojo/azul solo como acentos de contraste escasos).
 - T3: pasada de las 7 superficies para consistencia (sin hardcodes de color viejo).
 - T4: screenshot binario antes/después para audit visual.
 

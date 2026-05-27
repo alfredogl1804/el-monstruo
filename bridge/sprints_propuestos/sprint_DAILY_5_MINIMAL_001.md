@@ -23,7 +23,7 @@ mobile_2 proponía 5 tabs (Home/Threads/Pendientes/Conexiones/Perfil) con Bottom
 
 ## Reglas duras
 - NO reconstruir el Cockpit de 15 tabs (T1-MAGNA-001 lo canceló).
-- Naming DSC-G-004. Estética Apple/Tesla (DSC-MO-002 v3 — rojo Tesla #E82127 + azul Apple #0071E3, base neutra).
+- Naming DSC-G-004. Estética Apple/Tesla (DSC-MO-002 v3 — PRINCIPALES: neutros sólidos + vacío hueso/negro absoluto; ACENTOS escasos: escala rojo Tesla #E82127 + escala azul Apple #0071E3, nunca como fondo).
 - Cero data sensible bajo D.
 
 ## Criterios de Cierre
