@@ -262,7 +262,14 @@ class TestDetectGhostInResponseEdgeCases:
 
 
 class TestExecuteWithToolsAcceptsToolChoice:
-    """Validar que router.execute_with_tools acepta tool_choice kwarg (T2 wiring)."""
+    """Validar que router.execute_with_tools acepta tool_choice kwarg (T2 wiring).
+
+    DAN S5 SENTINEL (2026-05-27): el default cambio de "auto" a None.
+    El sentinel None indica "caller no especifico, derivar via T4 helper".
+    El comportamiento es equivalente cuando intent != EXECUTE o no hay tools
+    (None -> 'auto'), pero permite a T4 forzar 'required' en EXECUTE+tools y
+    a T2 caller-explicit ganar sobre la derivacion.
+    """
 
     def test_signature_has_tool_choice_param(self):
         from inspect import signature
@@ -271,6 +278,11 @@ class TestExecuteWithToolsAcceptsToolChoice:
 
         sig = signature(RouterEngine.execute_with_tools)
         assert "tool_choice" in sig.parameters
-        # Default debe ser "auto" para retro-compatibilidad
+        # DAN S5 SENTINEL: default es None (sentinel "caller no especifico").
+        # Caller-explicito gana sobre intent-derivado en el cuerpo de la funcion.
         param = sig.parameters["tool_choice"]
-        assert param.default == "auto"
+        assert param.default is None, (
+            "DAN S5 SENTINEL: tool_choice default debe ser None para que T2 "
+            "caller-explicito ('required' en re-prompt) NO sea clobbereado por "
+            "la derivacion T4 por intent. Ver router/engine.py docstring."
+        )
