@@ -584,3 +584,66 @@ sprints:
   path: bridge/sprints_completados/sprint_T1_MAGNAS_PREFORJA_OMEGA_v1.md
   aliases:
   - T1-MAGNAS-PREFORJA-OMEGA-v1
+- id: SPR_FACTORY_UI_001
+  title: Factory Mode UI en tablero-campana (6a lente + 4 paneles HUD + BFF tRPC)
+  status: WAITING_REVIEW
+  paradigm: frontend
+  objetivos_maestros:
+  - 1
+  - 3
+  - 7
+  - 9
+  capas_transversales:
+  - C1
+  - C2
+  priority: NEXT
+  path: bridge/sprints_propuestos/sprint_SPR_FACTORY_UI_001_factory_mode_ui.md
+  spec: bridge/FORJA_OMEGA_VISUAL_PROMPT_v2_2026_05_28.md
+  aliases:
+  - SPR-FACTORY-UI-001
+- id: SPR_T1_006_EMBRION_PATCHES_001
+  title: Embrion Sandbox Patches (T1-006 D ejecutivo)
+  status: PROPOSED
+  paradigm: kernel
+  objetivos_maestros:
+  - 3
+  - 9
+  - 12
+  capas_transversales:
+  - C0
+  - C2
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_SPR_T1_006_EMBRION_PATCHES_001_sandbox_patches.md
+  aliases:
+  - SPR-T1-006-EMBRION-PATCHES-001
+  - T1-006-EMBRION-PATCHES-001
+- id: SPR_T1_007_MISSIONS_CONSOLIDATOR_001
+  title: Consolidador de bridge missions (T1-007 C ejecutivo)
+  status: PROPOSED
+  paradigm: tooling
+  objetivos_maestros:
+  - 1
+  - 3
+  - 9
+  capas_transversales:
+  - C0
+  - C2
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_SPR_T1_007_MISSIONS_CONSOLIDATOR_001.md
+  aliases:
+  - SPR-T1-007-MISSIONS-CONSOLIDATOR-001
+  - T1-007-MISSIONS-CONSOLIDATOR-001
+- id: SPR_DSC_G_008_V3_ANEXO_001
+  title: Anexo audit Cowork para missions y embrion_patches (DSC-G-008 v3)
+  status: PROPOSED
+  paradigm: governance
+  objetivos_maestros:
+  - 1
+  - 9
+  capas_transversales:
+  - C0
+  priority: BACKLOG
+  path: bridge/sprints_propuestos/sprint_SPR_DSC_G_008_V3_ANEXO_001.md
+  aliases:
+  - SPR-DSC-G-008-V3-ANEXO-001
+  - DSC-G-008-V3-ANEXO-001
