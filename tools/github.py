@@ -247,11 +247,56 @@ async def list_issues(repo: str, state: str = "open", limit: int = 10) -> dict:
 
 async def list_prs(repo: str, state: str = "open", limit: int = 10) -> dict:
     """List pull requests in a repo."""
+    # T3 (Sprint list-prs-instrumentation): validate repo format defensively
+    if "/" not in repo or repo.count("/") != 1:
+        logger.warning(
+            "list_prs_invalid_repo_format",
+            extra={"repo": repo, "state": state, "limit": limit},
+        )
+        return {
+            "pull_requests": [],
+            "error": "Invalid repo format. Expected 'owner/repo' (e.g. 'alfredogl1804/el-monstruo').",
+            "note": "Tool failed to fetch PRs. The empty list is NOT a confirmation that no PRs exist.",
+        }
+
+    # T1 (Sprint list-prs-instrumentation): log entry point
+    logger.info(
+        "list_prs_called",
+        extra={"repo": repo, "state": state, "limit": limit},
+    )
+
     data = await _request("GET", f"/repos/{repo}/pulls?state={state}&per_page={limit}")
-    # Sprint 81.5: defense against non-list responses
+
+    # T1: log raw response shape for binary diagnosis
+    logger.info(
+        "list_prs_raw_response",
+        extra={
+            "repo": repo,
+            "data_type": type(data).__name__,
+            "is_list": isinstance(data, list),
+            "len_if_list": len(data) if isinstance(data, list) else None,
+            "has_error_key": isinstance(data, dict) and "error" in data,
+            "error_detail": (data.get("detail", "")[:200] if isinstance(data, dict) else None),
+        },
+    )
+
+    # T2 (Sprint list-prs-instrumentation): surface errors to LLM with note
     if isinstance(data, dict) and "error" in data:
-        return data
+        return {
+            "pull_requests": [],
+            "error": data["error"],
+            "detail": data.get("detail", ""),
+            "note": "Tool failed to fetch PRs. The empty list is NOT a confirmation that no PRs exist.",
+        }
+
     items = data if isinstance(data, list) else []
+
+    # T1: log final return path
+    logger.info(
+        "list_prs_returning",
+        extra={"repo": repo, "pr_count": len(items)},
+    )
+
     return {
         "pull_requests": [
             {
