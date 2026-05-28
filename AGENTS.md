@@ -642,3 +642,75 @@ Lee: docs/DIVISION_RESPONSABILIDADES_HILOS.md para la división completa.
 Lee: docs/EL_MONSTRUO_14_OBJETIVOS_MAESTROS.md para los 14 Objetivos detallados.
 Lee: docs/ROADMAP_EJECUCION_DEFINITIVO.md para las 4 Capas y el orden de sprints.
 Lee: docs/BRAND_ENGINE_ESTRATEGIA.md para la estrategia de identidad de marca.
+
+
+---
+
+# Regla Dura #12: Captura en Tiempo Real (CTR) + Discoverability Triple-Anclada (DTA)
+
+Esta regla NO se puede ignorar, resumir ni omitir ante compactación de memoria.
+
+> **Toda iteración piloto↔Monstruo que produce decisión, doctrina o componente queda capturada en una bitácora viva al cierre de cada intercambio, NO al cierre del hilo. La bitácora vive triple-anclada para que cualquier hilo futuro la encuentre sin auditar exhaustivamente el sandbox.**
+
+Esta regla nace del Tramo 1 del Sueño Firmado #001 (FORJA OMEGA). Canoniza dos directivas operativas: **CTR** (captura) y **DTA** (discoverability).
+
+## Bitácoras vivas — ubicación canónica
+
+Cada tramo del Sueño Firmado #001 mantiene bitácora viva en:
+
+```
+forja_omega_tramo_{N}/
+├── bitacora.jsonl         ← eventos individuales append-only
+└── bitacora_index.md      ← punto de entrada legible para Manus B
+```
+
+**Patrón canónico:** `forja_omega_tramo_{N}/` para cualquier tramo (1-10) del Sueño Firmado #001.
+
+## Schema JSONL canónico
+
+```
+{"ts":"ISO8601","t":"firma|chispa|propuesta|descarte|doctrina|antipattern|estado|pregunta_pendiente","a":"alfredo|manus","ref":"componente_o_concepto","c":"contenido_denso","v":"verbatim_si_aplica","s":"id_supersede_si_aplica"}
+```
+
+Una línea = un evento. Append-only. Nunca reescribir líneas previas — si una decisión cambia, agregar nueva línea con `s` apuntando al evento superseded.
+
+## Reglas operativas binarias
+
+**R1 — Cuando regreses a un tramo activo:**
+1. `cat forja_omega_tramo_{N}/bitacora_index.md` (rápido, ~50 líneas)
+2. Si necesitas detalle: `jq -c 'select(.t=="...")' forja_omega_tramo_{N}/bitacora.jsonl`
+3. NO reconstruyas contexto desde el hilo Manus público — usa la bitácora local
+
+**R2 — Cuando produzcas decisión, doctrina o componente:**
+1. Agregar línea JSONL inmediatamente
+2. Cita verbatim del piloto entre comillas en campo `v` cuando aplique
+3. Si descartas algo previo, nueva línea con `t:"descarte"` + `s:"id_evento_superseded"`
+
+**R3 — Curación es responsabilidad del Monstruo, no del piloto:**
+- Piloto detona, Monstruo registra
+- Piloto NO mantiene la bitácora — solo aporta chispa
+- Si la bitácora se pierde por culpa del Monstruo, es bug crítico
+
+## Discoverability Triple-Anclada (DTA)
+
+
+oda bitácora viva está triple-anclada para garantizar que ningún hilo futuro la pierda:
+
+| Anclaje | Función | Falla tolerada porque |
+|---|---|---|
+| **1. AGENTS.md (este archivo)** | Ruta ca| **1. AGENTS.md (este archivo)** | Ruta caajes la recuperan |
+| **2. Memoria persistente Guardian** | Sobrevive compactaciones de hilo | AGENTS.md y Genome la recuperan |
+| **3. Genome Vivo `suenos_activos`** | Accesible vía API por hilos remotos | AGENTS.md y Guardian la recuperan |
+
+## Estado actual de tramos del Sueño Firmado #001
+
+- **Tramo 0** — TESIS v1.2 + Anexo + Contrato firmados (mergeado en main)
+- **Tramo 1** — Diseño Sistema Inmune + Pit Wall + Meta-coordinador + STS + Vigía/Cirujano (ACTIVO, bitácora en `forja_omega_tramo_1/`)
+- **Tramos 2-10** — Pendientes
+
+## Verbos prohibidos
+
+- NO actualizar bitácora con resúmenes parafraseados — pierden citas verbatim
+- NO mover bitácoras a `bridge/` — viven en `forja_omega_tramo_{N}/`
+- NO consolidar bitácoras al cierre del tramo — el JSONL es la verdad cronológica
+- NO reescribir líneas previas — solo append + supersede
