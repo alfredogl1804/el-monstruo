@@ -3,7 +3,7 @@
 
 # Core
 pyyaml>=6.0            # Carga de registros YAML
-requests>=2.31         # HTTP para health checks (HeyGen, ElevenLabs)
+requests>=2.33.1         # HTTP para health checks (HeyGen, ElevenLabs)
 
 # SDKs de los 6 Sabios
 openai>=1.30           # GPT-5.4, Grok (compatible), DeepSeek vía OpenRouter
