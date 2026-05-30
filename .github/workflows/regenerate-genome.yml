@@ -49,7 +49,7 @@ jobs:
     if: github.event_name != 'push' || !contains(github.event.head_commit.message, '[skip-genome-regen]')
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
