@@ -1,0 +1,68 @@
+{
+  "_meta": {
+    "fixture_type": "MOCK_DATA",
+    "purpose": "Local demo supervised — proposals are visual fixtures, NOT actionable",
+    "t1_authority": "Alfredo (sole signer for productive approve/reject)",
+    "chatgpt_role": "Integrador — NOT T1",
+    "v2_2_status": "DRAFT (commit 148a502, NOT canon, NOT runtime)",
+    "sprint": "COCKPIT-SPRINT-003",
+    "approve_reject_mode_global": "DISABLED",
+    "action_allowed_global": "DISPLAY_ONLY",
+    "anonymous_blocker": "ACTIVE — proposals containing user_id=anonymous are excluded or marked UNKNOWN",
+    "nightly_builder_r1": "BLOCKED — no proposal in this fixture authorizes R1",
+    "generated_at": "2026-05-18T12:00:00Z",
+    "do_not_use_as_evidence": true
+  },
+  "proposals": [
+    {
+      "proposal_id": "MOCK-PROP-001",
+      "title": "R0 evidence bundle — drift inventory user_id=anonymous (mock)",
+      "status": "AWAITING_T1_REVIEW",
+      "source_label": "MOCK_DATA",
+      "action_allowed": "DISPLAY_ONLY",
+      "approve_reject_mode": "DISABLED",
+      "reason": "Cockpit local Fase 2 MVP. Approve/reject visual only. No productive side-effects. T1 sign-off via separate bridge file required for any productive action.",
+      "submitted_at": "2026-05-18T11:15:00Z",
+      "submitted_by_label": "MOCK_EMBRYO_INSTANCE",
+      "audit_trail_path_label": "bridge/nightly_builder/MOCK-OPP-NB-XXX_R0_DRIFT_REPORT.md (MOCK reference)",
+      "t1_signoff_required": false,
+      "r1_authorization_implied": false
+    },
+    {
+      "proposal_id": "MOCK-PROP-002",
+      "title": "R0 evidence bundle — memory_routes contract spec preview (mock)",
+      "status": "AWAITING_T1_REVIEW",
+      "source_label": "MOCK_DATA",
+      "action_allowed": "DISPLAY_ONLY",
+      "approve_reject_mode": "DISABLED",
+      "reason": "Contract spec evidence-only. Tests blocked until anonymous classification (OPP-NB-001 R1_CANDIDATE_NOT_APPROVED). No fixture field grants productive permission.",
+      "submitted_at": "2026-05-18T11:30:00Z",
+      "submitted_by_label": "MOCK_EMBRYO_INSTANCE",
+      "audit_trail_path_label": "bridge/nightly_builder/MOCK-OPP-NB-021_CONTRACT_SPEC.md (MOCK reference)",
+      "t1_signoff_required": false,
+      "r1_authorization_implied": false
+    },
+    {
+      "proposal_id": "MOCK-PROP-003",
+      "title": "R0 evidence bundle — bridge file inventory (mock)",
+      "status": "COMPLETED_EVIDENCE_ARCHIVED",
+      "source_label": "MOCK_DATA",
+      "action_allowed": "DISPLAY_ONLY",
+      "approve_reject_mode": "DISABLED",
+      "reason": "Closed as evidence archived. No productive action emerged. T1 may consult bridge file via separate read-only audit.",
+      "submitted_at": "2026-05-18T10:00:00Z",
+      "submitted_by_label": "MOCK_EMBRYO_INSTANCE",
+      "audit_trail_path_label": "bridge/nightly_builder/MOCK-OPP-NB-019_BRIDGE_INVENTORY.md (MOCK reference)",
+      "t1_signoff_required": false,
+      "r1_authorization_implied": false
+    }
+  ],
+  "summary": {
+    "total_proposals": 3,
+    "all_action_allowed": "DISPLAY_ONLY",
+    "all_approve_reject_mode": "DISABLED",
+    "any_r1_authorized": false,
+    "any_productive_action_authorized": false,
+    "t1_must_sign_separately_for_any_productive_action": true
+  }
+}

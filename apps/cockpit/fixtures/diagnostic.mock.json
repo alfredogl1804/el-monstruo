@@ -1,0 +1,149 @@
+{
+  "_meta": {
+    "fixture_type": "MOCK_DATA",
+    "purpose": "Local demo supervised — no production control plane",
+    "t1_authority": "Alfredo (sole signer for productive actions)",
+    "chatgpt_role": "Integrador — NOT T1",
+    "v2_2_status": "DRAFT (commit 148a502, NOT canon, NOT runtime)",
+    "sprint": "COCKPIT-SPRINT-003",
+    "action_authority": "DISPLAY_ONLY — no fixture field grants productive permission",
+    "anonymous_blocker": "ACTIVE (OPP-NB-023 audit → INSUFFICIENT_EVIDENCE, T1 classification pending)",
+    "generated_at": "2026-05-18T12:00:00Z",
+    "do_not_use_as_evidence": true
+  },
+  "heartbeat": {
+    "value": {
+      "status": "alive",
+      "last_pulse_at": "2026-05-18T11:59:42Z",
+      "interval_seconds": 60,
+      "misses_last_hour": 0
+    },
+    "label": "MOCK_DATA",
+    "freshness": "stale",
+    "action_allowed": "DISPLAY_ONLY"
+  },
+  "budget": {
+    "value": {
+      "period_start": "2026-05-01",
+      "spent_usd": 12.45,
+      "cap_usd": 50.00,
+      "warning_threshold_pct": 80,
+      "breakdown": {
+        "anthropic": 8.30,
+        "openai": 2.15,
+        "google": 2.00
+      }
+    },
+    "label": "MOCK_DATA",
+    "freshness": "stale",
+    "action_allowed": "DISPLAY_ONLY"
+  },
+  "cycles": {
+    "value": [
+      {
+        "cycle_id": "MOCK-CYCLE-001",
+        "started_at": "2026-05-18T11:00:00Z",
+        "ended_at": "2026-05-18T11:42:00Z",
+        "status": "completed",
+        "steps_total": 7,
+        "steps_succeeded": 7
+      },
+      {
+        "cycle_id": "MOCK-CYCLE-002",
+        "started_at": "2026-05-18T11:50:00Z",
+        "ended_at": null,
+        "status": "in_progress",
+        "steps_total": 4,
+        "steps_succeeded": 2
+      }
+    ],
+    "label": "MOCK_DATA",
+    "freshness": "stale",
+    "action_allowed": "DISPLAY_ONLY"
+  },
+  "redacted_cycle_summary": {
+    "value": {
+      "cycle_id": "MOCK-CYCLE-001",
+      "summary_redacted": "Embryo proposed evidence-only R0 bundle for drift inventory. Auditor IA validated path allowlist. Bridge file generated with audit trail. No productive side-effects. Awaiting T1 review.",
+      "raw_chain_of_thought": null,
+      "raw_internal_reasoning": null,
+      "raw_thinking_steps": null,
+      "note": "Raw CoT, internal reasoning and thinking steps are explicitly excluded from this fixture. Only redacted summary is displayed."
+    },
+    "label": "MOCK_DATA",
+    "freshness": "stale",
+    "action_allowed": "DISPLAY_ONLY"
+  },
+  "errors": {
+    "value": [
+      {
+        "error_id": "MOCK-ERR-001",
+        "namespace": "[la-forja:mock_error_placeholder]",
+        "occurred_at": "2026-05-18T11:30:15Z",
+        "severity": "info",
+        "message": "Mock fixture error for UI rendering test"
+      }
+    ],
+    "label": "MOCK_DATA",
+    "freshness": "stale",
+    "action_allowed": "DISPLAY_ONLY"
+  },
+  "blockers": {
+    "value": [
+      {
+        "blocker_id": "BLOCK-ANONYMOUS-001",
+        "title": "user_id=anonymous classification pending",
+        "severity": "high",
+        "opened_at": "2026-05-18T10:00:00Z",
+        "reference": "OPP-NB-023 R0 audit → INSUFFICIENT_EVIDENCE",
+        "unblocked_by": "T1 sign-off on classification (TEMPORARY_ACCEPTED_DEBT / BUG / FEATURE / BLOCKER)"
+      },
+      {
+        "blocker_id": "BLOCK-NIGHTLY-R1-001",
+        "title": "Nightly Builder R1 autónomo BLOQUEADO",
+        "severity": "critical",
+        "opened_at": "2026-05-18T09:00:00Z",
+        "reference": "v2.2 DRAFT commit 148a502",
+        "unblocked_by": "T1 sign-off explícito — currently not authorized"
+      }
+    ],
+    "label": "MOCK_DATA",
+    "freshness": "stale",
+    "action_allowed": "DISPLAY_ONLY"
+  },
+  "silence_state": {
+    "value": {
+      "state": "observing",
+      "since": "2026-05-18T11:42:00Z",
+      "reason": "Awaiting T1 input on classification candidates",
+      "break_silence_authority": "T1 only"
+    },
+    "label": "MOCK_DATA",
+    "freshness": "stale",
+    "action_allowed": "DISPLAY_ONLY"
+  },
+  "freshness": {
+    "value": {
+      "generated_at": "2026-05-18T12:00:00Z",
+      "data_age_seconds": 0,
+      "is_live": false,
+      "source": "static_fixture_file"
+    },
+    "label": "MOCK_DATA",
+    "freshness": "stale",
+    "action_allowed": "DISPLAY_ONLY"
+  },
+  "source_label": {
+    "value": {
+      "source_type": "local_static_fixture",
+      "source_path": "apps/cockpit/fixtures/diagnostic.mock.json",
+      "is_production_data": false,
+      "is_canon_data": false,
+      "is_runtime_data": false,
+      "label": "MOCK_DATA"
+    },
+    "label": "MOCK_DATA",
+    "freshness": "stale",
+    "action_allowed": "DISPLAY_ONLY"
+  }
+}

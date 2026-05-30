@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Monstruo — HITL Cockpit v0.3 (Local Read-Only)</title>
+    <style>
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --border: #30363d;
+            --text: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent: #58a6ff;
+            --green: #3fb950;
+            --yellow: #d29922;
+            --red: #f85149;
+            --orange: #db6d28;
+            --purple: #a371f7;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 1rem;
+            padding-bottom: 6rem;
+        }
+        /* ═══ RULE 1: Permanent non-dismissible banner ═══ */
+        .supervised-banner {
+            background: rgba(248,81,73,0.08);
+            border: 2px solid var(--red);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--red);
+            margin-bottom: 1rem;
+            text-align: center;
+            line-height: 1.4;
+            user-select: none;
+            pointer-events: none;
+        }
+        /* ═══ RULE 2: Permanent non-dismissible footer ═══ */
+        .supervised-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--surface);
+            border-top: 2px solid var(--border);
+            padding: 0.6rem 1rem;
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-align: center;
+            line-height: 1.4;
+            z-index: 9999;
+            user-select: none;
+            pointer-events: none;
+        }
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--accent); }
+        .subtitle { color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+        .card-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .card-title .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: var(--text-muted);
+        }
+        .card-title .dot.green { background: var(--green); }
+        .card-title .dot.yellow { background: var(--yellow); }
+        .card-title .dot.red { background: var(--red); }
+        .source-label {
+            display: inline-block;
+            padding: 0.1rem 0.4rem;
+            border-radius: 3px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .source-label.real-read-only { background: rgba(63,185,80,0.15); color: var(--green); }
+        .source-label.mock-data { background: rgba(210,153,34,0.15); color: var(--yellow); }
+        .source-label.unknown { background: rgba(139,148,158,0.15); color: var(--text-muted); }
+        .source-label.stale { background: rgba(219,109,40,0.15); color: var(--orange); }
+        .source-label.disabled { background: rgba(248,81,73,0.15); color: var(--red); }
+        .source-label.blocked { background: rgba(248,81,73,0.25); color: var(--red); }
+        .metric { font-size: 1.8rem; font-weight: 700; margin-bottom: 0.25rem; }
+        .metric-label { font-size: 0.75rem; color: var(--text-muted); }
+        .metric-row {
+            display: flex; justify-content: space-between; align-items: baseline;
+            padding: 0.4rem 0; border-bottom: 1px solid var(--border);
+        }
+        .metric-row:last-child { border-bottom: none; }
+        .metric-row .label { color: var(--text-muted); font-size: 0.8rem; }
+        .metric-row .value { font-weight: 600; font-size: 0.9rem; }
+        .badge {
+            display: inline-block; padding: 0.15rem 0.5rem; border-radius: 12px;
+            font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+        }
+        .badge-green { background: rgba(63,185,80,0.15); color: var(--green); }
+        .badge-yellow { background: rgba(210,153,34,0.15); color: var(--yellow); }
+        .badge-red { background: rgba(248,81,73,0.15); color: var(--red); }
+        .proposals-list { max-height: 400px; overflow-y: auto; }
+        .proposal-item {
+            background: var(--bg); border: 1px solid var(--border);
+            border-radius: 6px; padding: 0.75rem; margin-bottom: 0.5rem;
+        }
+        .proposal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        .proposal-type { font-weight: 600; font-size: 0.85rem; }
+        .proposal-risk { font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 4px; }
+        .risk-low { background: rgba(63,185,80,0.2); color: var(--green); }
+        .risk-medium { background: rgba(210,153,34,0.2); color: var(--yellow); }
+        .risk-high { background: rgba(248,81,73,0.2); color: var(--red); }
+        .proposal-summary { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+        .proposal-actions { display: flex; gap: 0.5rem; }
+        .btn {
+            padding: 0.35rem 0.75rem; border-radius: 4px; border: 1px solid var(--border);
+            font-size: 0.75rem; font-weight: 600; cursor: not-allowed; opacity: 0.4;
+        }
+        .btn-approve { background: rgba(63,185,80,0.1); color: var(--green); border-color: var(--green); }
+        .btn-reject { background: rgba(248,81,73,0.1); color: var(--red); border-color: var(--red); }
+        .btn-ui-only {
+            cursor: pointer; opacity: 0.7;
+        }
+        .btn-ui-only:hover { opacity: 1; }
+        .issues-list { list-style: none; }
+        .issues-list li {
+            padding: 0.4rem 0; border-bottom: 1px solid var(--border);
+            font-size: 0.8rem; color: var(--orange);
+        }
+        .issues-list li:last-child { border-bottom: none; }
+        .errors-list { list-style: none; }
+        .errors-list li { padding: 0.3rem 0; font-size: 0.8rem; }
+        .error-type { color: var(--red); font-weight: 600; }
+        .error-count { color: var(--text-muted); }
+        .empty-state {
+            color: var(--text-muted); font-size: 0.8rem; font-style: italic;
+            padding: 1rem 0; text-align: center;
+        }
+        .config-bar {
+            display: flex; gap: 0.5rem; align-items: center;
+            margin-bottom: 1rem; flex-wrap: wrap;
+        }
+        .config-bar input {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 4px; padding: 0.4rem 0.6rem; color: var(--text);
+            font-size: 0.8rem; flex: 1; min-width: 200px;
+        }
+        .config-bar button {
+            background: var(--accent); color: var(--bg); border: none;
+            border-radius: 4px; padding: 0.4rem 0.8rem; font-size: 0.8rem;
+            font-weight: 600; cursor: pointer;
+        }
+        .config-bar button:hover { opacity: 0.85; }
+        .last-refresh { font-size: 0.7rem; color: var(--text-muted); text-align: right; margin-top: 0.5rem; }
+        .demo-banner {
+            background: rgba(210,153,34,0.1); border: 1px solid var(--yellow);
+            border-radius: 6px; padding: 0.5rem 1rem; font-size: 0.75rem;
+            color: var(--yellow); margin-bottom: 1rem; display: none;
+        }
+        .demo-banner.visible { display: block; }
+        .blocked-banner {
+            background: rgba(248,81,73,0.1); border: 1px solid var(--red);
+            border-radius: 6px; padding: 0.5rem 1rem; font-size: 0.75rem;
+            color: var(--red); margin-bottom: 1rem; display: none;
+        }
+        .blocked-banner.visible { display: block; }
+        .matrix-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin-top: 0.5rem; }
+        .matrix-table th {
+            text-align: left; padding: 0.4rem 0.5rem; border-bottom: 2px solid var(--border);
+            color: var(--text-muted); font-weight: 600; text-transform: uppercase;
+            font-size: 0.65rem; letter-spacing: 0.04em;
+        }
+        .matrix-table td { padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--border); color: var(--text); }
+        .matrix-table tr:last-child td { border-bottom: none; }
+        .action-disabled-notice {
+            background: rgba(248,81,73,0.05); border: 1px dashed var(--red);
+            border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.72rem;
+            color: var(--red); margin-bottom: 0.75rem; text-align: center; line-height: 1.4;
+        }
+        .anonymous-blocked {
+            background: rgba(163,113,247,0.1); border: 1px solid var(--purple);
+            border-radius: 4px; padding: 0.3rem 0.6rem; font-size: 0.75rem;
+            color: var(--purple); font-weight: 600;
+        }
+        /* Visual-only state for UI_ONLY buttons */
+        .visual-approved { border-color: var(--green) !important; opacity: 0.5 !important; }
+        .visual-rejected { border-color: var(--red) !important; opacity: 0.5 !important; }
+        .visual-state-label {
+            font-size: 0.65rem; color: var(--text-muted); font-style: italic;
+            margin-top: 0.3rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- RULE 1: Permanent non-dismissible banner (exact text)          -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="supervised-banner">
+        &#9888;&#65039; SUPERVISED LOCAL DEMO &mdash; no production control plane &mdash; no R1 authorization &mdash; T1 = Alfredo. ChatGPT-0 = integrador, NO T1. Approve/reject visual NO equivale a firma T1 productiva. Cockpit local Fase 2 MVP visible supervisado. Cero side-effects productivos.
+    </div>
+
+    <h1>El Monstruo &mdash; HITL Cockpit</h1>
+    <p class="subtitle">SPR-HITL-COCKPIT-001 | Fase 2 Local Read-Only | v0.3</p>
+
+    <div class="config-bar">
+        <input type="text" id="baseUrl" placeholder="Base URL (solo localhost permitido)" value="http://localhost:8000/v1/embrion">
+        <button onclick="refreshAll()">Refresh</button>
+    </div>
+
+    <!-- RULE 4: Network policy blocked banner -->
+    <div class="blocked-banner" id="blockedBanner">
+        BLOCKED_REMOTE_ENDPOINT &mdash; Solo se permite localhost / 127.0.0.1 para read-only GET. Endpoints remotos (*.railway.app, *.supabase.co, OpenAI, Anthropic, Gemini, GitHub, produccion) estan PROHIBIDOS.
+    </div>
+
+    <div class="demo-banner" id="demoBanner">
+        MOCK_DATA &mdash; No se pudo conectar al backend local. Mostrando datos de ejemplo para visibilidad de layout. Estos datos NO son reales y NO deben usarse para decisiones.
+    </div>
+
+    <!-- Row 1: Loop + Budget + Silence -->
+    <div class="grid">
+        <div class="card">
+            <div class="card-title">
+                <span class="dot" id="loopDot"></span>Loop / Redacted Cycle Summary
+                <span class="source-label unknown" id="loopLabel">UNKNOWN</span>
+            </div>
+            <div id="loopContent"><div class="empty-state">Conectando...</div></div>
+        </div>
+        <div class="card">
+            <div class="card-title">
+                <span class="dot" id="budgetDot"></span>Budget
+                <span class="source-label unknown" id="budgetLabel">UNKNOWN</span>
+            </div>
+            <div id="budgetContent"><div class="empty-state">Conectando...</div></div>
+        </div>
+        <div class="card">
+            <div class="card-title">
+                <span class="dot" id="silenceDot"></span>Silencio
+                <span class="source-label unknown" id="silenceLabel">UNKNOWN</span>
+            </div>
+            <div id="silenceContent"><div class="empty-state">Conectando...</div></div>
+        </div>
+    </div>
+
+    <!-- Row 2: Health + Errors -->
+    <div class="grid">
+        <div class="card">
+            <div class="card-title">
+                <span class="dot" id="healthDot"></span>Salud / Bloqueos
+                <span class="source-label unknown" id="healthLabel">UNKNOWN</span>
+            </div>
+            <div id="healthContent"><div class="empty-state">Conectando...</div></div>
+        </div>
+        <div class="card">
+            <div class="card-title">
+                <span class="dot" id="errorsDot"></span>Errores Recientes
+                <span class="source-label unknown" id="errorsLabel">UNKNOWN</span>
+            </div>
+            <div id="errorsContent"><div class="empty-state">Conectando...</div></div>
+        </div>
+    </div>
+
+    <!-- Row 3: Proposals (HITL) -->
+    <div class="card" style="margin-bottom: 1rem;">
+        <div class="card-title">
+            <span class="dot" id="proposalsDot"></span>Proposals Pendientes (HITL)
+            <span class="source-label unknown" id="proposalsLabel">UNKNOWN</span>
+        </div>
+        <!-- RULE 3: Action disabled notice -->
+        <div class="action-disabled-notice">
+            APPROVE/REJECT: UI_ONLY &mdash; Botones actualizan SOLO estado visual local temporal. NO llaman POST. NO persisten. NO mergean. NO deployan. NO canonizan. NO modifican Supabase. NO activan R1. Firma productiva T1 requiere bridge file separado con sign-off verbatim Alfredo + audit Cowork T2-A.
+        </div>
+        <div class="proposals-list" id="proposalsContent">
+            <div class="empty-state">Conectando...</div>
+        </div>
+    </div>
+
+    <!-- Data Source Matrix -->
+    <div class="card" style="margin-bottom: 1rem;">
+        <div class="card-title">
+            <span class="dot yellow"></span>Data Source Matrix
+            <span class="source-label unknown">META</span>
+        </div>
+        <table class="matrix-table">
+            <thead><tr><th>Field</th><th>Source</th><th>Freshness</th><th>Action Allowed</th></tr></thead>
+            <tbody id="matrixBody"></tbody>
+        </table>
+    </div>
+
+    <div class="last-refresh" id="lastRefresh">&mdash;</div>
+
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <!-- RULE 2: Permanent non-dismissible footer (exact text)          -->
+    <!-- ═══════════════════════════════════════════════════════════════ -->
+    <div class="supervised-footer">
+        &#127963;&#65039; El Monstruo &middot; Cockpit local Fase 2 &middot; NO control plane &middot; v2.2 DRAFT commit 148a502, NO canon, NO runtime &middot; Nightly Builder R1 BLOQUEADO &middot; OPP-NB-001 memory_routes R1_CANDIDATE_NOT_APPROVED &middot; anonymous BLOCKER preventivo &middot; T1 = Alfredo firma cualquier acci&oacute;n productiva mediante bridge separado.
+    </div>
+
+    <script>
+    // ═══════════════════════════════════════════════════════════════
+    // HITL Cockpit v0.3 — LOCAL_SUPERVISED_READ_ONLY_DEMO
+    //
+    // RULES ENFORCED IN THIS FILE:
+    // 1. Permanent banner (non-dismissible)
+    // 2. Permanent footer (non-dismissible)
+    // 3. Approve/reject = UI_ONLY (no POST, no persist, no localStorage)
+    // 4. Network policy: localhost/127.0.0.1 only, GET only
+    // 5. Redacted cycle: zero raw thoughts/chain_of_thought/internal_*
+    // 6. Anonymous blocker: shows "ANONYMOUS BLOCKED — see OPP-NB-023"
+    // 7. Source labels on every card
+    // 8. Zero side effects
+    // ═══════════════════════════════════════════════════════════════
+
+    let dataSourceState = 'unknown'; // 'real' | 'mock' | 'blocked'
+
+    // ── RULE 4: Network Policy ──
+    const ALLOWED_HOSTS = ['localhost', '127.0.0.1'];
+    const BLOCKED_DOMAINS = [
+        '.railway.app', '.supabase.co', 'api.openai.com', 'api.anthropic.com',
+        'generativelanguage.googleapis.com', 'api.github.com', 'github.com',
+        'api.perplexity.ai', 'api.x.ai', 'openrouter.ai'
+    ];
+
+    function isUrlAllowed(urlStr) {
+        try {
+            const url = new URL(urlStr);
+            const host = url.hostname;
+            // Only localhost/127.0.0.1 allowed
+            if (ALLOWED_HOSTS.includes(host)) return true;
+            // Everything else blocked
+            return false;
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function getBaseUrl() {
+        return document.getElementById('baseUrl').value.replace(/\/$/, '');
+    }
+
+    async function safeFetchGET(path) {
+        const fullUrl = `${getBaseUrl()}${path}`;
+        if (!isUrlAllowed(fullUrl)) {
+            throw new Error('BLOCKED_REMOTE_ENDPOINT');
+        }
+        // RULE 4: Only GET allowed
+        const resp = await fetch(fullUrl, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        return resp.json();
+    }
+
+    // ── RULE 6: Anonymous blocker ──
+    function sanitizeAnonymous(value) {
+        if (value === null || value === undefined) return value;
+        const str = String(value).toLowerCase();
+        if (str.includes('anonymous')) {
+            return 'ANONYMOUS_BLOCKED';
+        }
+        return value;
+    }
+
+    function renderAnonymousBlocked() {
+        return '<span class="anonymous-blocked">ANONYMOUS BLOCKED &mdash; see OPP-NB-023</span>';
+    }
+
+    // ── Source label updater ──
+    function setSourceLabel(elementId, state) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        el.textContent = state.replace(/_/g, ' ');
+        el.className = 'source-label ' + state.toLowerCase().replace(/_/g, '-');
+    }
+
+    // ── RULE 5: Redacted cycle ──
+    // NEVER expose: thoughts, chain_of_thought, internal_reasoning, internal_state
+    const REDACTED_FIELDS = ['thoughts', 'chain_of_thought', 'internal_reasoning', 'internal_state', 'raw_thoughts'];
+
+    function redactObject(obj) {
+        if (!obj || typeof obj !== 'object') return obj;
+        const clean = Array.isArray(obj) ? [...obj] : { ...obj };
+        for (const key of Object.keys(clean)) {
+            if (REDACTED_FIELDS.includes(key)) {
+                clean[key] = 'REDACTED';
+            } else if (typeof clean[key] === 'object') {
+                clean[key] = redactObject(clean[key]);
+            }
+            // RULE 6: anonymous check on all string values
+            if (typeof clean[key] === 'string' && clean[key].toLowerCase().includes('anonymous')) {
+                clean[key] = 'ANONYMOUS_BLOCKED';
+            }
+        }
+        return clean;
+    }
+
+    // ── Render functions ──
+
+    function renderLoop(diag) {
+        const loop = diag.loop || {};
+        const dot = document.getElementById('loopDot');
+        const status = loop.status || 'unknown';
+        dot.className = `dot ${status === 'running' ? 'green' : 'red'}`;
+
+        // RULE 5: Only show redacted_cycle_summary
+        const cycleCount = loop.cycle_count || 0;
+        const redactedSummary = cycleCount > 0
+            ? `${cycleCount} cycles completed`
+            : 'REDACTED &mdash; no safe summary source available';
+
+        const secsSince = loop.seconds_since_last_thought != null
+            ? `${Math.round(loop.seconds_since_last_thought)}s ago` : 'N/A';
+
+        document.getElementById('loopContent').innerHTML = `
+            <div class="metric">${sanitizeAnonymous(status).toString().toUpperCase()}</div>
+            <div class="metric-row"><span class="label">Ciclos</span><span class="value">${cycleCount}</span></div>
+            <div class="metric-row"><span class="label">Redacted Cycle Summary</span><span class="value">${redactedSummary}</span></div>
+            <div class="metric-row"><span class="label">Ultimo ciclo</span><span class="value">${secsSince}</span></div>
+            <div class="metric-row"><span class="label">Intervalo</span><span class="value">${loop.check_interval_s || '?'}s</span></div>
+        `;
+    }
+
+    function renderBudget(diag) {
+        const loop = diag.loop || {};
+        const dot = document.getElementById('budgetDot');
+        const remaining = loop.budget_remaining_usd || 0;
+        const daily = loop.daily_budget_usd || 30;
+        const pct = daily > 0 ? Math.round((remaining / daily) * 100) : 0;
+        dot.className = `dot ${pct > 50 ? 'green' : pct > 20 ? 'yellow' : 'red'}`;
+
+        document.getElementById('budgetContent').innerHTML = `
+            <div class="metric">$${remaining.toFixed(4)}</div>
+            <div class="metric-label">restante de $${daily.toFixed(2)}/dia (${pct}%)</div>
+            <div class="metric-row"><span class="label">Gastado hoy</span><span class="value">$${(loop.cost_today_usd || 0).toFixed(4)}</span></div>
+        `;
+    }
+
+    function renderSilence(diag) {
+        const s = diag.silence || {};
+        const dot = document.getElementById('silenceDot');
+        const ratio = s.silence_ratio || 0;
+        dot.className = `dot ${ratio < 0.3 ? 'green' : ratio < 0.6 ? 'yellow' : 'red'}`;
+
+        document.getElementById('silenceContent').innerHTML = `
+            <div class="metric">${Math.round(ratio * 100)}%</div>
+            <div class="metric-label">ratio de silencio</div>
+            <div class="metric-row"><span class="label">Silenciados hoy</span><span class="value">${s.silenced_today || 0}</span></div>
+            <div class="metric-row"><span class="label">Mensajes enviados</span><span class="value">${s.messages_sent_today || 0}</span></div>
+            <div class="metric-row"><span class="label">Threshold</span><span class="value">${s.threshold || 'N/A'}</span></div>
+            <div class="metric-row"><span class="label">Ultimo score</span><span class="value">${s.last_score != null ? s.last_score : 'N/A'}</span></div>
+        `;
+    }
+
+    function renderHealth(diag) {
+        const hv = diag.health_verdict || {};
+        const dot = document.getElementById('healthDot');
+        dot.className = `dot ${hv.healthy ? 'green' : 'red'}`;
+
+        const issues = hv.issues || [];
+        let html = '';
+        if (hv.healthy) {
+            html = `<div class="metric" style="color:var(--green)">HEALTHY</div>
+                     <div class="metric-label">Sin bloqueos detectados</div>`;
+        } else {
+            html = `<div class="metric" style="color:var(--red)">${issues.length} ISSUE${issues.length > 1 ? 'S' : ''}</div>
+                     <ul class="issues-list">${issues.map(i => {
+                         const sanitized = sanitizeAnonymous(i);
+                         return sanitized === 'ANONYMOUS_BLOCKED'
+                             ? `<li>${renderAnonymousBlocked()}</li>`
+                             : `<li>${sanitized}</li>`;
+                     }).join('')}</ul>`;
+        }
+        document.getElementById('healthContent').innerHTML = html;
+    }
+
+    function renderErrors(diag) {
+        const errs = diag.errors || {};
+        const dot = document.getElementById('errorsDot');
+        const total = errs.total_recent || 0;
+        dot.className = `dot ${total === 0 ? 'green' : total < 5 ? 'yellow' : 'red'}`;
+
+        let html = '';
+        if (total === 0) {
+            html = `<div class="metric" style="color:var(--green)">0</div><div class="metric-label">errores recientes</div>`;
+        } else {
+            const byType = errs.by_type || {};
+            html = `<div class="metric" style="color:var(--red)">${total}</div>
+                     <div class="metric-label">errores recientes</div>
+                     <ul class="errors-list">
+                        ${Object.entries(byType).map(([t, c]) => {
+                            const sanitizedType = sanitizeAnonymous(t);
+                            if (sanitizedType === 'ANONYMOUS_BLOCKED') return `<li>${renderAnonymousBlocked()}</li>`;
+                            return `<li><span class="error-type">${sanitizedType}</span> <span class="error-count">x${c}</span></li>`;
+                        }).join('')}
+                     </ul>`;
+        }
+        document.getElementById('errorsContent').innerHTML = html;
+    }
+
+    function renderProposals(data) {
+        const proposals = data.proposals || [];
+        const dot = document.getElementById('proposalsDot');
+        dot.className = `dot ${proposals.length === 0 ? 'green' : 'yellow'}`;
+
+        if (proposals.length === 0) {
+            document.getElementById('proposalsContent').innerHTML =
+                `<div class="empty-state">No hay proposals pendientes.</div>`;
+            return;
+        }
+
+        // RULE 3: Buttons are UI_ONLY — no POST, no persist
+        const TOOLTIP = "Esta accion actualiza unicamente el estado visual del Cockpit local. NO mergea, NO deploya, NO canoniza, NO modifica Supabase, NO activa R1. Firma productiva T1 requiere bridge file separado con sign-off verbatim Alfredo + audit Cowork T2-A.";
+
+        const html = proposals.map((p, idx) => {
+            // RULE 6: anonymous check
+            const proposalType = sanitizeAnonymous(p.proposal_type || 'unknown');
+            if (proposalType === 'ANONYMOUS_BLOCKED') {
+                return `<div class="proposal-item">${renderAnonymousBlocked()}</div>`;
+            }
+
+            const riskClass = (p.risk_level || '').includes('high') ? 'risk-high'
+                : (p.risk_level || '').includes('medium') ? 'risk-medium' : 'risk-low';
+            const summary = sanitizeAnonymous(p.summary || p.payload?.description || JSON.stringify(p.payload || {}).slice(0, 120));
+            if (summary === 'ANONYMOUS_BLOCKED') {
+                return `<div class="proposal-item">${renderAnonymousBlocked()}</div>`;
+            }
+
+            return `
+                <div class="proposal-item" id="proposal-${idx}">
+                    <div class="proposal-header">
+                        <span class="proposal-type">${proposalType}</span>
+                        <span class="proposal-risk badge ${riskClass}">${p.risk_level || '?'}</span>
+                    </div>
+                    <div class="proposal-summary">${summary}</div>
+                    <div class="proposal-actions">
+                        <button class="btn btn-approve btn-ui-only" title="${TOOLTIP}" onclick="uiOnlyAction(${idx},'approve')">Aprobar (UI_ONLY)</button>
+                        <button class="btn btn-reject btn-ui-only" title="${TOOLTIP}" onclick="uiOnlyAction(${idx},'reject')">Rechazar (UI_ONLY)</button>
+                    </div>
+                    <div class="visual-state-label" id="visual-state-${idx}"></div>
+                </div>
+            `;
+        }).join('');
+
+        document.getElementById('proposalsContent').innerHTML = html;
+    }
+
+    // RULE 3: UI_ONLY action — NO POST, NO localStorage, NO sessionStorage, NO persist
+    function uiOnlyAction(idx, action) {
+        const el = document.getElementById(`proposal-${idx}`);
+        const stateEl = document.getElementById(`visual-state-${idx}`);
+        if (!el || !stateEl) return;
+
+        if (action === 'approve') {
+            el.classList.add('visual-approved');
+            stateEl.textContent = 'UI_ONLY: visualmente marcado como aprobado (no persistido, no productivo, se pierde al reload)';
+        } else {
+            el.classList.add('visual-rejected');
+            stateEl.textContent = 'UI_ONLY: visualmente marcado como rechazado (no persistido, no productivo, se pierde al reload)';
+        }
+    }
+
+    // ── Data Source Matrix ──
+    const MATRIX_FIELDS = [
+        { field: 'loop.status', source: 'GET /diagnostic (localhost)', freshness: 'live (30s)', action: 'READ_ONLY' },
+        { field: 'loop.cycle_count', source: 'GET /diagnostic (localhost)', freshness: 'live (30s)', action: 'READ_ONLY' },
+        { field: 'redacted_cycle_summary', source: 'derived (no raw CoT)', freshness: 'live (30s)', action: 'READ_ONLY' },
+        { field: 'budget_remaining_usd', source: 'GET /diagnostic (localhost)', freshness: 'live (30s)', action: 'READ_ONLY' },
+        { field: 'cost_today_usd', source: 'GET /diagnostic (localhost)', freshness: 'live (30s)', action: 'READ_ONLY' },
+        { field: 'silence.ratio', source: 'GET /diagnostic (localhost)', freshness: 'live (30s)', action: 'READ_ONLY' },
+        { field: 'health_verdict', source: 'GET /diagnostic (localhost)', freshness: 'live (30s)', action: 'READ_ONLY' },
+        { field: 'errors', source: 'GET /diagnostic (localhost)', freshness: 'live (30s)', action: 'READ_ONLY' },
+        { field: 'proposals[]', source: 'GET /proposals (localhost)', freshness: 'live (30s)', action: 'READ_ONLY' },
+        { field: 'approve(id)', source: 'REMOVED — no POST', freshness: 'N/A', action: 'UI_ONLY (visual, no persist)' },
+        { field: 'reject(id)', source: 'REMOVED — no POST', freshness: 'N/A', action: 'UI_ONLY (visual, no persist)' },
+        { field: 'anonymous fields', source: 'any', freshness: 'N/A', action: 'BLOCKED (OPP-NB-023)' },
+    ];
+
+    function renderMatrix() {
+        const tbody = document.getElementById('matrixBody');
+        tbody.innerHTML = MATRIX_FIELDS.map(f => {
+            const actionStyle = f.action.includes('UI_ONLY') ? 'color:var(--yellow)'
+                : f.action.includes('BLOCKED') ? 'color:var(--red)'
+                : 'color:var(--green)';
+            return `<tr>
+                <td><code>${f.field}</code></td>
+                <td>${f.source}</td>
+                <td>${f.freshness}</td>
+                <td style="${actionStyle};font-weight:600">${f.action}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    // ── DEMO DATA ──
+    const DEMO_DIAGNOSTIC = {
+        loop: {
+            status: 'stopped', cycle_count: 0, check_interval_s: 60,
+            thoughts_today: 0, max_thoughts_per_day: 50,
+            cost_today_usd: 0.0, daily_budget_usd: 30.0, budget_remaining_usd: 30.0,
+            last_thought_at: null, seconds_since_last_thought: null, last_trigger: null,
+        },
+        errors: { total_recent: 0, by_type: {}, last_error: null },
+        silence: { threshold: 0, last_score: null, silenced_today: 0, messages_sent_today: 0, silence_ratio: 0 },
+        health_verdict: { healthy: true, issues: [], issue_count: 0 },
+    };
+    const DEMO_PROPOSALS = { status_filter: 'pending', count: 0, proposals: [] };
+
+    // ── Main refresh ──
+    async function refreshAll() {
+        const demoBanner = document.getElementById('demoBanner');
+        const blockedBanner = document.getElementById('blockedBanner');
+        let usedDemo = false;
+        let blocked = false;
+
+        // RULE 4: Check network policy FIRST
+        if (!isUrlAllowed(getBaseUrl())) {
+            blocked = true;
+            dataSourceState = 'blocked';
+            blockedBanner.classList.add('visible');
+            demoBanner.classList.remove('visible');
+            // Show mock data with BLOCKED labels
+            renderLoop(redactObject(DEMO_DIAGNOSTIC));
+            renderBudget(redactObject(DEMO_DIAGNOSTIC));
+            renderSilence(redactObject(DEMO_DIAGNOSTIC));
+            renderHealth(redactObject(DEMO_DIAGNOSTIC));
+            renderErrors(redactObject(DEMO_DIAGNOSTIC));
+            renderProposals(DEMO_PROPOSALS);
+            ['loopLabel','budgetLabel','silenceLabel','healthLabel','errorsLabel','proposalsLabel'].forEach(id => setSourceLabel(id, 'DISABLED'));
+            renderMatrix();
+            document.getElementById('lastRefresh').textContent =
+                `Ultima actualizacion: ${new Date().toLocaleString()} (BLOCKED_REMOTE_ENDPOINT)`;
+            return;
+        }
+
+        blockedBanner.classList.remove('visible');
+
+        try {
+            const rawDiag = await safeFetchGET('/diagnostic');
+            const diag = redactObject(rawDiag); // RULE 5 + 6
+            dataSourceState = 'real';
+            renderLoop(diag);
+            renderBudget(diag);
+            renderSilence(diag);
+            renderHealth(diag);
+            renderErrors(diag);
+            ['loopLabel','budgetLabel','silenceLabel','healthLabel','errorsLabel'].forEach(id => setSourceLabel(id, 'REAL_READ_ONLY'));
+        } catch (e) {
+            dataSourceState = 'mock';
+            renderLoop(redactObject(DEMO_DIAGNOSTIC));
+            renderBudget(redactObject(DEMO_DIAGNOSTIC));
+            renderSilence(redactObject(DEMO_DIAGNOSTIC));
+            renderHealth(redactObject(DEMO_DIAGNOSTIC));
+            renderErrors(redactObject(DEMO_DIAGNOSTIC));
+            ['loopLabel','budgetLabel','silenceLabel','healthLabel','errorsLabel'].forEach(id => setSourceLabel(id, 'MOCK_DATA'));
+            usedDemo = true;
+        }
+
+        try {
+            const rawProps = await safeFetchGET('/proposals?status=pending');
+            const props = redactObject(rawProps); // RULE 5 + 6
+            renderProposals(props);
+            setSourceLabel('proposalsLabel', 'REAL_READ_ONLY');
+        } catch (e) {
+            renderProposals(DEMO_PROPOSALS);
+            setSourceLabel('proposalsLabel', 'MOCK_DATA');
+            usedDemo = true;
+        }
+
+        demoBanner.classList.toggle('visible', usedDemo);
+        document.getElementById('lastRefresh').textContent =
+            `Ultima actualizacion: ${new Date().toLocaleString()}${usedDemo ? ' (MOCK_DATA)' : ' (REAL_READ_ONLY)'}`;
+        renderMatrix();
+    }
+
+    // Init
+    renderMatrix();
+    refreshAll();
+    setInterval(refreshAll, 30000);
+    </script>
+</body>
+</html>
