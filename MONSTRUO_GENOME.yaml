@@ -6,7 +6,7 @@
 # ╚══════════════════════════════════════════════════════════════════╝
 
 meta:
-  generated_at: 2026-05-29T10:39:38Z
+  generated_at: 2026-05-30T03:56:25Z
   generator: scripts/genome_generator.py
   version: 2.0.0
   repo: alfredogl1804/el-monstruo
@@ -16,7 +16,7 @@ meta:
   total_custom_rpcs: 328
   total_migrations: 62
   total_skills: 0
-  total_top_dirs: 34
+  total_top_dirs: 35
   total_satellites: 8
   mapa_vivo:
     endpoint: https://el-monstruo-kernel-production.up.railway.app/v1/genome/now
@@ -870,6 +870,7 @@ repo_structure:
     - docs
     - embryos
     - evaluation
+    - forja_omega_tramo_1
     - kernel
     - memory
     - migrations
