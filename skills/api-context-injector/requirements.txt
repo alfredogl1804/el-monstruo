@@ -2,7 +2,7 @@
 # Instalar: pip install -r requirements.txt
 
 # Core
-pyyaml>=6.0            # Carga de registros YAML
+pyyaml>=6.0.3            # Carga de registros YAML
 requests>=2.31         # HTTP para health checks (HeyGen, ElevenLabs)
 
 # SDKs de los 6 Sabios
