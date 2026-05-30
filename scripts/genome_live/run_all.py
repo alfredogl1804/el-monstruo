@@ -2,7 +2,7 @@
 """
 run_all.py — Orquestador del Genome Vivo (Sprint 91 F6/F7/F8).
 
-Corre los 4 scanners + aggregator en secuencia, guarda un snapshot
+Corre los 8 scanners + aggregator en secuencia, guarda un snapshot
 con timestamp, compara con la corrida anterior, y reporta diff.
 
 Uso:
@@ -37,6 +37,10 @@ SCANNERS = [
     ("railway", SCRIPTS / "railway_scanner.py"),
     ("supabase", SCRIPTS / "supabase_scanner.py"),
     ("live24h", SCRIPTS / "live24h_scanner.py"),
+    ("skills", SCRIPTS / "skills_scanner.py"),
+    ("satellite_repos", SCRIPTS / "satellite_repos_scanner.py"),
+    ("notion", SCRIPTS / "notion_scanner.py"),
+    ("forja", SCRIPTS / "forja_scanner.py"),
 ]
 AGGREGATOR = SCRIPTS / "aggregator.py"
 
@@ -65,7 +69,7 @@ def run_script(script: Path) -> tuple[bool, str]:
 def snapshot_to_run(run_dir: Path) -> None:
     """Copia los outputs actuales a run_dir/."""
     run_dir.mkdir(parents=True, exist_ok=True)
-    for name in ["github", "railway", "supabase", "live24h", "genome_now"]:
+    for name in ["github", "railway", "supabase", "live24h", "skills", "satellite_repos", "notion", "forja", "genome_now"]:
         src = OUT_DIR / f"{name}.json"
         if src.exists():
             shutil.copy(src, run_dir / src.name)
@@ -81,7 +85,7 @@ def previous_run() -> Path | None:
 def compare_runs(prev: Path, curr: Path) -> dict[str, Any]:
     """Compara conteos clave entre dos corridas."""
     diffs: dict[str, Any] = {}
-    for fname in ["github.json", "railway.json", "supabase.json", "live24h.json"]:
+    for fname in ["github.json", "railway.json", "supabase.json", "live24h.json", "skills.json", "satellite_repos.json", "notion.json", "forja.json"]:
         p_old = prev / fname
         p_new = curr / fname
         if not (p_old.exists() and p_new.exists()):
@@ -101,6 +105,14 @@ def compare_runs(prev: Path, curr: Path) -> dict[str, Any]:
             keys = ["schemas_count", "tables_count", "functions_count", "extensions_count", "migrations_count"]
         elif fname == "live24h.json":
             keys = ["github_commits_24h_count", "railway_deploys_24h_count", "drift_services_over_7d_count"]
+        elif fname == "skills.json":
+            keys = ["got_total", "active_count", "total_lines"]
+        elif fname == "satellite_repos.json":
+            keys = ["got_total", "total_lines_estimated", "active_repos_count"]
+        elif fname == "notion.json":
+            keys = ["databases_count", "pages_count"]
+        elif fname == "forja.json":
+            keys = ["total_doctrines", "total_signed_blocks"]
 
         per_file: dict[str, Any] = {}
         for k in keys:

@@ -232,15 +232,21 @@ def aggregate() -> dict[str, Any]:
     rly = load_or_empty("railway.json")
     sb = load_or_empty("supabase.json")
     live = load_or_empty("live24h.json")
+    skills = load_or_empty("skills.json")
+    satellite = load_or_empty("satellite_repos.json")
+    notion = load_or_empty("notion.json")
+    forja = load_or_empty("forja.json")
 
     cross = cross_validate(gh, rly, sb, live)
 
-    binario_100 = (
-        cross["coverage_match_per_source"]["github"]
-        and cross["coverage_match_per_source"]["railway"]
-        and cross["coverage_match_per_source"]["supabase"]
-        and cross["coverage_match_per_source"]["live24h"]
-    )
+    # Incluir nuevos scanners en coverage_match
+    coverage_per_source = cross["coverage_match_per_source"]
+    coverage_per_source["skills"] = skills.get("coverage_match", False) if skills else False
+    coverage_per_source["satellite_repos"] = satellite.get("coverage_match", False) if satellite else False
+    coverage_per_source["notion"] = notion.get("coverage_match", False) if notion else False
+    coverage_per_source["forja"] = forja.get("coverage_match", False) if forja else False
+
+    binario_100 = all(coverage_per_source.values())
 
     # Resúmenes ejecutivos
     summaries = {
@@ -281,6 +287,35 @@ def aggregate() -> dict[str, Any]:
             "match": live.get("coverage_match", False),
             "scanned_at": live.get("finished_at"),
         },
+        "skills": {
+            "total": skills.get("got_total", 0),
+            "active": skills.get("active_count", 0),
+            "total_lines": skills.get("total_lines", 0),
+            "match": skills.get("coverage_match", False),
+            "scanned_at": skills.get("finished_at"),
+        },
+        "satellite_repos": {
+            "total": satellite.get("got_total", 0),
+            "active": satellite.get("active_repos_count", 0),
+            "archived": satellite.get("archived_repos_count", 0),
+            "total_lines": satellite.get("total_lines_estimated", 0),
+            "match": satellite.get("coverage_match", False),
+            "scanned_at": satellite.get("finished_at"),
+        },
+        "notion": {
+            "databases": notion.get("databases_count", 0),
+            "pages": notion.get("pages_count", 0),
+            "has_credentials": not notion.get("no_credentials", True),
+            "match": notion.get("coverage_match", False),
+            "scanned_at": notion.get("finished_at"),
+        },
+        "forja": {
+            "doctrines": forja.get("total_doctrines", 0),
+            "signed_blocks": forja.get("total_signed_blocks", 0),
+            "repos_scanned": len(forja.get("repos", [])),
+            "match": forja.get("coverage_match", False),
+            "scanned_at": forja.get("finished_at"),
+        },
     }
 
     finished = datetime.now(timezone.utc).isoformat()
@@ -291,7 +326,7 @@ def aggregate() -> dict[str, Any]:
             "generated_at": finished,
             "generated_by": "scripts/genome_live/aggregator.py",
             "binario_100": binario_100,
-            "sprint": "Sprint 91 — Mapa Vivo 100% del Monstruo",
+            "sprint": "Sprint 91.11 — Mapa Vivo 100% (8 scanners)",
             "branch": "feat/sprint-91-mapa-vivo-100",
             "atomic_map_version": "2026-05-29",
         },
@@ -302,6 +337,10 @@ def aggregate() -> dict[str, Any]:
         "railway": rly,
         "supabase": sb,
         "live24h": live,
+        "skills": skills,
+        "satellite_repos": satellite,
+        "notion": notion,
+        "forja": forja,
     }
 
 
@@ -316,6 +355,10 @@ def main() -> int:
     print(f"  railway.match      : {result['summaries']['railway']['match']}")
     print(f"  supabase.match     : {result['summaries']['supabase']['match']}")
     print(f"  live24h.match      : {result['summaries']['live24h']['match']}")
+    print(f"  skills.match       : {result['summaries']['skills']['match']}")
+    print(f"  satellite.match    : {result['summaries']['satellite_repos']['match']}")
+    print(f"  notion.match       : {result['summaries']['notion']['match']}")
+    print(f"  forja.match        : {result['summaries']['forja']['match']}")
     print(f"  cross_findings     : {result['cross_validation']['findings_count']}")
     print(f"  atomic_map         : {result['meta']['atomic_map_version']}")
     print(f"  output             : {OUT_FILE}")
