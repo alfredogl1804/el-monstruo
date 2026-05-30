@@ -256,9 +256,10 @@ def get_genome_now(
             content={
                 "meta": data.get("meta", {}),
                 "summaries": data.get("summaries", {}),
+                "ecosystem_atomic_map": data.get("ecosystem_atomic_map", {}),
                 "cross_validation": data.get("cross_validation", {}),
                 "refresh_job": job_state_view,
-                "_hint": "Llama con ?full=1 para JSON completo (~360 KB). Para datos frescos, usa ?refresh=full + X-API-Key.",
+                "_hint": "Llama con ?full=1 para JSON completo (~400 KB). Para datos frescos, usa ?refresh=full + X-API-Key.",
             }
         )
 
