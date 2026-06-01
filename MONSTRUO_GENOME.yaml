@@ -6,11 +6,11 @@
 # ╚══════════════════════════════════════════════════════════════════╝
 
 meta:
-  generated_at: 2026-06-01T09:23:07Z
+  generated_at: 2026-06-01T10:44:42Z
   generator: scripts/genome_generator.py
   version: 2.0.0
   repo: alfredogl1804/el-monstruo
-  total_kernel_modules: 118
+  total_kernel_modules: 119
   total_embriones: 10
   total_supabase_tables: 287
   total_custom_rpcs: 328
@@ -138,7 +138,7 @@ production:
     custom_rpcs: 328
 
 kernel:
-  total_python_files: 309
+  total_python_files: 310
   entry_point: kernel/main.py
   framework: FastAPI + LangGraph
   modules:
