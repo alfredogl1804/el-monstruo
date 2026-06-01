@@ -6,7 +6,7 @@
 # ╚══════════════════════════════════════════════════════════════════╝
 
 meta:
-  generated_at: 2026-06-01T08:10:22Z
+  generated_at: 2026-06-01T08:35:24Z
   generator: scripts/genome_generator.py
   version: 2.0.0
   repo: alfredogl1804/el-monstruo
@@ -88,7 +88,7 @@ satellites:
     status: active_with_drift
     relationship: subsystem
     description: App Flutter del Monstruo — drift binario detectado en brand_dna.dart vs DSC-MO-002 (G-002 del Atlas)
-    last_push: 2026-06-01T00:34:44-06:00
+    last_push: 2026-06-01T02:34:57-06:00
   - id: monstruo-quantum-realm
     repo: None
     type: interface_visualization
