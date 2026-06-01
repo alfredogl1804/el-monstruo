@@ -880,6 +880,27 @@ async def lifespan(app: FastAPI):
             )
         # ── /Sprint ROTOR-001 Supabase Polling ───────────────────────────────
 
+        # ── Sprint CATASTRO-AUTO: Real Vanguard Scan Handler ────────────────────
+        try:
+            from kernel.vanguard_scan import run_vanguard_scan  # noqa: PLC0415
+
+            embrion_scheduler.register_handler(
+                "run_vanguard_scan",
+                run_vanguard_scan,
+            )
+            logger.info(
+                "vanguard_scan_real_handler_registered",
+                handler="run_vanguard_scan",
+                schedule="daily at 6am UTC",
+                sprint="CATASTRO-AUTO",
+            )
+        except Exception as _vanguard_err:
+            logger.warning(
+                "vanguard_scan_handler_register_failed",
+                error=str(_vanguard_err),
+            )
+        # ── /Sprint CATASTRO-AUTO ────────────────────────────────────────────────
+
         # ── SMS REM Cycle (Obj #15 Memoria Soberana) ─────────────────────────────
         try:
             from kernel.memory.sms_rem_cycle import run_sms_rem_cycle
