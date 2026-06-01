@@ -1692,25 +1692,38 @@ async def rotor_poll_supabase_audit_log() -> int:
     try:
         from kernel.rotor.rotor_wiring import rotor_capture_supabase  # noqa: PLC0415
 
+        # kernel_audit_log schema: id(uuid), caller_identity, path, method,
+        # response_status, duration_ms, created_at
+        # Mapping to SupabaseCapturer raw_event:
+        #   actor = caller_identity
+        #   table_name = path (e.g. /v1/genome/now)
+        #   query_type = method (GET/POST/PUT/DELETE)
+        #   query_text = method + path
+        #   rows_affected = 1 if response_status < 400 else 0
+        #   duration_ms = duration_ms
+
         # Query incremental: filas nuevas desde el último cursor
         if _supabase_rotor_cursor["last_id"]:
             sql = """
-                SELECT id, actor, table_name, query_type, query_text, rows_affected, duration_ms
+                SELECT id, caller_identity, path, method, response_status, duration_ms
                 FROM public.kernel_audit_log
-                WHERE id > %s
-                ORDER BY id ASC
+                WHERE created_at > (SELECT created_at FROM public.kernel_audit_log WHERE id = %s)
+                ORDER BY created_at ASC
                 LIMIT 100
             """
             params = (_supabase_rotor_cursor["last_id"],)
         else:
             # Primera ejecución: solo las últimas 50 filas para no saturar
             sql = """
-                SELECT id, actor, table_name, query_type, query_text, rows_affected, duration_ms
+                SELECT id, caller_identity, path, method, response_status, duration_ms
                 FROM public.kernel_audit_log
-                ORDER BY id DESC
+                ORDER BY created_at DESC
                 LIMIT 50
             """
             params = ()
+
+        # Paths triviales que NO suman energía (health checks, genome polls)
+        _TRIVIAL_PATHS = ("/health", "/v1/genome/now", "/favicon.ico", "/__manus__")
 
         captured = 0
         with psycopg.connect(db_url, autocommit=True) as conn:
@@ -1721,16 +1734,20 @@ async def rotor_poll_supabase_audit_log() -> int:
                     rows = list(reversed(rows))  # Oldest first for initial batch
 
                 for row in rows:
-                    row_id, actor, table_name, query_type, query_text, rows_affected, duration_ms = row
+                    row_id, caller_identity, path, method, response_status, duration_ms = row
+                    # Skip trivial paths
+                    if any(path and path.startswith(tp) for tp in _TRIVIAL_PATHS):
+                        _supabase_rotor_cursor["last_id"] = str(row_id)
+                        continue
                     rotor_capture_supabase(
-                        actor=actor or "kernel",
-                        table_name=table_name or "",
-                        query_type=query_type or "UNKNOWN",
-                        query_text=(query_text or "")[:200],
-                        rows_affected=rows_affected or 0,
+                        actor=caller_identity or "kernel",
+                        table_name=path or "",
+                        query_type=method or "UNKNOWN",
+                        query_text=f"{method} {path}" if path else "",
+                        rows_affected=1 if (response_status or 0) < 400 else 0,
                         duration_ms=duration_ms or 0,
                     )
-                    _supabase_rotor_cursor["last_id"] = row_id
+                    _supabase_rotor_cursor["last_id"] = str(row_id)
                     captured += 1
 
         if captured > 0:
