@@ -6,7 +6,7 @@
 # ╚══════════════════════════════════════════════════════════════════╝
 
 meta:
-  generated_at: 2026-06-01T06:35:03Z
+  generated_at: 2026-06-01T06:58:10Z
   generator: scripts/genome_generator.py
   version: 2.0.0
   repo: alfredogl1804/el-monstruo
@@ -138,7 +138,7 @@ production:
     custom_rpcs: 328
 
 kernel:
-  total_python_files: 307
+  total_python_files: 308
   entry_point: kernel/main.py
   framework: FastAPI + LangGraph
   modules:
@@ -180,7 +180,7 @@ kernel:
     intelligence:
       - id: catastro
         path: kernel/catastro/
-        files: 27
+        files: 28
       - id: catastros
         path: kernel/catastros/
         files: 6
