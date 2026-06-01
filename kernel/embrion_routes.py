@@ -392,6 +392,8 @@ async def enviar_mensaje(req: MensajeRequest):
     Alfredo envía un mensaje al Embrión.
 
     Guarda el mensaje en `embrion_memoria` con tipo `mensaje_alfredo`.
+    También encola en `embrion_inbox` para trazabilidad estructurada
+    (parse → sanitize → rate limit → audit_log).
     El Embrión procesará el mensaje en su próximo latido y generará
     una respuesta que se guardará como `respuesta_embrion`.
     """
@@ -407,7 +409,7 @@ async def enviar_mensaje(req: MensajeRequest):
             }
         )
 
-        # Guardar mensaje de Alfredo
+        # Guardar mensaje de Alfredo en embrion_memoria (legacy path)
         row = await _db.insert(
             TABLE,
             {
@@ -422,6 +424,38 @@ async def enviar_mensaje(req: MensajeRequest):
 
         if not row:
             raise HTTPException(500, "No se pudo guardar el mensaje")
+
+        # ── Sprint WIRING-001: Encolar en embrion_inbox (structured pipeline) ──
+        # Esto activa: parse_command → sanitize → rate_limit → audit_log.
+        # Fail-soft: si el inbox falla, el mensaje ya está en embrion_memoria.
+        try:
+            from kernel.embrion_inbox import (
+                _get_supabase_client as _inbox_client,
+            )
+            from kernel.embrion_inbox import (
+                enqueue as _inbox_enqueue,
+            )
+
+            _chat_id = req.contexto or "telegram_alfredo"
+            _inbox_result = _inbox_enqueue(
+                _inbox_client(),
+                chat_id=_chat_id,
+                text=req.contenido,
+                priority=8,
+            )
+            logger.info(
+                "embrion_mensaje_inbox_enqueued",
+                inbox_id=_inbox_result.inbox_id,
+                created=_inbox_result.created,
+                estado=_inbox_result.estado,
+            )
+        except Exception as _inbox_err:
+            # Fail-soft: inbox es trazabilidad extra, no bloquea el flujo.
+            logger.warning(
+                "embrion_mensaje_inbox_enqueue_failed",
+                error=str(_inbox_err)[:200],
+            )
+        # ── /Sprint WIRING-001 ──
 
         logger.info(
             "embrion_mensaje_recibido",

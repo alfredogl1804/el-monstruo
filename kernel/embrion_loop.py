@@ -1193,9 +1193,46 @@ class EmbrionLoop:
             and self._cycle_count % EMBRION_ESPIRAL_CHECK_EVERY_N_CYCLES == 0
         ):
             try:
+                # ── Sprint WIRING-001: Homeostasis logger → embrion_homeostasis_log ──
+                async def _homeostasis_logger(consumer, reading, correction):
+                    """Persist homeostasis corrections to embrion_homeostasis_log."""
+                    try:
+                        import httpx
+                        _supa_url = os.environ.get("SUPABASE_URL", "")
+                        _supa_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", os.environ.get("SUPABASE_KEY", ""))
+                        if not _supa_url or not _supa_key:
+                            return
+                        async with httpx.AsyncClient(timeout=10) as _hc:
+                            await _hc.post(
+                                f"{_supa_url}/rest/v1/embrion_homeostasis_log",
+                                headers={
+                                    "apikey": _supa_key,
+                                    "Authorization": f"Bearer {_supa_key}",
+                                    "Content-Type": "application/json",
+                                    "Prefer": "return=minimal",
+                                },
+                                json={
+                                    "consumer": consumer,
+                                    "pulse_rate_observed": float(reading.pulse_rate_observed),
+                                    "pulse_rate_baseline": float(reading.pulse_rate_baseline),
+                                    "deviation_ratio": float(reading.deviation_ratio),
+                                    "pulse_interval_adjusted_to": int(correction.new_pulse_interval_seconds),
+                                    "pulse_interval_canonical": int(correction.canonical_pulse_interval_seconds),
+                                    "adjustment_reason": correction.action.value,
+                                    "metadata": {
+                                        "cycle": self._cycle_count,
+                                        "rationale": correction.rationale,
+                                    },
+                                },
+                            )
+                    except Exception as _hl_err:
+                        logger.warning("homeostasis_log_persist_failed", error=str(_hl_err)[:200])
+                # ── /Sprint WIRING-001 ──
+
                 _hairspring = _Hairspring(
                     consumer="embrion_loop_latido",
                     window_minutes=15,
+                    homeostasis_logger_fn=_homeostasis_logger,
                     registry_override_fn=_espiral_apply_override,
                     registry_restore_fn=_espiral_restore_canonical,
                 )
@@ -1668,6 +1705,71 @@ class EmbrionLoop:
                     "brand_engine_validation_id": _brand_engine_validation_id,
                 },
             )
+            # ── Sprint WIRING-001: Persist to embrion_task_history ──
+            # Structured task log for the Monstruo to reason about its own history.
+            try:
+                import httpx
+                _supa_url = os.environ.get("SUPABASE_URL", "")
+                _supa_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", os.environ.get("SUPABASE_KEY", ""))
+                if _supa_url and _supa_key:
+                    _task_row = {
+                        "specialist_id": "embrion_loop",
+                        "task_type": trigger["type"],
+                        "task_input_summary": str(trigger.get("detail", ""))[:500],
+                        "task_output_summary": (response or "")[:500],
+                        "outcome": "aborted_verifier" if _verifier_aborted else ("aborted_brand" if _brand_engine_aborted else "completed"),
+                        "tokens_used": int(tokens_used or 0),
+                        "model_used": ACTOR_MODEL,
+                        "duration_ms": None,
+                        "project_context": "embrion_autonomous",
+                    }
+                    async with httpx.AsyncClient(timeout=10) as _thc:
+                        await _thc.post(
+                            f"{_supa_url}/rest/v1/embrion_task_history",
+                            headers={
+                                "apikey": _supa_key,
+                                "Authorization": f"Bearer {_supa_key}",
+                                "Content-Type": "application/json",
+                                "Prefer": "return=minimal",
+                            },
+                            json=_task_row,
+                        )
+            except Exception as _th_err:
+                logger.warning("embrion_task_history_persist_failed", error=str(_th_err)[:200])
+            # ── /Sprint WIRING-001 task_history ──
+
+            # ── Sprint WIRING-001: Persist to embrion_validation_log ──
+            # Log brand engine validation results for structured audit.
+            if _brand_engine_verdict is not None:
+                try:
+                    _supa_url = os.environ.get("SUPABASE_URL", "")
+                    _supa_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY", os.environ.get("SUPABASE_KEY", ""))
+                    if _supa_url and _supa_key:
+                        _val_row = {
+                            "respuesta_candidata": (response or "")[:2000],
+                            "veredicto": _brand_engine_verdict,
+                            "razon_rejection": _brand_engine_reason,
+                            "cost_usd": _brand_engine_cost_usd,
+                            "latency_ms": _brand_engine_latency_ms,
+                            "evaluator_llm": ACTOR_MODEL,
+                            "mode": "enforce" if _brand_engine_aborted else "shadow",
+                            "reintentos_count": 0,
+                        }
+                        async with httpx.AsyncClient(timeout=10) as _vhc:
+                            await _vhc.post(
+                                f"{_supa_url}/rest/v1/embrion_validation_log",
+                                headers={
+                                    "apikey": _supa_key,
+                                    "Authorization": f"Bearer {_supa_key}",
+                                    "Content-Type": "application/json",
+                                    "Prefer": "return=minimal",
+                                },
+                                json=_val_row,
+                            )
+                except Exception as _vl_err:
+                    logger.warning("embrion_validation_log_persist_failed", error=str(_vl_err)[:200])
+            # ── /Sprint WIRING-001 validation_log ──
+
             # Si el verifier o el Brand Engine abortaron, devolvemos None para
             # que el caller no propague la respuesta como acción. La memoria
             # queda registrada para auditoría y aprendizaje (Sprint 34 lessons,
