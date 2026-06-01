@@ -12,7 +12,9 @@ enum ExternalAgentId {
   kimi('kimi', 'Kimi K2.5', '🌙', 'Código rápido y barato'),
   perplexity('perplexity', 'Perplexity', '🔍', 'Investigación en tiempo real'),
   gemini('gemini', 'Gemini 3.1', '💎', 'Análisis profundo, multimodal'),
-  grok('grok', 'Grok 4.20', '⚡', 'Respuestas rápidas y directas');
+  grok('grok', 'Grok 4.20', '⚡', 'Respuestas rápidas y directas'),
+  claude('claude', 'Claude Opus 4', '🧠', 'Razonamiento complejo, escritura'),
+  openai('openai', 'GPT-5.5', '🌟', 'Generalista fuerte, creatividad');
 
   const ExternalAgentId(this.id, this.displayName, this.icon, this.description);
   final String id;
