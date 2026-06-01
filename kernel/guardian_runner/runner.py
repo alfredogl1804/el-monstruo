@@ -144,9 +144,9 @@ def _persist_audit(
         return False
 
     try:
-        import psycopg2  # type: ignore[import-not-found]
+        import psycopg  # psycopg v3 (requirements.txt: psycopg[binary]==3.3.3)
     except ImportError:
-        logger.warning("guardian_persist_skipped_no_psycopg2", extra={"run_id": run_id})
+        logger.warning("guardian_persist_skipped_no_psycopg", extra={"run_id": run_id})
         return False
 
     sql = """
@@ -160,7 +160,7 @@ def _persist_audit(
     """
 
     try:
-        with psycopg2.connect(db_url) as conn:
+        with psycopg.connect(db_url) as conn:
             with conn.cursor() as cur:
                 cur.execute(
                     sql,
@@ -197,7 +197,7 @@ def _fetch_previous_scores(*, max_age_hours: int = 48) -> dict[int, float]:
         return {}
 
     try:
-        import psycopg2  # type: ignore[import-not-found]
+        import psycopg  # psycopg v3
     except ImportError:
         return {}
 
@@ -209,7 +209,7 @@ def _fetch_previous_scores(*, max_age_hours: int = 48) -> dict[int, float]:
     """
 
     try:
-        with psycopg2.connect(db_url) as conn:
+        with psycopg.connect(db_url) as conn:
             with conn.cursor() as cur:
                 cur.execute(sql, (max_age_hours,))
                 rows = cur.fetchall()
@@ -452,7 +452,7 @@ async def daily_guardian_audit_handler(**kwargs: Any) -> dict[str, Any]:
     """
     sprint_id = kwargs.get("sprint_id")
 
-    # Ejecutar audit en thread pool (psycopg2 no es async)
+    # Ejecutar audit en thread pool (psycopg sync no es async)
     loop = asyncio.get_event_loop()
     result = await loop.run_in_executor(
         None,

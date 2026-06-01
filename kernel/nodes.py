@@ -1109,6 +1109,38 @@ async def execute(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
         enriched_context["system_prompt"] = system_prompt
 
     is_followup = bool(tool_results)
+
+    # ── Sprint WIRING-002: Anti-Dory Orchestrator Gate ──────────────────
+    # Run the Dory pipeline BEFORE the LLM call to enrich context with
+    # anchors, memento validation, error memory, and authority check.
+    # Only on first call (not tool followups) to avoid redundant checks.
+    if not is_followup:
+        try:
+            from kernel.anti_dory.dory_orchestrator import DoryOrchestrator, _is_enabled as dory_enabled
+
+            if dory_enabled():
+                dory = DoryOrchestrator()
+                dory_context = await dory.run(
+                    action=message[:200],
+                    intent=intent,
+                    agent_id="monstruo_kernel",
+                )
+                if dory_context and hasattr(dory_context, 'verdict'):
+                    enriched_context["dory_verdict"] = dory_context.verdict.value
+                    enriched_context["dory_enrichment"] = getattr(dory_context, 'enrichment', {})
+                    logger.info(
+                        "dory_gate_passed",
+                        verdict=dory_context.verdict.value,
+                        sprint="WIRING-002",
+                    )
+        except Exception as _dory_err:
+            logger.warning(
+                "dory_gate_skipped",
+                error=str(_dory_err),
+                sprint="WIRING-002",
+            )
+    # ── /Sprint WIRING-002 ──────────────────────────────────────────────
+
     logger.info(
         "execute_start",
         history_messages=len(conversation_context),
