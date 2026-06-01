@@ -358,3 +358,44 @@ async def dashboard_html(request: Request) -> HTMLResponse:
     """
     _maybe_require_dashboard_auth(request)
     return HTMLResponse(content=render_html_dashboard(), status_code=200)
+
+
+# ============================================================================
+# Refresh Prices endpoint (Soberanía Catastral · 2026-06-01)
+# ============================================================================
+
+
+class RefreshPricesResponse(BaseModel):
+    """Response for POST /v1/catastro/refresh-prices."""
+
+    status: str
+    updated: int = 0
+    fetched: int = 0
+    source: str = "perplexity_sonar_pro"
+    timestamp: Optional[str] = None
+    reason: Optional[str] = None
+
+
+@router.post(
+    "/refresh-prices",
+    response_model=RefreshPricesResponse,
+    summary="Actualización soberana de precios LLM (Perplexity Sonar Pro)",
+)
+async def refresh_prices_endpoint(request: Request) -> RefreshPricesResponse:
+    """
+    Ejecuta el refresh de precios de modelos LLM desde Perplexity Sonar Pro.
+    Actualiza catastro_modelos, recalcula cost_efficiency y trono_global.
+    Auth obligatoria (MONSTRUO_API_KEY).
+    """
+    require_catastro_admin_key(request)
+    try:
+        from kernel.catastro.refresh_prices import refresh_prices
+
+        result = await refresh_prices()
+    except Exception as exc:
+        logger.warning("catastro_refresh_prices_error", error=str(exc))
+        raise HTTPException(
+            status_code=500,
+            detail="catastro_refresh_prices_unexpected_error",
+        ) from exc
+    return RefreshPricesResponse(**result)

@@ -1460,6 +1460,17 @@ async def lifespan(app: FastAPI):
         logger.warning("sprint_86_b5_init_failed", error=str(_e))
         app.state.catastro_engine = None
 
+    # ── Catastro Refresh Prices Scheduler (Soberanía · 2026-06-01) ────────
+    # Background task: actualiza precios LLM cada 14 días via Perplexity.
+    # No depende de Manus ni de ningún servicio externo para triggerearse.
+    try:
+        from kernel.catastro.refresh_prices import start_refresh_scheduler
+
+        start_refresh_scheduler()
+        logger.info("catastro_refresh_scheduler_wired", interval_days=14)
+    except Exception as _rp_err:
+        logger.warning("catastro_refresh_scheduler_failed", error=str(_rp_err))
+
     # ── Sprint 87 NUEVO: Ejecución Autónoma E2E ─────────────────────────
     # Pipeline lineal de 12 pasos frase→URL viva. Consulta Catastro en runtime.
     try:
@@ -1788,6 +1799,13 @@ async def lifespan(app: FastAPI):
         logger.warning("genome_refresh_scheduler_init_failed", error=str(e))
 
     yield
+
+    # Shutdown Catastro Refresh Prices Scheduler (Soberanía · 2026-06-01)
+    try:
+        from kernel.catastro.refresh_prices import stop_refresh_scheduler
+        stop_refresh_scheduler()
+    except Exception:
+        pass
 
     # Shutdown Genome Refresh Scheduler (Sprint 91.9)
     if _genome_refresh_scheduler is not None:
