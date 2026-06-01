@@ -38,6 +38,8 @@ from pydantic import BaseModel, Field
 # ─── Config ───
 KERNEL_URL = os.getenv("KERNEL_URL", "https://el-monstruo-kernel-production.up.railway.app")
 KERNEL_API_KEY = os.getenv("KERNEL_API_KEY", "")
+COMPILADOR_URL = os.getenv("COMPILADOR_URL", "https://compilador-intenciones-production.up.railway.app")
+COMPILADOR_ENABLED = os.getenv("COMPILADOR_ENABLED", "true").lower() == "true"
 GATEWAY_PORT = int(os.getenv("PORT", "8090"))
 HEARTBEAT_INTERVAL = 25  # seconds (< Railway's 30s timeout)
 MAX_CONNECTIONS = 50
@@ -45,12 +47,13 @@ MAX_CONNECTIONS = 50
 # ─── State ───
 active_connections: dict[str, WebSocket] = {}
 http_client: Optional[httpx.AsyncClient] = None
+compilador_client: Optional[httpx.AsyncClient] = None
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Manage HTTP client lifecycle."""
-    global http_client
+    global http_client, compilador_client
     headers = {}
     if KERNEL_API_KEY:
         headers["X-API-Key"] = KERNEL_API_KEY
@@ -61,8 +64,15 @@ async def lifespan(app: FastAPI):
         limits=httpx.Limits(max_connections=100),
         http2=False,  # Sprint 42: Force HTTP/1.1 for SSE compatibility
     )
+    # Compilador de Intenciones client
+    compilador_client = httpx.AsyncClient(
+        base_url=COMPILADOR_URL,
+        timeout=httpx.Timeout(120.0, connect=10.0, read=120.0),
+        limits=httpx.Limits(max_connections=20),
+    )
     yield
     await http_client.aclose()
+    await compilador_client.aclose()
 
 
 app = FastAPI(
@@ -137,18 +147,44 @@ async def gateway_health():
 async def mobile_chat(req: SimpleChatRequest):
     """
     Simple chat endpoint for mobile.
-    Wraps message into AG-UI format and calls kernel /v1/agui/run.
-    Returns full response (non-streaming) for simple use cases.
+    Routes through Compilador de Intenciones if enabled, else falls back to kernel.
     """
+    thread_id = req.thread_id or str(uuid4())
+
+    # ─── Compilador de Intenciones path ───
+    if COMPILADOR_ENABLED:
+        try:
+            compile_resp = await compilador_client.post(
+                "/v1/compile",
+                json={
+                    "intention": req.message,
+                    "source": "mobile_app",
+                    "thread_id": thread_id,
+                    "model_preference": "auto",
+                },
+            )
+            if compile_resp.status_code == 200:
+                data = compile_resp.json()
+                return {
+                    "response": data.get("response", ""),
+                    "thread_id": data.get("thread_id", thread_id),
+                    "tool_calls": [],
+                    "metadata": data.get("metadata", {}),
+                    "via": "compilador",
+                }
+        except Exception as e:
+            # Compilador failed — fall through to kernel
+            pass
+
+    # ─── Fallback: kernel directo (original path) ───
     agui_payload = {
-        "thread_id": req.thread_id or str(uuid4()),
+        "thread_id": thread_id,
         "run_id": str(uuid4()),
         "messages": [{"role": "user", "content": req.message}],
         "forwarded_props": {"user_id": "alfredo", "source": "mobile_app"},
     }
 
     try:
-        # Call kernel AG-UI endpoint (SSE) and collect full response
         full_response = ""
         tool_calls = []
 
@@ -172,6 +208,7 @@ async def mobile_chat(req: SimpleChatRequest):
             "response": full_response,
             "thread_id": agui_payload["thread_id"],
             "tool_calls": tool_calls,
+            "via": "kernel_direct",
         }
 
     except httpx.TimeoutException:
@@ -363,10 +400,70 @@ async def _stream_agui_to_ws(
     """
     Call kernel /v1/agui/run (SSE) and translate events to WebSocket frames.
     If dispatch_agent is set, the kernel routes to that external agent.
+    If COMPILADOR_ENABLED, first tries Compilador de Intenciones for non-streaming response.
     """
     thread_id = thread_id or str(uuid4())
     run_id = str(uuid4())
 
+    # ─── Compilador de Intenciones path (non-streaming, sends full response) ───
+    if COMPILADOR_ENABLED and not dispatch_agent:
+        try:
+            compile_resp = await compilador_client.post(
+                "/v1/compile",
+                json={
+                    "intention": message,
+                    "source": "mobile_app_ws",
+                    "thread_id": thread_id,
+                    "model_preference": "auto",
+                },
+            )
+            if compile_resp.status_code == 200:
+                data = compile_resp.json()
+                compiled_response = data.get("response", "")
+                metadata = data.get("metadata", {})
+
+                # Send as AG-UI events via WebSocket
+                await ws.send_json({
+                    "type": "run_start",
+                    "run_id": run_id,
+                    "thread_id": thread_id,
+                    "ts": time.time(),
+                })
+                message_id = str(uuid4())
+                await ws.send_json({
+                    "type": "message_start",
+                    "message_id": message_id,
+                    "role": "assistant",
+                })
+                # Send response in chunks for smooth rendering
+                chunk_size = 50
+                for i in range(0, len(compiled_response), chunk_size):
+                    chunk = compiled_response[i:i + chunk_size]
+                    await ws.send_json({
+                        "type": "text_chunk",
+                        "message_id": message_id,
+                        "content": chunk,
+                    })
+                    await asyncio.sleep(0.015)  # 15ms between chunks for smooth UX
+
+                await ws.send_json({
+                    "type": "message_end",
+                    "message_id": message_id,
+                    "full_content": compiled_response,
+                })
+                await ws.send_json({
+                    "type": "run_end",
+                    "run_id": run_id,
+                    "thread_id": thread_id,
+                    "ts": time.time(),
+                    "via": "compilador",
+                    "model_used": metadata.get("model_used", "unknown"),
+                })
+                return  # Done — compilador handled it
+        except Exception:
+            pass  # Fall through to kernel
+
+    # ─── Kernel path (original streaming) ───
     forwarded_props = {"user_id": "alfredo", "source": "mobile_app"}
     if dispatch_agent:
         forwarded_props["dispatch_agent"] = dispatch_agent
