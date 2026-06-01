@@ -12,12 +12,13 @@ Estrategia por catastro:
   - catastro_herramientas_ai: Verifica endpoints activos
   - catastro_historial: Snapshot diario de modelos top
   - catastro_eventos: Registra el propio scan como evento
+  - ENRIQUECIMIENTO: Perplexity investiga y puebla arrays vacíos
 
 Diseño:
   - Fail-soft: cada sub-scan es independiente, si uno falla los demás continúan
-  - Budget-aware: respeta max_cost_usd del task (default $0.30)
+  - Budget-aware: respeta max_cost_usd del task (default $0.50)
   - Observabilidad: emite structlog para cada sub-scan
-  - No requiere LLM: puro data fetching + SQL updates
+  - Enriquecimiento: usa Perplexity (SONAR_API_KEY) como fuente de verdad en tiempo real
 """
 
 from __future__ import annotations
@@ -32,6 +33,10 @@ import structlog
 import httpx
 
 logger = structlog.get_logger("vanguard_scan")
+
+# Max entries to enrich per scan cycle (budget control)
+MAX_ENRICH_PER_CYCLE = 10
+PERPLEXITY_MODEL = "sonar-pro"
 
 
 async def run_vanguard_scan(**kwargs: Any) -> dict[str, Any]:
@@ -91,7 +96,14 @@ async def run_vanguard_scan(**kwargs: Any) -> dict[str, Any]:
         logger.warning("vanguard_scan_historial_fail", error=str(exc))
         results["historial"] = {"status": "error", "error": str(exc)}
 
-    # Sub-scan 8: Register scan event
+    # Sub-scan 8: AUTO-ENRIQUECIMIENTO via Perplexity
+    try:
+        results["enriquecimiento"] = await _enrich_empty_arrays()
+    except Exception as exc:
+        logger.warning("vanguard_scan_enrich_fail", error=str(exc))
+        results["enriquecimiento"] = {"status": "error", "error": str(exc)}
+
+    # Sub-scan 9: Register scan event
     try:
         results["evento"] = await _register_scan_event(started, results)
     except Exception as exc:
@@ -105,6 +117,11 @@ async def run_vanguard_scan(**kwargs: Any) -> dict[str, Any]:
         results_summary={k: v.get("status", "unknown") for k, v in results.items()},
     )
     return results
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# INFRASTRUCTURE
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 def _get_db_url() -> str | None:
@@ -132,6 +149,302 @@ async def _exec_sql(query: str, params: tuple = ()) -> list[dict]:
                 return [dict(zip(cols, row)) for row in cur.fetchall()]
             conn.commit()
             return []
+
+
+async def _query_perplexity(prompt: str) -> str | None:
+    """
+    Query Perplexity Sonar Pro for real-time research.
+    Returns the text response or None on failure.
+    """
+    api_key = os.environ.get("SONAR_API_KEY")
+    if not api_key:
+        logger.warning("vanguard_enrich: SONAR_API_KEY not set")
+        return None
+
+    async with httpx.AsyncClient(timeout=60) as client:
+        resp = await client.post(
+            "https://api.perplexity.ai/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json={
+                "model": PERPLEXITY_MODEL,
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": (
+                            "Eres un investigador de IA que responde SOLO en JSON válido. "
+                            "No uses markdown, no uses backticks, no uses explicaciones. "
+                            "Solo devuelve el JSON solicitado."
+                        ),
+                    },
+                    {"role": "user", "content": prompt},
+                ],
+                "temperature": 0.1,
+            },
+        )
+        if resp.status_code != 200:
+            logger.warning("perplexity_error", status=resp.status_code, body=resp.text[:200])
+            return None
+
+        data = resp.json()
+        return data.get("choices", [{}])[0].get("message", {}).get("content")
+
+
+def _parse_json_response(text: str | None) -> dict | None:
+    """Safely parse JSON from Perplexity response."""
+    if not text:
+        return None
+    # Strip markdown code fences if present
+    text = text.strip()
+    if text.startswith("```"):
+        text = text.split("\n", 1)[-1]
+    if text.endswith("```"):
+        text = text.rsplit("```", 1)[0]
+    text = text.strip()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        logger.warning("perplexity_json_parse_fail", text=text[:200])
+        return None
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# AUTO-ENRICHMENT ENGINE (Perplexity-powered)
+# ─────────────────────────────────────────────────────────────────────────────
+
+
+async def _enrich_empty_arrays() -> dict[str, Any]:
+    """
+    Find entries with empty arrays across all catastros and enrich them
+    using Perplexity real-time research. Processes MAX_ENRICH_PER_CYCLE per run.
+    """
+    api_key = os.environ.get("SONAR_API_KEY")
+    if not api_key:
+        return {"status": "skipped", "reason": "no_sonar_api_key"}
+
+    enriched_total = 0
+    details = {}
+
+    # Enrich catastro_modelos
+    enriched_modelos = await _enrich_modelos()
+    details["modelos"] = enriched_modelos
+    enriched_total += enriched_modelos.get("enriched", 0)
+
+    # Enrich catastro_agentes
+    enriched_agentes = await _enrich_agentes()
+    details["agentes"] = enriched_agentes
+    enriched_total += enriched_agentes.get("enriched", 0)
+
+    # Enrich catastro_vision_generativa
+    enriched_vision = await _enrich_vision()
+    details["vision"] = enriched_vision
+    enriched_total += enriched_vision.get("enriched", 0)
+
+    return {"status": "ok", "total_enriched": enriched_total, "details": details}
+
+
+async def _enrich_modelos() -> dict[str, Any]:
+    """Enrich catastro_modelos entries with empty arrays."""
+    sql = """
+    SELECT id, nombre, proveedor, dominios, quality_score, cost_efficiency
+    FROM catastro_modelos
+    WHERE (fortalezas = '{}' OR subcapacidades = '{}' OR debilidades = '{}')
+      AND estado != 'deprecated'
+    ORDER BY trono_global DESC NULLS LAST
+    LIMIT %s;
+    """
+    # Use a safe limit per cycle
+    limit = min(MAX_ENRICH_PER_CYCLE, 5)
+    rows = await _exec_sql(sql.replace("%s", str(limit)))
+    if not rows:
+        return {"enriched": 0, "reason": "no_empty_entries"}
+
+    enriched = 0
+    for row in rows:
+        nombre = row["nombre"]
+        proveedor = row["proveedor"]
+        dominios = row.get("dominios", [])
+
+        prompt = (
+            f"Investiga el modelo de IA '{nombre}' de {proveedor} (dominios: {dominios}). "
+            f"Devuelve un JSON con exactamente estas 5 llaves, cada una un array de 3-5 strings en español:\n"
+            f'{{"fortalezas": ["..."], "debilidades": ["..."], "limitaciones": ["..."], '
+            f'"subcapacidades": ["..."], "casos_uso_recomendados_monstruo": ["..."]}}\n\n'
+            f"Para 'casos_uso_recomendados_monstruo', piensa en cómo un ecosistema de IAs autónomas "
+            f"(El Monstruo) usaría este modelo: orquestación, investigación, coding, análisis, etc.\n"
+            f"Para 'subcapacidades', lista capacidades específicas (ej: 'tool calling', 'vision', 'code generation').\n"
+            f"Responde SOLO el JSON, sin explicaciones."
+        )
+
+        result = await _query_perplexity(prompt)
+        parsed = _parse_json_response(result)
+        if not parsed:
+            continue
+
+        # Validate and build UPDATE
+        fields_to_update = []
+        for field in ["fortalezas", "debilidades", "limitaciones", "subcapacidades", "casos_uso_recomendados_monstruo"]:
+            val = parsed.get(field)
+            if isinstance(val, list) and len(val) >= 2:
+                # Escape single quotes in values
+                escaped = [v.replace("'", "''") for v in val if isinstance(v, str)]
+                array_literal = "ARRAY[" + ", ".join(f"'{v}'" for v in escaped) + "]"
+                fields_to_update.append(f"{field} = {array_literal}")
+
+        if not fields_to_update:
+            continue
+
+        update_sql = f"""
+        UPDATE catastro_modelos
+        SET {', '.join(fields_to_update)},
+            updated_at = now(),
+            proxima_revalidacion = now() + interval '30 days'
+        WHERE id = '{row["id"]}';
+        """
+        try:
+            await _exec_sql(update_sql)
+            enriched += 1
+            logger.info("vanguard_enrich_modelo", nombre=nombre, fields=len(fields_to_update))
+        except Exception as exc:
+            logger.warning("vanguard_enrich_modelo_fail", nombre=nombre, error=str(exc))
+
+    return {"enriched": enriched, "attempted": len(rows)}
+
+
+async def _enrich_agentes() -> dict[str, Any]:
+    """Enrich catastro_agentes entries with empty arrays."""
+    sql = f"""
+    SELECT id, nombre, proveedor, dominio, capacidad_principal
+    FROM catastro_agentes
+    WHERE (tools_nativas = '{{}}' OR debilidades = '{{}}' OR limitaciones = '{{}}')
+      AND estado != 'deprecated'
+    ORDER BY trono_dominio DESC NULLS LAST
+    LIMIT {min(MAX_ENRICH_PER_CYCLE, 5)};
+    """
+    rows = await _exec_sql(sql)
+    if not rows:
+        return {"enriched": 0, "reason": "no_empty_entries"}
+
+    enriched = 0
+    for row in rows:
+        nombre = row["nombre"]
+        proveedor = row["proveedor"]
+        dominio = row.get("dominio", "")
+        capacidad = row.get("capacidad_principal", "")
+
+        prompt = (
+            f"Investiga el agente/herramienta de IA '{nombre}' de {proveedor} "
+            f"(dominio: {dominio}, capacidad principal: {capacidad}). "
+            f"Devuelve un JSON con exactamente estas 6 llaves, cada una un array de 3-5 strings en español:\n"
+            f'{{"tools_nativas": ["..."], "fortalezas": ["..."], "debilidades": ["..."], '
+            f'"limitaciones": ["..."], "subcapacidades": ["..."], "casos_de_uso_primarios": ["..."]}}\n\n'
+            f"Para 'tools_nativas', lista las herramientas/funciones que este agente puede ejecutar "
+            f"(ej: 'web browsing', 'code execution', 'file management', 'API calls').\n"
+            f"Responde SOLO el JSON, sin explicaciones."
+        )
+
+        result = await _query_perplexity(prompt)
+        parsed = _parse_json_response(result)
+        if not parsed:
+            continue
+
+        fields_to_update = []
+        for field in ["tools_nativas", "fortalezas", "debilidades", "limitaciones", "subcapacidades", "casos_de_uso_primarios"]:
+            val = parsed.get(field)
+            if isinstance(val, list) and len(val) >= 2:
+                escaped = [v.replace("'", "''") for v in val if isinstance(v, str)]
+                array_literal = "ARRAY[" + ", ".join(f"'{v}'" for v in escaped) + "]"
+                fields_to_update.append(f"{field} = {array_literal}")
+
+        if not fields_to_update:
+            continue
+
+        update_sql = f"""
+        UPDATE catastro_agentes
+        SET {', '.join(fields_to_update)},
+            updated_at = now(),
+            proxima_revalidacion = now() + interval '30 days'
+        WHERE id = '{row["id"]}';
+        """
+        try:
+            await _exec_sql(update_sql)
+            enriched += 1
+            logger.info("vanguard_enrich_agente", nombre=nombre, fields=len(fields_to_update))
+        except Exception as exc:
+            logger.warning("vanguard_enrich_agente_fail", nombre=nombre, error=str(exc))
+
+    return {"enriched": enriched, "attempted": len(rows)}
+
+
+async def _enrich_vision() -> dict[str, Any]:
+    """Enrich catastro_vision_generativa entries with empty arrays."""
+    sql = f"""
+    SELECT id, nombre, proveedor, subdominio_primario
+    FROM catastro_vision_generativa
+    WHERE (modalidad_input = '{{}}' OR modalidad_output = '{{}}')
+      AND estado != 'deprecated'
+    ORDER BY updated_at ASC
+    LIMIT {min(MAX_ENRICH_PER_CYCLE, 5)};
+    """
+    rows = await _exec_sql(sql)
+    if not rows:
+        return {"enriched": 0, "reason": "no_empty_entries"}
+
+    enriched = 0
+    for row in rows:
+        nombre = row["nombre"]
+        proveedor = row["proveedor"]
+        subdominio = row.get("subdominio_primario", "")
+
+        prompt = (
+            f"Investiga la herramienta de visión/generación '{nombre}' de {proveedor} "
+            f"(subdominio: {subdominio}). "
+            f"Devuelve un JSON con exactamente estas 3 llaves, cada una un array de 2-5 strings en español:\n"
+            f'{{"modalidad_input": ["..."], "modalidad_output": ["..."], "subdominios_secundarios": ["..."]}}\n\n'
+            f"Para 'modalidad_input', lista qué tipos de entrada acepta (ej: 'texto', 'imagen', 'video', 'audio', 'sketch').\n"
+            f"Para 'modalidad_output', lista qué genera (ej: 'imagen', 'video', '3D', 'animación').\n"
+            f"Para 'subdominios_secundarios', lista otros dominios donde se usa además del principal.\n"
+            f"Responde SOLO el JSON, sin explicaciones."
+        )
+
+        result = await _query_perplexity(prompt)
+        parsed = _parse_json_response(result)
+        if not parsed:
+            continue
+
+        fields_to_update = []
+        for field in ["modalidad_input", "modalidad_output", "subdominios_secundarios"]:
+            val = parsed.get(field)
+            if isinstance(val, list) and len(val) >= 2:
+                escaped = [v.replace("'", "''") for v in val if isinstance(v, str)]
+                array_literal = "ARRAY[" + ", ".join(f"'{v}'" for v in escaped) + "]"
+                fields_to_update.append(f"{field} = {array_literal}")
+
+        if not fields_to_update:
+            continue
+
+        update_sql = f"""
+        UPDATE catastro_vision_generativa
+        SET {', '.join(fields_to_update)},
+            updated_at = now(),
+            proxima_revalidacion = now() + interval '30 days'
+        WHERE id = '{row["id"]}';
+        """
+        try:
+            await _exec_sql(update_sql)
+            enriched += 1
+            logger.info("vanguard_enrich_vision", nombre=nombre, fields=len(fields_to_update))
+        except Exception as exc:
+            logger.warning("vanguard_enrich_vision_fail", nombre=nombre, error=str(exc))
+
+    return {"enriched": enriched, "attempted": len(rows)}
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# EXISTING SUB-SCANS (unchanged)
+# ─────────────────────────────────────────────────────────────────────────────
 
 
 async def _scan_repos() -> dict[str, Any]:
