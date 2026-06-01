@@ -39,6 +39,11 @@ from kernel.utils.keyword_matcher import compile_keyword_pattern, match_any_keyw
 
 logger = structlog.get_logger("kernel.external_agents")
 
+# ── Orquestador de Ejecutores (Sprint 92) ─────────────────────────────────────
+ORQUESTADOR_URL = os.environ.get("ORQUESTADOR_URL", "")
+_ORQUESTADOR_TIMEOUT = 90.0  # seconds
+
+
 
 # ── Sprint 84.7: Patterns precompilados con word boundaries ───────────────────
 # Reemplaza el anti-pattern `any(kw in msg for kw in markers)` que causaba
@@ -263,6 +268,53 @@ def auto_select_agent(
 # ── Agent Execution ───────────────────────────────────────────────────────────
 
 
+
+async def _delegate_to_orquestador(
+    message: str,
+    context: str = "",
+    system_prompt: str = "",
+) -> Optional[AgentResponse]:
+    """
+    Delegate execution to the Orquestador de Ejecutores.
+    Returns AgentResponse on success, None on failure (triggers local fallback).
+    """
+    if not ORQUESTADOR_URL:
+        return None
+    
+    try:
+        async with httpx.AsyncClient(timeout=_ORQUESTADOR_TIMEOUT) as client:
+            resp = await client.post(
+                f"{ORQUESTADOR_URL}/v1/execute",
+                json={
+                    "task": message,
+                    "context": context,
+                    "system_prompt": system_prompt,
+                    "task_type": "",  # let orquestador classify
+                },
+            )
+            if resp.status_code != 200:
+                logger.warning("orquestador_http_error", status=resp.status_code)
+                return None
+            
+            data = resp.json()
+            if data.get("status") != "success":
+                logger.warning("orquestador_task_failed", error=data.get("error"))
+                return None
+            
+            return AgentResponse(
+                agent_id=data.get("executor_used", "orquestador"),
+                agent_name=f"orquestador→{data.get('executor_used', '?')}",
+                content=data.get("content", ""),
+                model_used=data.get("model_used", ""),
+                latency_ms=data.get("latency_ms", 0),
+                success=True,
+                error=None,
+                sources=data.get("sources", []),
+            )
+    except Exception as e:
+        logger.warning("orquestador_unreachable", error=str(e))
+        return None
+
 async def execute_agent(
     agent_id: ExternalAgent,
     message: str,
@@ -283,10 +335,15 @@ async def execute_agent(
     Returns:
         AgentResponse with the agent's output
     """
-    # Auto-select if needed
+    # Auto-select: delegate to Orquestador if available (Sprint 92)
     if agent_id == ExternalAgent.AUTO:
+        orq_result = await _delegate_to_orquestador(message, context, system_prompt)
+        if orq_result is not None:
+            logger.info("orquestador_delegated", agent=orq_result.agent_id, latency=round(orq_result.latency_ms))
+            return orq_result
+        # Fallback to local heuristics if orquestador unavailable
         agent_id = auto_select_agent(message)
-        logger.info("agent_auto_selected", agent=agent_id.value)
+        logger.info("agent_auto_selected_local_fallback", agent=agent_id.value)
 
     profile = AGENT_PROFILES.get(agent_id)
     if not profile:
