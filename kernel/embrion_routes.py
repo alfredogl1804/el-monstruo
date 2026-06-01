@@ -1401,6 +1401,18 @@ async def telegram_webhook(request: Request):
                     tipo_comando=result.tipo_comando,
                     intent_class=result.intent_class,
                 )
+                # ── ROTOR WIRING: TelegramCapturer (Sprint ROTOR-001) ──
+                try:
+                    from kernel.rotor.rotor_wiring import rotor_capture_telegram  # noqa: PLC0415
+                    rotor_capture_telegram(
+                        chat_id=msg_chat_id,
+                        message_id=int(message_update.get("message_id", 0)),
+                        text=msg_text,
+                        from_username=msg_from.get("username", ""),
+                    )
+                except Exception:  # noqa: BLE001
+                    pass  # fail-soft: never block webhook response
+                # ── /ROTOR WIRING ──
                 return {
                     "ok": True,
                     "enqueued": result.created,
@@ -1574,3 +1586,157 @@ async def telegram_webhook(request: Request):
         "proposal_id": proposal_id,
         "success": success,
     }
+
+
+
+# ══════════════════════════════════════════════════════════════════════
+# ROTOR WIRING: GitHub Push Webhook (Sprint ROTOR-001)
+# ══════════════════════════════════════════════════════════════════════
+
+
+@router.post("/webhooks/github_push", tags=["rotor"])
+async def github_push_webhook(request: Request):
+    """
+    Receive GitHub push webhook events and feed them to the Rotor.
+    Configure in GitHub repo Settings → Webhooks:
+      URL: https://el-monstruo-kernel-production.up.railway.app/webhooks/github_push
+      Content type: application/json
+      Secret: (use GITHUB_WEBHOOK_SECRET env var)
+      Events: Just the push event
+    """
+    import hashlib  # noqa: PLC0415
+    import hmac  # noqa: PLC0415
+    import os  # noqa: PLC0415
+
+    # 1) Verify signature (X-Hub-Signature-256)
+    secret = os.environ.get("GITHUB_WEBHOOK_SECRET", "").strip()
+    if secret:
+        sig_header = request.headers.get("X-Hub-Signature-256", "")
+        body_bytes = await request.body()
+        expected_sig = "sha256=" + hmac.HMAC(
+            secret.encode(), body_bytes, hashlib.sha256
+        ).hexdigest()
+        if not hmac.compare_digest(sig_header, expected_sig):
+            logger.warning("github_push_webhook_signature_mismatch")
+            raise HTTPException(401, "Invalid signature")
+        payload = __import__("json").loads(body_bytes)
+    else:
+        # No secret configured — accept but log warning
+        logger.warning("github_push_webhook_no_secret_configured")
+        try:
+            payload = await request.json()
+        except Exception as e:
+            raise HTTPException(400, f"Bad JSON: {e}")
+
+    # 2) Extract push info
+    ref = payload.get("ref", "")
+    commits = payload.get("commits", [])
+    repo_name = (payload.get("repository") or {}).get("full_name", "")
+    pusher = (payload.get("pusher") or {}).get("name", "unknown")
+
+    captured_count = 0
+    try:
+        from kernel.rotor.rotor_wiring import rotor_capture_github  # noqa: PLC0415
+
+        for commit in commits:
+            sha = commit.get("id", "")[:40]
+            files_changed = len(commit.get("added", [])) + len(commit.get("modified", [])) + len(commit.get("removed", []))
+            rotor_capture_github(
+                repo=repo_name,
+                ref=ref,
+                sha=sha,
+                actor=commit.get("author", {}).get("username", pusher),
+                merged_to_main=ref.endswith("/main"),
+                files_changed=files_changed,
+            )
+            captured_count += 1
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("github_push_webhook_capture_fail", error=str(exc))
+
+    logger.info(
+        "github_push_webhook_processed",
+        repo=repo_name,
+        ref=ref,
+        commits_count=len(commits),
+        captured=captured_count,
+    )
+    return {"ok": True, "captured": captured_count}
+
+
+# ══════════════════════════════════════════════════════════════════════
+# ROTOR WIRING: Supabase Audit Log Polling (Sprint ROTOR-001)
+# ══════════════════════════════════════════════════════════════════════
+
+# Cursor incremental para el polling
+_supabase_rotor_cursor: dict = {"last_id": None}
+
+
+async def rotor_poll_supabase_audit_log() -> int:
+    """
+    Polling worker: lee kernel_audit_log filas nuevas y las captura al Rotor.
+    Llamado por el scheduler cada 60 segundos.
+    Returns: número de filas capturadas.
+    """
+    import os  # noqa: PLC0415
+
+    try:
+        import psycopg  # noqa: PLC0415
+    except ImportError:
+        logger.warning("rotor_poll_supabase: psycopg not installed")
+        return 0
+
+    db_url = os.environ.get("SUPABASE_DB_URL") or os.environ.get("DATABASE_URL")
+    if not db_url:
+        return 0
+
+    try:
+        from kernel.rotor.rotor_wiring import rotor_capture_supabase  # noqa: PLC0415
+
+        # Query incremental: filas nuevas desde el último cursor
+        if _supabase_rotor_cursor["last_id"]:
+            sql = """
+                SELECT id, actor, table_name, query_type, query_text, rows_affected, duration_ms
+                FROM public.kernel_audit_log
+                WHERE id > %s
+                ORDER BY id ASC
+                LIMIT 100
+            """
+            params = (_supabase_rotor_cursor["last_id"],)
+        else:
+            # Primera ejecución: solo las últimas 50 filas para no saturar
+            sql = """
+                SELECT id, actor, table_name, query_type, query_text, rows_affected, duration_ms
+                FROM public.kernel_audit_log
+                ORDER BY id DESC
+                LIMIT 50
+            """
+            params = ()
+
+        captured = 0
+        with psycopg.connect(db_url, autocommit=True) as conn:
+            with conn.cursor() as cur:
+                cur.execute(sql, params)
+                rows = cur.fetchall()
+                if not _supabase_rotor_cursor["last_id"]:
+                    rows = list(reversed(rows))  # Oldest first for initial batch
+
+                for row in rows:
+                    row_id, actor, table_name, query_type, query_text, rows_affected, duration_ms = row
+                    rotor_capture_supabase(
+                        actor=actor or "kernel",
+                        table_name=table_name or "",
+                        query_type=query_type or "UNKNOWN",
+                        query_text=(query_text or "")[:200],
+                        rows_affected=rows_affected or 0,
+                        duration_ms=duration_ms or 0,
+                    )
+                    _supabase_rotor_cursor["last_id"] = row_id
+                    captured += 1
+
+        if captured > 0:
+            logger.info("rotor_poll_supabase_captured", count=captured)
+        return captured
+
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("rotor_poll_supabase_fail", error=str(exc))
+        return 0

@@ -562,12 +562,26 @@ class EmbrionLoop:
         while self._running:
             try:
                 self._cycle_count += 1
+                self._cycle_start_ts = time.time()  # ROTOR: track cycle duration
                 self._reset_daily_counters_if_needed()
 
                 try:
                     await asyncio.wait_for(self._check_and_think(), timeout=_THINK_TIMEOUT)
                 except asyncio.TimeoutError:
                     logger.warning("embrion_check_and_think_timeout", cycle=self._cycle_count, timeout=_THINK_TIMEOUT)
+
+                # ── ROTOR WIRING: LatidoCapturer (Sprint ROTOR-001) ──
+                try:
+                    from kernel.rotor.rotor_wiring import rotor_capture_latido  # noqa: PLC0415
+                    _latido_status = "success" if not isinstance(getattr(self, '_last_think_error', None), Exception) else "aborted"
+                    rotor_capture_latido(
+                        cycle_id=self._cycle_count,
+                        status=_latido_status,
+                        duration_ms=int((time.time() - (getattr(self, '_cycle_start_ts', time.time()))) * 1000),
+                    )
+                except Exception as _rotor_exc:  # noqa: BLE001
+                    logger.warning("rotor_latido_hook_fail", error=str(_rotor_exc))
+                # ── /ROTOR WIRING ──
 
                 # Sprint 34: Memory consolidation check
                 self._latidos_since_consolidation += 1

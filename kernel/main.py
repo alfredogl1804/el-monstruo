@@ -855,6 +855,31 @@ async def lifespan(app: FastAPI):
             )
         # ── /Sprint ROTOR-001 ───────────────────────────────────────────
 
+        # ── Sprint ROTOR-001: Supabase Audit Log Polling ──────────────────────
+        try:
+            from kernel.embrion_routes import rotor_poll_supabase_audit_log  # noqa: PLC0415
+
+            async def _rotor_supabase_poll_handler(context=None):
+                """Wrapper para el scheduler."""
+                return await rotor_poll_supabase_audit_log()
+
+            embrion_scheduler.register_handler(
+                "rotor_poll_supabase",
+                _rotor_supabase_poll_handler,
+            )
+            logger.info(
+                "rotor_supabase_poll_handler_registered",
+                handler="rotor_poll_supabase_audit_log",
+                schedule="periodic every 60s",
+                sprint="ROTOR-001",
+            )
+        except Exception as _rotor_sb_err:
+            logger.warning(
+                "rotor_supabase_poll_handler_register_failed",
+                error=str(_rotor_sb_err),
+            )
+        # ── /Sprint ROTOR-001 Supabase Polling ───────────────────────────────
+
         # ── SMS REM Cycle (Obj #15 Memoria Soberana) ─────────────────────────────
         try:
             from kernel.memory.sms_rem_cycle import run_sms_rem_cycle

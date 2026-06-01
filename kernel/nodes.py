@@ -1703,6 +1703,35 @@ async def respond(state: MonstruoState, config: RunnableConfig) -> dict[str, Any
                 },
             )
 
+    # ── ROTOR WIRING: Manus/Cowork Capturer (Sprint ROTOR-001) ──
+    try:
+        _rotor_channel = state.get("channel", "api")
+        _run_id = state.get("run_id", "")
+        _completed_at = datetime.now(timezone.utc).isoformat()
+        if "manus" in _rotor_channel.lower():
+            from kernel.rotor.rotor_wiring import rotor_capture_manus  # noqa: PLC0415
+            rotor_capture_manus(
+                memoria_id=_run_id,
+                tipo="session_completed",
+                contenido=final_response[:200] if final_response else "",
+                hilo_origen=_rotor_channel,
+                importancia=7,
+                created_at=_completed_at,
+            )
+        elif "cowork" in _rotor_channel.lower():
+            from kernel.rotor.rotor_wiring import rotor_capture_cowork  # noqa: PLC0415
+            rotor_capture_cowork(
+                session_id=_run_id,
+                started_at=state.get("started_at", ""),
+                ended_at=_completed_at,
+                duration_seconds=int(state.get("latency_ms", 0) / 1000),
+                actor=_rotor_channel,
+                decisiones_count=1,
+            )
+    except Exception:  # noqa: BLE001
+        pass  # fail-soft: never block respond()
+    # ── /ROTOR WIRING ──
+
     return {
         "final_response": final_response,
         "response_channel": state.get("channel", "api"),

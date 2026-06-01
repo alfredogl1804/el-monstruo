@@ -832,7 +832,21 @@ def register_default_tasks(scheduler: EmbrionScheduler) -> None:
         )
     )
 
-    # 9. SMS REM Cycle — Obj #15: Memoria Soberana
+    # 9. Rotor Supabase Polling — Sprint ROTOR-001
+    # Polls kernel_audit_log every 60s and feeds SupabaseCapturer
+    scheduler.add_task(
+        ScheduledTask(
+            name="rotor_poll_supabase",
+            description="Poll kernel_audit_log for Rotor SupabaseCapturer (Sprint ROTOR-001)",
+            embrion_id="embrion-0",
+            schedule_type="periodic",
+            interval_hours=1.0 / 60.0,  # 1 minuto
+            max_cost_usd=0.01,
+            handler="rotor_poll_supabase",
+        )
+    )
+
+    # 10. SMS REM Cycle — Obj #15: Memoria Soberana
     # Sovereign Memory System nightly consolidation:
     #   - Ebbinghaus decay on stale memories
     #   - Promote validated insights to axioms (crystallization)
@@ -1097,6 +1111,21 @@ async def _stub_handler_sms_rem_cycle(**kwargs: Any) -> dict[str, Any]:
     }
 
 
+async def _stub_handler_rotor_poll_supabase(**kwargs: Any) -> dict[str, Any]:
+    """
+    Stub del handler Rotor Supabase Polling (Sprint ROTOR-001).
+
+    Este stub se mantiene SOLO como fallback defensivo. El handler real
+    `rotor_poll_supabase_audit_log` de `kernel.embrion_routes` se registra en
+    `kernel/main.py` durante el boot del kernel y SOBREESCRIBE este stub.
+    """
+    logger.warning(
+        "rotor_poll_supabase_stub_executed",
+        note="Real handler not registered. Check kernel/main.py imports.",
+    )
+    return {"degraded": True, "reason": "real_handler_not_registered", "captured": 0}
+
+
 def register_stub_handlers(scheduler: EmbrionScheduler) -> None:
     """
     Registrar handlers stub para las 5 tareas default.
@@ -1127,11 +1156,14 @@ def register_stub_handlers(scheduler: EmbrionScheduler) -> None:
     # recharge_mainspring_handler de kernel.rotor.recharge para evitar
     # dependencia circular scheduler -> rotor -> embrion_budget).
     scheduler.register_handler("recharge_mainspring", _stub_handler_recharge_mainspring)
+    # Sprint ROTOR-001: Supabase Audit Log Polling
+    # Handler REAL se registra en kernel/main.py.
+    scheduler.register_handler("rotor_poll_supabase", _stub_handler_rotor_poll_supabase)
     # SMS REM Cycle — Obj #15: Memoria Soberana
     # Handler REAL se registra en kernel/main.py (importa
     # run_sms_rem_cycle de kernel.memory.sms_rem_cycle).
     scheduler.register_handler("run_sms_rem_cycle", _stub_handler_sms_rem_cycle)
-    logger.info("scheduler_stub_handlers_registered", count=9)
+    logger.info("scheduler_stub_handlers_registered", count=10)
 
 
 # ── Singleton global ──────────────────────────────────────────────────────────
