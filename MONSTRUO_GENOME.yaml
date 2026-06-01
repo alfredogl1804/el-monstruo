@@ -6,7 +6,7 @@
 # ╚══════════════════════════════════════════════════════════════════╝
 
 meta:
-  generated_at: 2026-06-01T08:35:24Z
+  generated_at: 2026-06-01T09:15:11Z
   generator: scripts/genome_generator.py
   version: 2.0.0
   repo: alfredogl1804/el-monstruo
@@ -138,7 +138,7 @@ production:
     custom_rpcs: 328
 
 kernel:
-  total_python_files: 308
+  total_python_files: 309
   entry_point: kernel/main.py
   framework: FastAPI + LangGraph
   modules:
@@ -247,7 +247,7 @@ kernel:
         files: 2
       - id: rotor
         path: kernel/rotor/
-        files: 10
+        files: 11
       - id: runner
         path: kernel/runner/
         files: 4
