@@ -52,13 +52,50 @@ logger = logging.getLogger("monstruo.dory_orchestrator")
 # ═══════════════════════════════════════════════════════════════════════════════
 
 
+# Sprint WIRING-002: Cache for DB flag check (avoid hitting DB on every call)
+_db_flag_cache: dict[str, Any] = {"value": None, "checked_at": 0.0}
+
+
 def _is_enabled() -> bool:
-    """Read feature flag fresh from env (anti-Dory discipline: no boot-time cache)."""
+    """Read feature flag fresh from env or Supabase runtime_flags.
+
+    Priority:
+      1. DORY_ORCHESTRATOR_ENABLED env var
+      2. ANTI_DORY_B8_V3_ENABLED env var
+      3. anti_dory_runtime_flags.shadow_write_enabled in Supabase (cached 5 min)
+    """
     flag = os.environ.get("DORY_ORCHESTRATOR_ENABLED", "").lower()
     if flag in ("true", "1", "yes"):
         return True
-    # Fallback: inherit from B8 v3 flag
-    return os.environ.get("ANTI_DORY_B8_V3_ENABLED", "").lower() in ("true", "1", "yes")
+    # Fallback 1: inherit from B8 v3 flag
+    if os.environ.get("ANTI_DORY_B8_V3_ENABLED", "").lower() in ("true", "1", "yes"):
+        return True
+    # Fallback 2: check Supabase runtime_flags (cached 5 min)
+    now = time.time()
+    if _db_flag_cache["value"] is not None and (now - _db_flag_cache["checked_at"]) < 300:
+        return _db_flag_cache["value"]
+    try:
+        import httpx
+        url = os.environ.get("SUPABASE_URL", "")
+        key = os.environ.get("SUPABASE_SERVICE_KEY", "") or os.environ.get("SUPABASE_ANON_KEY", "")
+        if url and key:
+            resp = httpx.get(
+                f"{url}/rest/v1/anti_dory_runtime_flags?singleton_lock=eq.anti_dory_singleton&select=shadow_write_enabled",
+                headers={"apikey": key, "Authorization": f"Bearer {key}"},
+                timeout=5.0,
+            )
+            if resp.status_code == 200:
+                rows = resp.json()
+                if rows and isinstance(rows, list):
+                    val = bool(rows[0].get("shadow_write_enabled", False))
+                    _db_flag_cache["value"] = val
+                    _db_flag_cache["checked_at"] = now
+                    return val
+    except Exception:
+        pass
+    _db_flag_cache["value"] = False
+    _db_flag_cache["checked_at"] = now
+    return False
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
